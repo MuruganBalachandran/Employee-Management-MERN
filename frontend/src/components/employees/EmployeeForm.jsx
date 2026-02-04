@@ -17,7 +17,12 @@ import {
 // endregion
 
 // region EmployeeForm component
-const EmployeeForm = ({ initialData = {}, onSubmit = () => {},hideCredentials = false  }) => {
+const EmployeeForm = ({
+  initialData = {},
+  onSubmit = () => {},
+  hideCredentials = false,
+}) => {
+  // hooks
   const dispatch = useDispatch();
   const isEdit = !!initialData?._id;
 
@@ -45,7 +50,7 @@ const EmployeeForm = ({ initialData = {}, onSubmit = () => {},hideCredentials = 
     if (initialData?._id) {
       setForm({
         name: initialData?.Name || "",
-        email: initialData?.Email || "", // Note: Email might be in root or userRef depending on population
+        email: initialData?.Email || "",
         password: "",
         confirmPassword: "",
         department: initialData?.Department || "",
@@ -105,8 +110,11 @@ const EmployeeForm = ({ initialData = {}, onSubmit = () => {},hideCredentials = 
       setForm((prev) => ({ ...prev, [field]: value }));
       setErrors((prev) => {
         const next = { ...prev };
-        if (fieldError) next[field] = fieldError;
-        else delete next[field];
+        if (fieldError) {
+          next[field] = fieldError;
+        } else {
+          delete next[field];
+        }
         return next;
       });
     }
@@ -136,14 +144,13 @@ const EmployeeForm = ({ initialData = {}, onSubmit = () => {},hideCredentials = 
       delete payload.email;
       delete payload.password;
     }
-    
+
     let validationErrors = hideCredentials
-      ? {}   // profile edit → skip employee validation
+      ? {} // profile edit → skip employee validation
       : validateEmployee(
           { ...payload, confirmPassword: form.confirmPassword },
-          isEdit
+          isEdit,
         );
-
 
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -157,108 +164,118 @@ const EmployeeForm = ({ initialData = {}, onSubmit = () => {},hideCredentials = 
 
   return (
     <form onSubmit={handleSubmit} className='card p-4 shadow-sm'>
+      {/* name */}
       <Input
         label='Name'
         placeholder='Enter employee name'
-        value={form.name}
-        onChange={(e) => handleChange("name", e.target.value)}
-        error={errors.name}
+        value={form?.name || ""}
+        onChange={(e) => handleChange("name", e?.target?.value || "")}
+        error={errors?.name || ""}
       />
-
+      {/* email */}
       <Input
         label='Email'
         type='email'
         placeholder='Enter employee email'
-        value={form.email}
-        onChange={(e) => handleChange("email", e.target.value)}
-        error={errors.email}
+        value={form?.email || ""}
+        onChange={(e) => handleChange("email", e?.target?.value || "")}
+        error={errors?.email || ""}
         disabled={isEdit || hideCredentials}
       />
-
+      {/* password show only when create */}
       {!isEdit && !hideCredentials && (
         <>
           <Input
             label='Password'
             type='password'
             placeholder='Set login password'
-            value={form.password}
-            onChange={(e) => handleChange("password", e.target.value)}
-            error={errors.password}
+            value={form?.password || ""}
+            onChange={(e) => handleChange("password", e?.target?.value || "")}
+            error={errors?.password || ""}
           />
-          <PasswordRules password={form.password} />
-
+          {/* password rules */}
+          <PasswordRules password={form?.password} />
+          {/* confirm password */}
           <Input
             label='Confirm Password'
             type='password'
             placeholder='Confirm password'
-            value={form.confirmPassword}
-            onChange={(e) => handleChange("confirmPassword", e.target.value)}
-            error={errors.confirmPassword}
+            value={form?.confirmPassword || ""}
+            onChange={(e) =>
+              handleChange("confirmPassword", e?.target?.value || "")
+            }
+            error={errors?.confirmPassword || ""}
           />
         </>
       )}
-
+      {/* department */}
       <Input
         label='Department'
         select
         options={[
           { value: "", label: "Select Department" },
-          ...VALID_DEPARTMENTS.map((d) => ({ value: d, label: d })),
+          ...VALID_DEPARTMENTS?.map((d) => ({ value: d, label: d })),
         ]}
-        value={form.department}
-        onChange={(e) => handleChange("department", e.target.value)}
-        error={errors.department}
+        value={form?.department || ""}
+        onChange={(e) => handleChange("department", e?.target?.value || "")}
+        error={errors?.department || ""}
       />
-
+      {/* phone */}
       <Input
         label='Phone'
         placeholder='Enter 10-digit phone number'
-        value={form.phone}
-        onChange={(e) => handleChange("phone", e.target.value)}
-        error={errors.phone}
+        value={form?.phone || ""}
+        onChange={(e) => handleChange("phone", e?.target?.value || "")}
+        error={errors?.phone || ""}
       />
-
+      {/* address line */}
       <Input
         label='Address Line 1'
         placeholder='Street address'
-        value={form.address.line1}
-        onChange={(e) => handleChange("address.line1", e.target.value)}
+        value={form?.address?.line1 || ""}
+        onChange={(e) => handleChange("address.line1", e?.target?.value || "")}
         error={errors["address.line1"]}
       />
 
       <Input
         label='Address Line 2'
         placeholder='Apartment, suite, etc.'
-        value={form.address.line2}
-        onChange={(e) => handleChange("address.line2", e.target.value)}
+        value={form?.address?.line2 || ""}
+        onChange={(e) => handleChange("address.line2", e?.target?.value || "")}
       />
-
+      {/* city */}
       <Input
         label='City'
         placeholder='City'
-        value={form.address.city}
-        onChange={(e) => handleChange("address.city", e.target.value)}
+        value={form?.address?.city || ""}
+        onChange={(e) => handleChange("address.city", e?.target?.value || "")}
         error={errors["address.city"]}
       />
-
+      {/* state */}
       <Input
         label='State'
         placeholder='State'
-        value={form.address.state}
-        onChange={(e) => handleChange("address.state", e.target.value)}
+        value={form?.address?.state || ""}
+        onChange={(e) => handleChange("address.state", e?.target?.value || "")}
         error={errors["address.state"]}
       />
-
+      {/* zip code */}
       <Input
         label='ZIP'
         placeholder='ZIP / Postal code'
-        value={form.address.zipCode}
-        onChange={(e) => handleChange("address.zipCode", e.target.value)}
+        value={form?.address?.zipCode || ""}
+        onChange={(e) =>
+          handleChange("address.zipCode", e?.target?.value || "")
+        }
         error={errors["address.zipCode"]}
       />
 
       <button type='submit' className='btn btn-primary mt-3'>
-        {hideCredentials? "Update Profile": isEdit ? "Update Employee" : "Create Employee"}
+        {hideCredentials
+          ? "Update Profile"
+          : isEdit
+            ? "Update Employee"
+            : "Create Employee"}
       </button>
     </form>
   );

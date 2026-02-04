@@ -3,14 +3,10 @@ import { createSelector } from "reselect";
 // endregion
 
 // region base selector
-const selectAuthState = (state) => state.auth;
+const selectAuthState = (state) => state?.auth;
 // endregion
 
 // region memoized selectors
-/**
- * Select user object
- * Memoized to prevent unnecessary re-renders
- */
 export const selectUser = createSelector(
     [selectAuthState],
     (auth) => auth?.user || null
@@ -27,7 +23,6 @@ export const selectUserRole = createSelector(
 
 /**
  * Check if user is authenticated
- * Memoized to prevent unnecessary re-renders
  */
 export const selectIsAuthenticated = createSelector(
     [selectAuthState],
@@ -45,7 +40,6 @@ export const selectAuthChecked = createSelector(
 
 /**
  * Select loading state
- * Memoized to prevent unnecessary re-renders
  */
 export const selectAuthLoading = createSelector(
     [selectAuthState],
@@ -54,17 +48,12 @@ export const selectAuthLoading = createSelector(
 
 /**
  * Select auth error
- * Memoized to prevent unnecessary re-renders
  */
 export const selectAuthError = createSelector(
     [selectAuthState],
     (auth) => auth?.error || null
 );
 
-/**
- * Check if user is super admin
- * Composed selector for convenience
- */
 /**
  * Check if user is super admin
  * Composed selector for convenience

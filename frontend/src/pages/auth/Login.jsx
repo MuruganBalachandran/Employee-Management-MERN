@@ -1,7 +1,7 @@
 // region imports
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import Input from "../../components/UI/Input";
 import Loader from "../../components/UI/Loader";
@@ -70,7 +70,9 @@ const Login = () => {
     }
 
     try {
-      const user = await dispatch(login({ email: email, password: password })).unwrap();
+      const user = await dispatch(
+        login({ email: email, password: password }),
+      ).unwrap();
 
       setEmail("");
       setPassword("");

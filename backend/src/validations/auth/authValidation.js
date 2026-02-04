@@ -53,29 +53,29 @@ const validateSignup = (data = {}) => {
     }
   }
 
-  // Department
-  if (department !== undefined) {
-    const deptError = validateDepartment(department);
-    if (deptError) {
-      errors.push(deptError);
-    }
-  }
+  // // Department
+  // if (department !== undefined) {
+  //   const deptError = validateDepartment(department);
+  //   if (deptError) {
+  //     errors.push(deptError);
+  //   }
+  // }
 
-  // Phone
-  if (phone !== undefined) {
-    const phoneError = validatePhone(phone);
-    if (phoneError) {
-      errors.push(phoneError);
-    }
-  }
+  // // Phone
+  // if (phone !== undefined) {
+  //   const phoneError = validatePhone(phone);
+  //   if (phoneError) {
+  //     errors.push(phoneError);
+  //   }
+  // }
 
-  // Address
-  if (address !== undefined) {
-    const addressError = validateAddress(address);
-    if (addressError) {
-      errors.push(addressError);
-    }
-  }
+  // // Address
+  // if (address !== undefined) {
+  //   const addressError = validateAddress(address);
+  //   if (addressError) {
+  //     errors.push(addressError);
+  //   }
+  // }
 
   // result
   if (errors?.length > 0) {

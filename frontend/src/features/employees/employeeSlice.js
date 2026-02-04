@@ -44,19 +44,33 @@ const initialState = {
 export const getEmployees = createAsyncThunk(
   "employees/getEmployees",
   async (
-    { page = 1, limit = 5, search = "", department = "", ignoreFilters = false } = {},
-    { rejectWithValue } = {}
+    {
+      page = 1,
+      limit = 5,
+      search = "",
+      department = "",
+      ignoreFilters = false,
+    } = {},
+    { rejectWithValue } = {},
   ) => {
     try {
-      const res = await fetchEmployees({ page, limit, search, department, ignoreFilters });
+      const res = await fetchEmployees({
+        page,
+        limit,
+        search,
+        department,
+        ignoreFilters,
+      });
       return {
         items: res?.data?.data?.employees || [],
         count: res?.data?.data?.total || 0,
       };
     } catch (err) {
-      return rejectWithValue(err?.response?.data?.message || "Failed to fetch employees");
+      return rejectWithValue(
+        err?.response?.data?.message || "Failed to fetch employees",
+      );
     }
-  }
+  },
 );
 
 // endregion
@@ -72,10 +86,10 @@ export const getEmployee = createAsyncThunk(
       return res?.data?.data || null;
     } catch (err) {
       return rejectWithValue(
-        err?.response?.data?.message || "Failed to fetch employee"
+        err?.response?.data?.message || "Failed to fetch employee",
       );
     }
-  }
+  },
 );
 // endregion
 
@@ -91,23 +105,19 @@ export const addEmployee = createAsyncThunk(
     } catch (err) {
       const backend = err?.response?.data || {};
 
-         // Validation errors
-      if (backend?.error && typeof backend.error === "object") {
+      // Validation errors
+      if (backend?.error && typeof backend?.error === "object") {
         return rejectWithValue({
-          fieldErrors: backend.error,
+          fieldErrors: backend?.error,
           message: "Validation failed",
         });
       }
 
-
       return rejectWithValue({
-        message:
-          backend?.message ||
-          err?.message ||
-          "Failed to add employee",
+        message: backend?.message || err?.message || "Failed to add employee",
       });
     }
-  }
+  },
 );
 // endregion
 
@@ -121,10 +131,10 @@ export const editEmployee = createAsyncThunk(
       return res?.data || null;
     } catch (err) {
       return rejectWithValue(
-        err?.response?.data?.message || "Failed to update employee"
+        err?.response?.data?.message || "Failed to update employee",
       );
     }
-  }
+  },
 );
 // endregion
 
@@ -138,16 +148,11 @@ export const removeEmployee = createAsyncThunk(
       return id || null;
     } catch (err) {
       return rejectWithValue(
-        err?.response?.data?.message || "Failed to delete employee"
+        err?.response?.data?.message || "Failed to delete employee",
       );
     }
-  }
+  },
 );
-// endregion
-
-
-
-
 // endregion
 
 // region slice
@@ -168,7 +173,7 @@ const employeeSlice = createSlice({
     setFilters: (state = {}, action = {}) => {
       /* Update filter state */
       state.filters = {
-        ...state.filters,
+        ...state?.filters,
         ...action?.payload,
       };
       // Reset to first page when filters change
@@ -180,9 +185,9 @@ const employeeSlice = createSlice({
     // region setPage
     setPage: (state = {}, action = {}) => {
       /* Update current page */
-      const page = action?.payload ?? 1;
+      const page = action?.payload || 1;
       state.pagination.currentPage = page;
-      state.pagination.skip = (page - 1) * state.pagination.limit;
+      state.pagination.skip = (page - 1) * state?.pagination?.limit;
     },
     // endregion
 
@@ -205,8 +210,8 @@ const employeeSlice = createSlice({
       .addCase(getEmployees?.fulfilled, (state = {}, action = {}) => {
         /* Employees fetched - normalize data */
         state.loading = false;
-        const items = action?.payload?.items ?? [];
-        const total = action?.payload?.count ?? 0;
+        const items = action?.payload?.items || [];
+        const total = action?.payload?.count || 0;
 
         // Build normalized state
         state.byId = {};
@@ -215,7 +220,7 @@ const employeeSlice = createSlice({
         items.forEach((emp) => {
           if (emp?._id) {
             state.byId[emp._id] = emp;
-            state.allIds.push(emp._id);
+            state.allIds.push(emp?._id);
           }
         });
 
@@ -225,7 +230,7 @@ const employeeSlice = createSlice({
       .addCase(getEmployees?.rejected, (state = {}, action = {}) => {
         /* Employees fetch failed */
         state.loading = false;
-        state.error = action?.payload ?? "Unknown error";
+        state.error = action?.payload || "Unknown error";
       })
       // endregion
 
@@ -236,15 +241,15 @@ const employeeSlice = createSlice({
       })
       .addCase(getEmployee?.fulfilled, (state = {}, action = {}) => {
         state.currentEmployeeLoading = false;
-        state.currentEmployee = action?.payload ?? null;
+        state.currentEmployee = action?.payload || null;
         // Also add to normalized state
         if (action?.payload?._id) {
-          state.byId[action.payload._id] = action.payload;
+          state.byId[action.payload._id] = action?.payload;
         }
       })
       .addCase(getEmployee?.rejected, (state = {}, action = {}) => {
         state.currentEmployeeLoading = false;
-        state.error = action?.payload ?? "Unknown error";
+        state.error = action?.payload || "Unknown error";
       })
       // endregion
 
@@ -255,20 +260,20 @@ const employeeSlice = createSlice({
       })
       .addCase(addEmployee?.fulfilled, (state = {}, action = {}) => {
         state.loading = false;
-        const employee = action?.payload ?? {};
+        const employee = action?.payload || {};
 
         // Add to normalized state
         if (employee?._id) {
           state.byId[employee._id] = employee;
           // Add to front of list if not already present
-          if (!state.allIds.includes(employee._id)) {
-            state.allIds.unshift(employee._id);
+          if (!state.allIds.includes(employee?._id)) {
+            state.allIds.unshift(employee?._id);
           }
         }
       })
       .addCase(addEmployee?.rejected, (state = {}, action = {}) => {
         state.loading = false;
-        state.error = action?.payload ?? "Unknown error";
+        state.error = action?.payload || "Unknown error";
       })
       // endregion
 
@@ -279,20 +284,20 @@ const employeeSlice = createSlice({
       })
       .addCase(editEmployee?.fulfilled, (state = {}, action = {}) => {
         state.loading = false;
-        const updatedEmp = action?.payload?.employee ?? action?.payload ?? null;
+        const updatedEmp = action?.payload?.employee || action?.payload || null;
 
         if (updatedEmp?._id) {
           // Update normalized state
           state.byId[updatedEmp._id] = updatedEmp;
           // Update current employee if it's the same one
-          if (state.currentEmployee?._id === updatedEmp._id) {
+          if (state.currentEmployee?._id === updatedEmp?._id) {
             state.currentEmployee = updatedEmp;
           }
         }
       })
       .addCase(editEmployee?.rejected, (state = {}, action = {}) => {
         state.loading = false;
-        state.error = action?.payload ?? "Unknown error";
+        state.error = action?.payload || "Unknown error";
       })
       // endregion
 
@@ -307,7 +312,7 @@ const employeeSlice = createSlice({
 
         // Remove from normalized state
         delete state.byId[employeeId];
-        state.allIds = state.allIds.filter((id) => id !== employeeId);
+        state.allIds = state?.allIds?.filter((id) => id !== employeeId);
 
         // Clear current employee if deleted
         if (state.currentEmployee?._id === employeeId) {
@@ -316,7 +321,7 @@ const employeeSlice = createSlice({
       })
       .addCase(removeEmployee?.rejected, (state = {}, action = {}) => {
         state.loading = false;
-        state.error = action?.payload ?? "Unknown error";
+        state.error = action?.payload || "Unknown error";
       });
     // endregion
   },
@@ -324,6 +329,7 @@ const employeeSlice = createSlice({
 // endregion
 
 // region exports
-export const { clearCurrentEmployee, setFilters, setPage, clearError } = employeeSlice?.actions || {};
+export const { clearCurrentEmployee, setFilters, setPage, clearError } =
+  employeeSlice?.actions || {};
 export default employeeSlice?.reducer;
 // endregion

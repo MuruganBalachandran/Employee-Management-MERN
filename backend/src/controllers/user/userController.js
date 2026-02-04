@@ -4,61 +4,49 @@ import {
   sendResponse,
   STATUS_CODE,
   RESPONSE_STATUS,
-} from '../../utils/index.js';
+} from "../../utils/index.js";
 
 // validation imports
-import {
-  validateUpdateProfile,
-} from '../../validations/index.js';
+import { validateUpdateProfile } from "../../validations/index.js";
 
 // query imports
-import {
-  updateUserProfile,
-  deleteUserAccount,
-} from '../../queries/index.js';
+import { updateUserProfile, deleteUserAccount } from "../../queries/index.js";
 // endregion
 
-
 // region get profile controller
-/**
- * Fetches the currently authenticated user's profile.
- */
 const getProfile = async (req = {}, res = {}) => {
   try {
     // return current authenticated user
     return sendResponse(
       res,
-      STATUS_CODE.OK,
-      RESPONSE_STATUS.SUCCESS,
-      'Profile fetched successfully',
-      { user: req.user }
+      STATUS_CODE?.OK || 200,
+      RESPONSE_STATUS?.SUCCESS || "SUCCESS",
+      "Profile fetched successfully",
+      { user: req?.user },
     );
   } catch (err) {
-    console.error('Error getting profile:', err);
+    console.error("Error getting profile:", err);
     return sendResponse(
       res,
-      STATUS_CODE.INTERNAL_SERVER_ERROR,
-      RESPONSE_STATUS.FAILURE,
-      'Error fetching profile'
+      STATUS_CODE?.INTERNAL_SERVER_ERROR || 500,
+      RESPONSE_STATUS?.FAILURE || "FAILURE",
+      "Error fetching profile",
     );
   }
 };
 // endregion
 
 // region update profile controller
-/**
- * Updates the profile of the currently authenticated user.
- */
 const updateProfile = async (req = {}, res = {}) => {
   try {
     // validate update input
-    const validation = validateUpdateProfile(req.body || {});
-    if (!validation.isValid) {
+    const validation = validateUpdateProfile(req?.body || {});
+    if (!validation?.isValid) {
       return sendResponse(
         res,
-        validation.statusCode || STATUS_CODE.BAD_REQUEST,
-        RESPONSE_STATUS.FAILURE,
-        validation.error || 'Invalid input'
+        validation?.statusCode || STATUS_CODE?.BAD_REQUEST || 400,
+        RESPONSE_STATUS.FAILURE || "FAILURE",
+        validation?.error || "Invalid input",
       );
     }
 
@@ -66,16 +54,19 @@ const updateProfile = async (req = {}, res = {}) => {
     const { name, password, age, department, phone, address } = req.body || {};
 
     // Map address from camelCase (API) to PascalCase (DB)
-    const mappedAddress = address && typeof address === 'object' ? {
-      Line1: address.line1 || address.Line1 || '',
-      Line2: address.line2 || address.Line2 || '',
-      City: address.city || address.City || '',
-      State: address.state || address.State || '',
-      ZipCode: address.zipCode || address.ZipCode || '',
-    } : address;
+    const mappedAddress =
+      address && typeof address === "object"
+        ? {
+            Line1: address?.line1 || address?.Line1 || "",
+            Line2: address?.line2 || address?.Line2 || "",
+            City: address?.city || address?.City || "",
+            State: address?.state || address?.State || "",
+            ZipCode: address?.zipCode || address?.ZipCode || "",
+          }
+        : address;
 
     // Map to PascalCase for database update
-    const updatedUser = await updateUserProfile(req.user, {
+    const updatedUser = await updateUserProfile(req?.user, {
       Name: name,
       Password: password,
       Age: age,
@@ -87,64 +78,57 @@ const updateProfile = async (req = {}, res = {}) => {
     if (!updatedUser) {
       return sendResponse(
         res,
-        STATUS_CODE.OK,
-        RESPONSE_STATUS.SUCCESS,
-        'No changes detected'
+        STATUS_CODE?.OK || 200,
+        RESPONSE_STATUS?.SUCCESS || "SUCCESS",
+        "No changes detected",
       );
     }
 
     // send success response
     return sendResponse(
       res,
-      STATUS_CODE.OK,
-      RESPONSE_STATUS.SUCCESS,
-      'Profile updated successfully',
-      updatedUser
+      STATUS_CODE?.OK || 200,
+      RESPONSE_STATUS?.SUCCESS || "SUCCESS",
+      "Profile updated successfully",
+      updatedUser,
     );
   } catch (err) {
-    console.error('Error updating profile:', err);
+    console.error("Error updating profile:", err);
     return sendResponse(
       res,
-      STATUS_CODE.INTERNAL_SERVER_ERROR,
-      RESPONSE_STATUS.FAILURE,
-      'Error updating profile'
+      STATUS_CODE?.INTERNAL_SERVER_ERROR || 500,
+      RESPONSE_STATUS?.FAILURE || "FAILURE",
+      "Error updating profile",
     );
   }
 };
 // endregion
 
 // region delete user controller
-/**
- * Handles account deletion for the current user.
- */
 const deleteAccount = async (req = {}, res = {}) => {
   try {
-    const targetUser = req.user;
+    const targetUser = req?.user;
     const deletedUser = await deleteUserAccount(targetUser);
 
     return sendResponse(
       res,
-      STATUS_CODE.OK,
-      RESPONSE_STATUS.SUCCESS,
-      'Account deleted successfully',
-      deletedUser
+      STATUS_CODE?.OK || 200,
+      RESPONSE_STATUS?.SUCCESS || "SUCCESS",
+      "Account deleted successfully",
+      deletedUser,
     );
   } catch (err) {
-    console.error('Error deleting account:', err);
+    console.error("Error deleting account:", err);
     return sendResponse(
       res,
-      STATUS_CODE.INTERNAL_SERVER_ERROR,
-      RESPONSE_STATUS.FAILURE,
-      'Error deleting account'
+      STATUS_CODE?.INTERNAL_SERVER_ERROR || 500,
+      RESPONSE_STATUS?.FAILURE || 500,
+      "Error deleting account",
     );
   }
 };
 // endregion
 
 // region exports
-export {
-  getProfile,
-  updateProfile,
-  deleteAccount,
-};
+export { getProfile, updateProfile, deleteAccount };
 // endregion

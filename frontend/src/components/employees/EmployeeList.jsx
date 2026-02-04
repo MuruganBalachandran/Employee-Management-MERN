@@ -51,8 +51,8 @@ const EmployeeList = ({ onTotalUpdate = () => {} }) => {
       }),
     )
       .unwrap()
-      .then((res) => onTotalUpdate?.(res?.count || 0))
-      .catch(() => onTotalUpdate?.(0));
+      .then((res) => onTotalUpdate(res?.count || 0))
+      .catch(() => onTotalUpdate(0));
   }, [dispatch, page, filters]);
   // endregion
 
@@ -64,12 +64,13 @@ const EmployeeList = ({ onTotalUpdate = () => {} }) => {
   // endregion
 
   // region delete
-  // region delete
   const handleDelete = async (id = "") => {
+    // acknowledge for dleete an employee
     if (!window.confirm("Are you sure you want to delete this employee?"))
       return;
 
     try {
+      // remove employee
       await dispatch(removeEmployee(id)).unwrap();
       dispatch(
         showToast({
@@ -100,7 +101,7 @@ const EmployeeList = ({ onTotalUpdate = () => {} }) => {
 
   // region handleEdit
   const handleEdit = (emp = {}) => {
-    navigate?.(`/employees/edit/${emp?._id || ""}`);
+    navigate(`/employees/edit/${emp?._id || ""}`);
   };
   // endregion
 
@@ -127,6 +128,7 @@ const EmployeeList = ({ onTotalUpdate = () => {} }) => {
       <h3>Employee List (Total: {count || 0})</h3>
 
       <table className='table table-bordered table-striped mt-3'>
+        {/* table headers */}
         <thead className='thead-dark'>
           <tr>
             <th>Name</th>
@@ -137,8 +139,10 @@ const EmployeeList = ({ onTotalUpdate = () => {} }) => {
             <th className='text-center'>Actions</th>
           </tr>
         </thead>
+
+        {/* table datas */}
         <tbody>
-          {employees?.map?.((emp = {}) => (
+          {employees?.map((emp = {}) => (
             <tr key={emp?._id || Math.random()}>
               <td>{emp?.Name || "-"}</td>
               <td>{emp?.Email || "-"}</td>
@@ -150,6 +154,8 @@ const EmployeeList = ({ onTotalUpdate = () => {} }) => {
                 {emp?.Address?.City || ""}, {emp?.Address?.State || ""} -{" "}
                 {emp?.Address?.ZipCode || ""}
               </td>
+
+              {/* action btns */}
               <td className='text-center'>
                 <div className='d-inline-flex gap-2'>
                   <button
@@ -176,7 +182,7 @@ const EmployeeList = ({ onTotalUpdate = () => {} }) => {
           ))}
         </tbody>
       </table>
-
+      {/* pagination */}
       <Pagination
         page={page || 1}
         totalPages={totalPages || 1}

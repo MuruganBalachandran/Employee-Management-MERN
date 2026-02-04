@@ -18,13 +18,16 @@ import { fetchCurrentUser, setAuthChecked } from "./features/auth/authSlice";
 const App = () => {
   const dispatch = useDispatch();
 
-  // region mounting
+  // region component mount
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    // get token from localStorage
+    const token = localStorage?.getItem("token") ?? "";
 
     if (token) {
+      // if token exists, fetch current user
       dispatch(fetchCurrentUser());
     } else {
+      // if no token, mark auth as checked
       dispatch(setAuthChecked());
     }
   }, [dispatch]);
@@ -32,11 +35,11 @@ const App = () => {
 
   return (
     <Router>
-      <div className='container-fluid p-0'>
+      <div className="container-fluid p-0">
         {/* Global toaster for notifications */}
         <Toaster />
 
-        {/* App Routes */}
+        {/* Main app routes */}
         <AppRoutes />
       </div>
     </Router>

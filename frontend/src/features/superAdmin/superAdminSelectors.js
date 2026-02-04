@@ -5,8 +5,7 @@ import { createSelector } from "reselect";
 // region base selector
 const selectSuperAdminState = (state) => state.superAdmin;
 // endregion
-
-// region memoized selectors
+// region super admin loading
 export const selectSuperAdminLoading = createSelector(
   [selectSuperAdminState],
   (state) => state?.loading || false

@@ -32,11 +32,12 @@ const Toaster = ({ duration = 3000 }) => {
   // endregion
 
   // region guard
-  if (!visible || !message) return null;
+  if (!visible || !message) {
+    return null;}
   // endregion
 
   // region styles mapping
-  const getToastConfig = (toastType) => {
+  const getToastConfig = (toastType="") => {
     switch (toastType) {
       case "success":
         return { icon: <FiCheckCircle size={20} />, bgClass: "bg-success" };
@@ -50,7 +51,7 @@ const Toaster = ({ duration = 3000 }) => {
     }
   };
 
-  const { icon, bgClass } = getToastConfig(type || "info");
+  const { icon="", bgClass="" } = getToastConfig(type || "info");
   // endregion
 
   // region render
@@ -66,10 +67,12 @@ const Toaster = ({ duration = 3000 }) => {
         aria-atomic="true"
       >
         <div className="d-flex">
+          {/* icon + message*/}
           <div className="toast-body d-flex align-items-center gap-2">
             {icon}
             <span className="fw-semibold">{message}</span>
           </div>
+          {/* button to hide */}
           <button
             type="button"
             className="btn-close btn-close-white me-2 m-auto"
@@ -80,10 +83,7 @@ const Toaster = ({ duration = 3000 }) => {
       </div>
     </div>
   );
-  // endregion
 };
-// endregion
-
 // endregion
 
 // region exports

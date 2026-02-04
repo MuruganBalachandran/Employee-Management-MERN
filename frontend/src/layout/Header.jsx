@@ -14,7 +14,8 @@ const Header = () => {
 
   // region handleLogout
   const handleLogout = () => {
-    if (!window.confirm("Are you sure you want to logout?")) return;
+    if (!window.confirm("Are you sure you want to logout?")) {
+      return;}
     dispatch(logout());
     navigate("/login");
   };
@@ -50,8 +51,7 @@ const Header = () => {
             
             )}
 
-          
-
+        
             {/* Create Admin — Super Admin only */}
             {isSuperAdmin && (
               <li className="nav-item">
@@ -87,4 +87,6 @@ const Header = () => {
   );
 };
 
+// region exports
 export default Header;
+// endregion

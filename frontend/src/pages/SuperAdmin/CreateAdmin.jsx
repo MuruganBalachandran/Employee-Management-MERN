@@ -1,6 +1,6 @@
 // region imports
-import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 
 import Input from "../../components/UI/Input";
@@ -23,7 +23,7 @@ const CreateAdmin = () => {
   // region hooks
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const loading = useSelector(selectSuperAdminLoading);
+  const loading = useSelector(selectSuperAdminLoading) || false;
   // endregion
 
   // region form state
@@ -37,7 +37,7 @@ const CreateAdmin = () => {
   const [error, setError] = useState("");
   // endregion
 
-  // region handle input changes with live validation
+  // region handlers
   const handleNameChange = (e) => {
     const value = e?.target?.value || "";
     setName(value);
@@ -47,19 +47,18 @@ const CreateAdmin = () => {
   const handleEmailChange = (e) => {
     const value = e?.target?.value || "";
     setEmail(value);
-    // Custom validation for @spanadmin.com
-    let errorMsg = emailValidation(value, "admin");
-    setFormErrors((prev) => ({ ...prev, email: errorMsg }));
+    setFormErrors((prev) => ({
+      ...prev,
+      email: emailValidation(value, "admin"),
+    }));
   };
 
   const handlePasswordChange = (e) => {
     const value = e?.target?.value || "";
     setPassword(value);
 
-    // Validate password
     setFormErrors((prev) => ({ ...prev, password: passwordValidation(value) }));
 
-    // Confirm password match
     if (confirmPassword && value !== confirmPassword) {
       setFormErrors((prev) => ({
         ...prev,
@@ -100,24 +99,20 @@ const CreateAdmin = () => {
     setError("");
     setSuccess("");
 
-    // client-side validation
-    let emailError = emailValidation(email, "admin");
-
     const errors = {
       name: nameValidation(name),
-      email: emailError,
+      email: emailValidation(email, "admin"),
       password: passwordValidation(password),
       confirmPassword: !confirmPassword
         ? "Confirm Password is required"
         : password !== confirmPassword
-        ? "Passwords do not match"
-        : "",
+          ? "Passwords do not match"
+          : "",
       age: !age || Number(age) < 18 ? "Age must be at least 18" : "",
     };
 
-    // filter out empty errors
     const filteredErrors = Object.fromEntries(
-      Object.entries(errors).filter(([_, value]) => value)
+      Object.entries(errors).filter(([_, value]) => value),
     );
 
     if (Object.keys(filteredErrors).length > 0) {
@@ -125,17 +120,18 @@ const CreateAdmin = () => {
       return;
     }
 
-    // service call via Redux Thunk
     try {
-      await dispatch(createNewAdmin({
-        name,
-        email,
-        password,
-        age: Number(age),
-      })).unwrap();
-      
+      await dispatch(
+        createNewAdmin({
+          name,
+          email,
+          password,
+          age: Number(age),
+        }),
+      ).unwrap();
+
       setSuccess("Admin created successfully!");
-      
+
       // Reset form
       setName("");
       setEmail("");
@@ -143,93 +139,84 @@ const CreateAdmin = () => {
       setConfirmPassword("");
       setAge("");
       setFormErrors({});
-      
-      navigate("/"); 
+
+      navigate("/");
     } catch (err) {
       console.error(err);
-      const msg = err || "Failed to create admin";
-      setError(msg);
-      // Toast is already shown by thunk
+      setError(err || "Failed to create admin");
+      // Toast already handled by thunk
     }
   };
   // endregion
 
   // region render
   return (
-    <div className="auth-page d-flex justify-content-center align-items-center min-vh-100 p-3">
-      {/* Loader */}
-      {loading && <Loader fullScreen text="Creating Admin..." />}
+    <div className='auth-page d-flex justify-content-center align-items-center min-vh-100 p-3'>
+      {loading && <Loader fullScreen text='Creating Admin...' />}
 
       <form
-        className="auth-form card p-4 shadow-sm w-100"
+        className='auth-form card p-4 shadow-sm w-100'
         style={{ maxWidth: "500px" }}
         onSubmit={handleSubmit}
         noValidate
       >
-        {/* Form heading */}
-        <h2 className="mb-4 text-center">Create New Admin</h2>
+        <h2 className='mb-4 text-center'>Create New Admin</h2>
 
         {success && (
-          <div className="alert alert-success" role="alert">
+          <div className='alert alert-success' role='alert'>
             {success}
           </div>
         )}
-
-        {/* Name input */}
+        {/* name */}
         <Input
-          label="Name"
+          label='Name'
           value={name}
           onChange={handleNameChange}
           error={formErrors?.name}
-          placeholder="Admin Name"
+          placeholder='Admin Name'
         />
-
-        {/* Email input */}
+        {/*email  */}
         <Input
-          label="Email (@spanadmin.com)"
-          type="email"
+          label='Email (@spanadmin.com)'
+          type='email'
           value={email}
           onChange={handleEmailChange}
           error={formErrors?.email}
-          placeholder="admin@spanadmin.com"
+          placeholder='admin@spanadmin.com'
         />
-
-        {/* Age input */}
+        {/* age */}
         <Input
-          label="Age"
-          type="number"
+          label='Age'
+          type='number'
           value={age}
           onChange={handleAgeChange}
           error={formErrors?.age}
-          placeholder="Age (min 18)"
-          min="18"
+          placeholder='Age (min 18)'
+          min='18'
         />
+        {/* password */}
 
-        {/* Password input */}
         <Input
-          label="Password"
-          type="password"
+          label='Password'
+          type='password'
           value={password}
           onChange={handlePasswordChange}
           error={formErrors?.password}
-          placeholder="Enter a strong password"
+          placeholder='Enter a strong password'
         />
-
-        {/* Password rules */}
+        {/* password */}
         <PasswordRules password={password} />
-
-        {/* Confirm Password input */}
+        {/* confirm password */}
         <Input
-          label="Confirm Password"
-          type="password"
+          label='Confirm Password'
+          type='password'
           value={confirmPassword}
           onChange={handleConfirmPasswordChange}
           error={formErrors?.confirmPassword}
-          placeholder="Confirm password"
+          placeholder='Confirm password'
         />
 
-        {/* Submit button */}
-        <button type="submit" className="btn btn-primary w-100 mt-3">
+        <button type='submit' className='btn btn-primary w-100 mt-3'>
           Create Admin
         </button>
       </form>
@@ -237,5 +224,8 @@ const CreateAdmin = () => {
   );
   // endregion
 };
+// endregion
 
+// region exports
 export default CreateAdmin;
+// endregion

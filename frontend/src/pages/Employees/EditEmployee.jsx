@@ -27,7 +27,7 @@ const EditEmployee = () => {
 
   // region fetchEmployee
   useEffect(() => {
-    /* Fetch employee details by ID */
+    // Fetch employee details by ID
     if (!currentEmployee && !currentEmployeeLoading) {
       dispatch(getEmployee(id || ""))
         .unwrap()
@@ -45,9 +45,9 @@ const EditEmployee = () => {
 
   // region handleUpdate
   const handleUpdate = async (updatedData = {}) => {
-    /* Update employee details */
     try {
-      await dispatch(editEmployee({ id, data: updatedData || {} })).unwrap();
+      // Update employee details
+      await dispatch(editEmployee({ id, data: updatedData })).unwrap();
 
       dispatch(
         showToast({
@@ -68,7 +68,9 @@ const EditEmployee = () => {
   };
   // endregion
 
-  if (currentEmployeeLoading || !currentEmployee) return <div>Loading employee...</div>;
+  if (currentEmployeeLoading || !currentEmployee)
+    return <div>Loading employee...</div>;
+
   if (error) return <div className="alert alert-danger">{error}</div>;
 
   return (

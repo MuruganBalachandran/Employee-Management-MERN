@@ -1,5 +1,5 @@
 // region imports
-import mongoose from "mongoose";
+import { mongoose, isValidObjectId } from "mongoose";
 import { VALIDATION_MESSAGES, ROLE } from "../../utils/index.js";
 // endregion
 
@@ -239,7 +239,7 @@ const validateEmail = (value = "") => {
 // endregion
 
 // region validate Email Domain
-const validateEmailDomain = (email = "", role = "employee") => {
+const validateEmailDomain = ({ email = "", role = "employee" }) => {
   if (!email) return null; // content presence checked elsewhere
 
   const domain = email.split("@")[1]?.toLowerCase();
@@ -569,37 +569,11 @@ const validateAddress = (value = {}) => {
 const validateObjectId = (value = "") => {
   // Use general validation utility for falsy check
   if (isFalsyOrInvalid(value)) {
-    return VALIDATION_MESSAGES?.ID_REQUIRED || "ID is required";
+    return "ID is required";
   }
-
-  // STRICT TYPE CHECK - prevent type coercion
-  if (typeof value !== "string") {
-    return VALIDATION_MESSAGES?.ID_STRING || "ID must be a string";
+  if (!isValidObjectId(value)) {
+    return "Invalid object id";
   }
-
-  // TRIM
-  const id = value?.trim?.() || "";
-
-  // EMPTY STRING CHECK
-  if (id?.length === 0) {
-    return VALIDATION_MESSAGES?.ID_EMPTY || "ID cannot be empty";
-  }
-
-  // LENGTH CHECK (MongoDB ObjectId is always 24 characters)
-  if (id?.length !== 24) {
-    return VALIDATION_MESSAGES?.ID_LENGTH || "Invalid ID format";
-  }
-
-  // HEXADECIMAL FORMAT CHECK
-  if (!/^[a-f0-9]{24}$/i.test(id)) {
-    return VALIDATION_MESSAGES?.ID_HEX || "Invalid ID format (hex)";
-  }
-
-  // MONGOOSE VALIDATION
-  if (!mongoose?.Types?.ObjectId?.isValid?.(id)) {
-    return VALIDATION_MESSAGES?.ID_MONGO || "Invalid ObjectId";
-  }
-
   return null;
 };
 // endregion

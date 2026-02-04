@@ -9,7 +9,6 @@ const selectEmployeeState = (state) => state.employees;
 // region memoized selectors
 /**
  * Select normalized employees by ID map
- * Memoized to prevent unnecessary re-renders
  */
 export const selectEmployeeById = createSelector(
     [selectEmployeeState],
@@ -18,7 +17,6 @@ export const selectEmployeeById = createSelector(
 
 /**
  * Select all employee IDs in order
- * Memoized to prevent unnecessary re-renders
  */
 export const selectEmployeeIds = createSelector(
     [selectEmployeeState],
@@ -28,7 +26,6 @@ export const selectEmployeeIds = createSelector(
 /**
  * Select all employees as array
  * Derives from normalized state for convenience
- * Memoized to prevent unnecessary re-renders
  */
 export const selectEmployees = createSelector(
     [selectEmployeeById, selectEmployeeIds],
@@ -37,7 +34,6 @@ export const selectEmployees = createSelector(
 
 /**
  * Select current single employee
- * Memoized to prevent unnecessary re-renders
  */
 export const selectCurrentEmployee = createSelector(
     [selectEmployeeState],
@@ -55,7 +51,6 @@ export const selectEmployeeCount = createSelector(
 
 /**
  * Select loading state
- * Memoized to prevent unnecessary re-renders
  */
 export const selectEmployeeLoading = createSelector(
     [selectEmployeeState],
@@ -64,7 +59,6 @@ export const selectEmployeeLoading = createSelector(
 
 /**
  * Select current employee loading state
- * Memoized to prevent unnecessary re-renders
  */
 export const selectCurrentEmployeeLoading = createSelector(
     [selectEmployeeState],
@@ -73,7 +67,6 @@ export const selectCurrentEmployeeLoading = createSelector(
 
 /**
  * Select error state
- * Memoized to prevent unnecessary re-renders
  */
 export const selectEmployeeError = createSelector(
     [selectEmployeeState],
@@ -82,7 +75,6 @@ export const selectEmployeeError = createSelector(
 
 /**
  * Select pagination info
- * Memoized to prevent unnecessary re-renders
  */
 export const selectPaginationInfo = createSelector(
     [selectEmployeeState],
@@ -91,7 +83,6 @@ export const selectPaginationInfo = createSelector(
 
 /**
  * Select current page number
- * Memoized to prevent unnecessary re-renders
  */
 export const selectCurrentPage = createSelector(
     [selectPaginationInfo],
@@ -100,7 +91,6 @@ export const selectCurrentPage = createSelector(
 
 /**
  * Select current filters
- * Memoized to prevent unnecessary re-renders
  */
 export const selectEmployeeFilters = createSelector(
     [selectEmployeeState],

@@ -38,7 +38,7 @@ const createUser = async (userData = {}) => {
       Admin_Id: user._id,
       Name: user.Name,
       Email: user.Email,
-      Password: user.Password, // already hashed
+      Password: user.Password,
       Age: user.Age,
       Department: user.Department,
       Phone: user.Phone,
@@ -52,7 +52,6 @@ const createUser = async (userData = {}) => {
   }
 };
 // endregion
-
 
 // region find user by email
 const findUserByEmail = async (email = "") => {

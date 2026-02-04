@@ -9,7 +9,6 @@ const selectToastState = (state) => state.toast;
 // region memoized selectors
 /**
  * Select toast message
- * Memoized to prevent unnecessary re-renders
  */
 export const selectToastMessage = createSelector(
     [selectToastState],
@@ -18,7 +17,6 @@ export const selectToastMessage = createSelector(
 
 /**
  * Select toast type (success, error, warning, info)
- * Memoized to prevent unnecessary re-renders
  */
 export const selectToastType = createSelector(
     [selectToastState],
@@ -27,7 +25,6 @@ export const selectToastType = createSelector(
 
 /**
  * Select toast visibility
- * Memoized to prevent unnecessary re-renders
  */
 export const selectToastVisible = createSelector(
     [selectToastState],

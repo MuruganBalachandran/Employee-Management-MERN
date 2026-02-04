@@ -4,13 +4,13 @@ import {
   STATUS_CODE,
   RESPONSE_STATUS,
   ROLE,
-} from '../../utils/index.js';
+} from "../../utils/index.js";
 
 import {
   validateCreateEmployee,
   validateUpdateEmployee,
   validateEmailDomain,
-} from '../../validations/index.js';
+} from "../../validations/index.js";
 
 import {
   createEmployee,
@@ -19,9 +19,9 @@ import {
   updateEmployee,
   deleteEmployee,
   findUserByEmail,
-} from '../../queries/index.js';
+} from "../../queries/index.js";
 
-import { validateObjectId } from '../../validations/helpers/typeValidations.js';
+import { validateObjectId } from "../../validations/helpers/typeValidations.js";
 // endregion
 
 // region list employees
@@ -40,35 +40,35 @@ const listEmployees = async (req = {}, res = {}) => {
       skip = (page - 1) * limit;
     }
 
-    const search = req?.query?.search || '';
-    const department = req?.query?.department || '';
+    const search = req?.query?.search || "";
+    const department = req?.query?.department || "";
 
     const result = await getAllEmployees(limit, skip, search, department);
 
     const currentPage = Math.floor(skip / limit) + 1;
-    const totalPages = Math.ceil(result.total / limit);
+    const totalPages = Math.ceil(result?.total / limit);
 
     return sendResponse(
       res,
-      STATUS_CODE.OK,
-      RESPONSE_STATUS.SUCCESS,
-      'Employees fetched successfully',
+      STATUS_CODE?.OK || 200,
+      RESPONSE_STATUS?.SUCCESS || "SUCCESS",
+      "Employees fetched successfully",
       {
-        employees: result.employees,
-        total: result.total,
+        employees: result?.employees,
+        total: result?.total,
         skip,
         limit,
         currentPage,
         totalPages,
-      }
+      },
     );
   } catch (err) {
-    console.error('Error listing employees:', err);
+    console.error("Error listing employees:", err);
     return sendResponse(
       res,
-      STATUS_CODE.INTERNAL_SERVER_ERROR,
-      RESPONSE_STATUS.FAILURE,
-      'Error fetching employees'
+      STATUS_CODE?.INTERNAL_SERVER_ERROR || 500,
+      RESPONSE_STATUS?.FAILURE || "FAILURE",
+      "Error fetching employees",
     );
   }
 };
@@ -77,15 +77,15 @@ const listEmployees = async (req = {}, res = {}) => {
 // region get employee details
 const getEmployee = async (req = {}, res = {}) => {
   try {
-    const { id = '' } = req.params || {};
+    const { id = "" } = req?.params || {};
 
     const idError = validateObjectId(id);
     if (idError) {
       return sendResponse(
         res,
-        STATUS_CODE.BAD_REQUEST,
-        RESPONSE_STATUS.FAILURE,
-        idError
+        STATUS_CODE?.BAD_REQUEST || 400,
+        RESPONSE_STATUS?.FAILURE || "FAILURE",
+        idError,
       );
     }
 
@@ -94,26 +94,26 @@ const getEmployee = async (req = {}, res = {}) => {
     if (!employee) {
       return sendResponse(
         res,
-        STATUS_CODE.NOT_FOUND,
-        RESPONSE_STATUS.FAILURE,
-        'Employee not found'
+        STATUS_CODE?.NOT_FOUND || 404,
+        RESPONSE_STATUS?.FAILURE || "FAILURE",
+        "Employee not found",
       );
     }
 
     return sendResponse(
       res,
-      STATUS_CODE.OK,
-      RESPONSE_STATUS.SUCCESS,
-      'Employee details fetched',
-      employee
+      STATUS_CODE?.OK || 200,
+      RESPONSE_STATUS?.SUCCESS || "SUCCESS",
+      "Employee details fetched",
+      employee,
     );
   } catch (err) {
-    console.error('Error getting employee:', err);
+    console.error("Error getting employee:", err);
     return sendResponse(
       res,
-      STATUS_CODE.INTERNAL_SERVER_ERROR,
-      RESPONSE_STATUS.FAILURE,
-      'Error fetching employee'
+      STATUS_CODE?.INTERNAL_SERVER_ERROR || 500,
+      RESPONSE_STATUS?.FAILURE || "FAILURE",
+      "Error fetching employee",
     );
   }
 };
@@ -122,27 +122,35 @@ const getEmployee = async (req = {}, res = {}) => {
 // region create employee (admin)
 const createNewEmployee = async (req = {}, res = {}) => {
   try {
-    const validation = validateCreateEmployee(req.body || {});
-    if (!validation.isValid) {
+    const validation = validateCreateEmployee(req?.body || {});
+    if (!validation?.isValid) {
       return sendResponse(
         res,
-        STATUS_CODE.BAD_REQUEST,
-        RESPONSE_STATUS.FAILURE,
-        validation.error
+        STATUS_CODE?.BAD_REQUEST || 400,
+        RESPONSE_STATUS?.FAILURE || "FAILURE",
+        validation?.error,
       );
     }
 
-    // Extract fields in camelCase from API payload with defaults
-    const { email = '' } = req.body || {};
+    // Extract all fields in camelCase and map to PascalCase for database
+    const {
+      name = "",
+      email="",
+      password = "",
+      age = 0,
+      department = "",
+      phone = "",
+      address = {},
+    } = req?.body || {};
 
     // Domain Check
     const domainError = validateEmailDomain(email, ROLE.EMPLOYEE);
     if (domainError) {
       return sendResponse(
         res,
-        STATUS_CODE.BAD_REQUEST,
-        RESPONSE_STATUS.FAILURE,
-        domainError
+        STATUS_CODE?.BAD_REQUEST || 400,
+        RESPONSE_STATUS?.FAILURE || "FAILURE",
+        domainError,
       );
     }
 
@@ -150,24 +158,24 @@ const createNewEmployee = async (req = {}, res = {}) => {
     if (existingUser) {
       return sendResponse(
         res,
-        STATUS_CODE.CONFLICT,
-        RESPONSE_STATUS.FAILURE,
-        'Email already registered'
+        STATUS_CODE?.BAD_REQUEST || 400,
+        RESPONSE_STATUS?.FAILURE || "FAILURE",
+        "Email already registered",
       );
     }
 
-    // Extract all fields in camelCase and map to PascalCase for database
-    const { name = '', password = '', age = 0, department = '', phone = '', address = {} } = req.body || {};
-    
     // Map address from camelCase (API) to PascalCase (DB)
-    const mappedAddress = address && typeof address === 'object' ? {
-      Line1: address.line1 || address.Line1 || '',
-      Line2: address.line2 || address.Line2 || '',
-      City: address.city || address.City || '',
-      State: address.state || address.State || '',
-      ZipCode: address.zipCode || address.ZipCode || '',
-    } : {};
-    
+    const mappedAddress =
+      address && typeof address === "object"
+        ? {
+            Line1: address?.line1 || address?.Line1 || "",
+            Line2: address?.line2 || address?.Line2 || "",
+            City: address?.city || address?.City || "",
+            State: address?.state || address?.State || "",
+            ZipCode: address?.zipCode || address?.ZipCode || "",
+          }
+        : {};
+
     const employee = await createEmployee({
       Name: name,
       Email: email,
@@ -180,18 +188,18 @@ const createNewEmployee = async (req = {}, res = {}) => {
 
     return sendResponse(
       res,
-      STATUS_CODE.CREATED,
-      RESPONSE_STATUS.SUCCESS,
-      'Employee created successfully',
-      employee
+      STATUS_CODE?.OK || 200,
+      RESPONSE_STATUS?.SUCCESS || "SUCCESS",
+      "Employee created successfully",
+      employee,
     );
   } catch (err) {
-    console.error('Error creating employee:', err);
+    console.error("Error creating employee:", err);
     return sendResponse(
       res,
-      STATUS_CODE.INTERNAL_SERVER_ERROR,
-      RESPONSE_STATUS.FAILURE,
-      'Error creating employee'
+      STATUS_CODE?.INTERNAL_SERVER_ERROR || 500,
+      RESPONSE_STATUS?.FAILURE || "FAILURE",
+      "Error creating employee",
     );
   }
 };
@@ -200,15 +208,15 @@ const createNewEmployee = async (req = {}, res = {}) => {
 // region update employee (admin)
 const updateEmployeeDetails = async (req = {}, res = {}) => {
   try {
-    const { id = '' } = req.params || {};
+    const { id = "" } = req?.params || {};
 
     const idError = validateObjectId(id);
     if (idError) {
       return sendResponse(
         res,
-        STATUS_CODE.BAD_REQUEST,
-        RESPONSE_STATUS.FAILURE,
-        idError
+        STATUS_CODE?.BAD_REQUEST || 400,
+        RESPONSE_STATUS?.FAILURE || "FAILURE",
+        idError,
       );
     }
 
@@ -217,36 +225,44 @@ const updateEmployeeDetails = async (req = {}, res = {}) => {
     if (!employee) {
       return sendResponse(
         res,
-        STATUS_CODE.NOT_FOUND,
-        RESPONSE_STATUS.FAILURE,
-        'Employee not found'
+        STATUS_CODE?.NOT_FOUND || 404,
+        RESPONSE_STATUS.FAILURE || "FAILURE",
+        "Employee not found",
       );
     }
 
-    const validation = validateUpdateEmployee(req.body || {});
-    if (!validation.isValid) {
+    const validation = validateUpdateEmployee(req?.body || {});
+    if (!validation?.isValid) {
       return sendResponse(
         res,
-        STATUS_CODE.BAD_REQUEST,
-        RESPONSE_STATUS.FAILURE,
-        validation.error
+        STATUS_CODE?.BAD_REQUEST || 400,
+        RESPONSE_STATUS?.FAILURE || "FAILURE",
+        validation?.error,
       );
     }
 
-    // Extract fields in camelCase from API payload and map to PascalCase for database
-    const { name, age, department, phone, address } = req.body || {};
+    // Extract fields
+    const { name, age, department, phone, address } = req?.body || {};
     const updateData = {};
-    if (name !== undefined) updateData.Name = name;
-    if (age !== undefined) updateData.Age = age;
-    if (department !== undefined) updateData.Department = department;
-    if (phone !== undefined) updateData.Phone = phone;
-    if (address !== undefined && typeof address === 'object') {
+    if (name !== undefined) {
+      updateData.Name = name;
+    }
+    if (age !== undefined) {
+      updateData.Age = age;
+    }
+    if (department !== undefined) {
+      updateData.Department = department;
+    }
+    if (phone !== undefined) {
+      updateData.Phone = phone;
+    }
+    if (address !== undefined && typeof address === "object") {
       updateData.Address = {
-        Line1: address.line1 || address.Line1 || '',
-        Line2: address.line2 || address.Line2 || '',
-        City: address.city || address.City || '',
-        State: address.state || address.State || '',
-        ZipCode: address.zipCode || address.ZipCode || '',
+        Line1: address.line1 || address.Line1 || "",
+        Line2: address.line2 || address.Line2 || "",
+        City: address.city || address.City || "",
+        State: address.state || address.State || "",
+        ZipCode: address.zipCode || address.ZipCode || "",
       };
     }
 
@@ -254,18 +270,18 @@ const updateEmployeeDetails = async (req = {}, res = {}) => {
 
     return sendResponse(
       res,
-      STATUS_CODE.OK,
-      RESPONSE_STATUS.SUCCESS,
-      'Employee updated successfully',
-      updated || employee
+      STATUS_CODE?.OK || 200,
+      RESPONSE_STATUS?.SUCCESS || "SUCCESS",
+      "Employee updated successfully",
+      updated || employee,
     );
   } catch (err) {
-    console.error('Error updating employee:', err);
+    console.error("Error updating employee:", err);
     return sendResponse(
       res,
-      STATUS_CODE.INTERNAL_SERVER_ERROR,
-      RESPONSE_STATUS.FAILURE,
-      'Error updating employee'
+      STATUS_CODE?.INTERNAL_SERVER_ERROR || 500,
+      RESPONSE_STATUS?.FAILURE || "FAILURE",
+      "Error updating employee",
     );
   }
 };
@@ -274,15 +290,15 @@ const updateEmployeeDetails = async (req = {}, res = {}) => {
 // region delete employee (admin)
 const removeEmployee = async (req = {}, res = {}) => {
   try {
-    const { id = '' } = req.params || {};
+    const { id = "" } = req?.params || {};
 
     const idError = validateObjectId(id);
     if (idError) {
       return sendResponse(
         res,
-        STATUS_CODE.BAD_REQUEST,
-        RESPONSE_STATUS.FAILURE,
-        idError
+        STATUS_CODE?.BAD_REQUEST || 400,
+        RESPONSE_STATUS?.FAILURE || "FAILURE",
+        idError,
       );
     }
 
@@ -291,9 +307,9 @@ const removeEmployee = async (req = {}, res = {}) => {
     if (!employee) {
       return sendResponse(
         res,
-        STATUS_CODE.NOT_FOUND,
-        RESPONSE_STATUS.FAILURE,
-        'Employee not found'
+        STATUS_CODE?.NOT_FOUND || 404,
+        RESPONSE_STATUS?.FAILURE || "FAILURE",
+        "Employee not found",
       );
     }
 
@@ -301,22 +317,23 @@ const removeEmployee = async (req = {}, res = {}) => {
 
     return sendResponse(
       res,
-      STATUS_CODE.OK,
-      RESPONSE_STATUS.SUCCESS,
-      'Employee deleted successfully'
+      STATUS_CODE?.OK || 200,
+      RESPONSE_STATUS?.SUCCESS || "SUCCESS",
+      "Employee deleted successfully",
     );
   } catch (err) {
-    console.error('Error deleting employee:', err);
+    console.error("Error deleting employee:", err);
     return sendResponse(
       res,
-      STATUS_CODE.INTERNAL_SERVER_ERROR,
-      RESPONSE_STATUS.FAILURE,
-      'Error deleting employee'
+      STATUS_CODE?.INTERNAL_SERVER_ERROR || 500,
+      RESPONSE_STATUS?.FAILURE || "FAILURE",
+      "Error deleting employee",
     );
   }
 };
 // endregion
 
+// region exports
 export {
   listEmployees,
   getEmployee,
@@ -324,3 +341,4 @@ export {
   updateEmployeeDetails,
   removeEmployee,
 };
+// endregion

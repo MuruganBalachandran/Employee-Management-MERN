@@ -12,85 +12,94 @@ import {
 } from "../features/auth/authSelectors";
 
 // Pages
-import Login from "../pages/auth/Login"
+import Login from "../pages/auth/Login";
 import Home from "../pages/common/Home";
 import CreateEmployee from "../pages/employees/CreateEmployee";
 import EditEmployee from "../pages/employees/EditEmployee";
 import EmployeeView from "../pages/employees/EmployeeView";
-import MyProfile from "../pages/common/MyProfile"
+import MyProfile from "../pages/common/MyProfile";
+import EditProfile from "../pages/common/EditProfile";
 import CreateAdmin from "../pages/SuperAdmin/CreateAdmin";
 import ViewEmployees from "../pages/Employees/ViewEmployees";
 import NotFound from "../pages/common/NotFound";
 
 // Layout
 import MainLayout from "../layout/MainLayout";
-import EditProfile from "../pages/common/EditProfile";
 // endregion
 
-// region Protected Route component
+// region Protected Route
 const ProtectedRoute = () => {
-  const isAuthenticated = useSelector(selectIsAuthenticated);
-  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
+  const isAuthenticated = useSelector(selectIsAuthenticated) || false;
+  return isAuthenticated ? <Outlet /> : <Navigate to='/login' replace />;
 };
 // endregion
 
-// region Super Admin Route component
-const SuperAdminRoute = () => {
-  const isSuperAdmin = useSelector(selectIsSuperAdmin);
-  return isSuperAdmin ? <Outlet /> : <Navigate to="/me" replace />;
-};
-// endregion
-
-// region Admin Route component
+// region Admin Route
 const AdminRoute = () => {
-  const isAdmin = useSelector(selectIsAdmin);
-  return isAdmin ? <Outlet /> : <Navigate to="/me" replace />;
+  const isAdmin = useSelector(selectIsAdmin) || false;
+  return isAdmin ? <Outlet /> : <Navigate to='/me' replace />;
 };
 // endregion
 
-const PublicRoute = () => {
-  const isAuthenticated = useSelector(selectIsAuthenticated);
-  return isAuthenticated ? <Navigate to="/me" replace /> : <Outlet />;
+// region Super Admin Route
+const SuperAdminRoute = () => {
+  const isSuperAdmin = useSelector(selectIsSuperAdmin) || false;
+  return isSuperAdmin ? <Outlet /> : <Navigate to='/me' replace />;
 };
+// endregion
 
+// region Public Route
+const PublicRoute = () => {
+  const isAuthenticated = useSelector(selectIsAuthenticated) || false;
+  return isAuthenticated ? <Navigate to='/me' replace /> : <Outlet />;
+};
+// endregion
 
 // region App Routes
 const AppRoutes = () => {
-  const authChecked = useSelector(selectAuthChecked);
+  const authChecked = useSelector(selectAuthChecked) || false;
+
   if (!authChecked) return null;
 
   return (
     <Routes>
-<Route element={<PublicRoute />}>
-  <Route path="/login" element={<Login />} />
-</Route>
+      {/* Public Routes */}
+      <Route element={<PublicRoute />}>
+        <Route path='/login' element={<Login />} />
+      </Route>
 
+      {/* Protected Routes */}
       <Route element={<ProtectedRoute />}>
         <Route element={<MainLayout />}>
-          <Route path="/" element={<Home />} />
+          {/* Home */}
+          <Route path='/' element={<Home />} />
 
           {/* Employee self profile */}
-          <Route path="/me" element={<MyProfile />} />
-     <Route path="/me/edit" element={<EditProfile />} />
+          <Route path='/me' element={<MyProfile />} />
+          <Route path='/me/edit' element={<EditProfile />} />
 
           {/* Admin only */}
           <Route element={<AdminRoute />}>
-            <Route path="/employees" element={<ViewEmployees />} />
-            <Route path="/employees/create" element={<CreateEmployee />} />
-            <Route path="/employees/edit/:id" element={<EditEmployee />} />
-            <Route path="/employees/view/:id" element={<EmployeeView />} />
+            <Route path='/employees' element={<ViewEmployees />} />
+            <Route path='/employees/create' element={<CreateEmployee />} />
+            <Route path='/employees/edit/:id' element={<EditEmployee />} />
+            <Route path='/employees/view/:id' element={<EmployeeView />} />
           </Route>
 
           {/* Super Admin only */}
           <Route element={<SuperAdminRoute />}>
-            <Route path="/create-admin" element={<CreateAdmin />} />
+            <Route path='/create-admin' element={<CreateAdmin />} />
           </Route>
         </Route>
       </Route>
 
-      <Route path="*" element={<NotFound />} />
+      {/* Catch-all 404 */}
+      <Route path='*' element={<NotFound />} />
     </Routes>
   );
 };
+// endregion
 
+// region exports
 export default AppRoutes;
+// endregion

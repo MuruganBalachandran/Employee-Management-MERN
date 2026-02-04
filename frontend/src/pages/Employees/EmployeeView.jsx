@@ -12,9 +12,11 @@ import Loader from "../../components/UI/Loader";
 import BackButton from "../../components/ui/BackButton";
 // endregion
 
+
 // region helper
-const formatAddress = (address) => {
+const formatAddress = (address = null) => {
   if (!address) return "-";
+
   const parts = [
     address.Line1,
     address.Line2,
@@ -22,43 +24,48 @@ const formatAddress = (address) => {
     address.State,
     address.ZipCode,
   ].filter(Boolean);
-  return parts.join(", ");
+
+  return parts.join(", ") || "-";
 };
 
-const formatDate = (date) => {
+const formatDate = (date = "") => {
   if (!date) return "-";
+
   const d = new Date(date);
   return isNaN(d) ? "-" : d.toLocaleString();
 };
 // endregion
 
+
 // region EmployeeView
 const EmployeeView = () => {
-  const { id } = useParams();
+  const { id = "" } = useParams(); // default value
   const dispatch = useDispatch();
 
-  const currentEmployee = useSelector(selectCurrentEmployee);
-  const currentEmployeeLoading = useSelector(selectCurrentEmployeeLoading);
-  
-  // Fallback to normalized state if current employee not set
+  const currentEmployee = useSelector(selectCurrentEmployee) || null;
+  const currentEmployeeLoading = useSelector(selectCurrentEmployeeLoading) || false;
+
+  // fallback from normalized state
   const employeeFromState = useSelector((state) =>
     selectEmployeeFromNormalizedState(state, id)
-  );
-  
+  ) || null;
+
   const employee = currentEmployee || employeeFromState;
 
   useEffect(() => {
-    // Fetch if not already in state
-    if (!employee && !currentEmployeeLoading) {
+    // fetch employee
+    if ((!employee || employee._id !== id) && !currentEmployeeLoading && id) {
       dispatch(getEmployee(id));
     }
   }, [id, employee, currentEmployeeLoading, dispatch]);
 
-  if (currentEmployeeLoading || !employee) return <Loader fullScreen text="Loading employee..." />;
+  if (currentEmployeeLoading || !employee)
+    return <Loader fullScreen text="Loading employee..." />;
 
   return (
     <>
       <BackButton />
+
       <div className="card p-4 shadow-sm">
         <h3>Employee Details</h3>
 
@@ -72,13 +79,16 @@ const EmployeeView = () => {
           {/* Address */}
           <p>
             <strong>Address (Brief):</strong>{" "}
-            {employee?.Address ? `${employee.Address.City}, ${employee.Address.State}` : "-"}
+            {employee?.Address
+              ? `${employee.Address.City || "-"}, ${employee.Address.State || "-"}`
+              : "-"}
             <br />
-            <small className="text-muted">{formatAddress(employee?.Address)}</small>
+            <small className="text-muted">
+              {formatAddress(employee?.Address)}
+            </small>
           </p>
 
           {/* Other details */}
-          {/* <p><strong>Created By:</strong> {employee?.createdBy || "-"}</p> */}
           <p><strong>Deleted:</strong> {employee?.Is_Deleted ? "Yes" : "No"}</p>
           <p><strong>Created At:</strong> {formatDate(employee?.Created_At)}</p>
           <p><strong>Updated At:</strong> {formatDate(employee?.Updated_At)}</p>
@@ -88,6 +98,7 @@ const EmployeeView = () => {
   );
 };
 // endregion
+
 
 // region exports
 export default EmployeeView;

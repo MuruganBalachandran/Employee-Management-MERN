@@ -5,17 +5,17 @@ import {
   logoutUser,
   // registerUser,
   getCurrentUser,
-  editCurrentUser
+  editCurrentUser,
 } from "../../services/authService";
 import { showToast } from "../toast/toastSlice";
 // endregion
 
 // region initial state
-// region load user from storage
+//  load user from storage
 const loadUserFromStorage = () => {
   try {
     const storedUser = localStorage.getItem("user");
-    return storedUser ? JSON.parse(storedUser) : null;
+    return storedUser ? JSON?.parse(storedUser) : null;
   } catch (error) {
     console.error("Failed to parse user from storage", error);
     return null;
@@ -24,6 +24,7 @@ const loadUserFromStorage = () => {
 
 const userFromStorage = loadUserFromStorage();
 
+// inittaks data
 const initialState = {
   user: userFromStorage,
   loading: false,
@@ -32,10 +33,8 @@ const initialState = {
   authChecked: !!userFromStorage,
 };
 // endregion
-// endregion
 
 // region async thunks
-
 // region login
 export const login = createAsyncThunk(
   "auth/login",
@@ -46,38 +45,33 @@ export const login = createAsyncThunk(
       const token = res?.data?.data?.token || "";
       const user = res?.data?.data?.user || null;
 
-     if (token) {
-  localStorage.setItem("token", token);
-  localStorage.setItem("user", JSON.stringify(user));
-}
-return user;
+      if (token) {
+        localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify(user));
+      }
 
-
-      dispatch(showToast({ message: "Logged in successfully!", type: "success" }));
+      dispatch(
+        showToast({ message: "Logged in successfully!", type: "success" }),
+      );
       return user;
     } catch (err) {
       const message = err?.response?.data?.message || "Login failed";
       dispatch(showToast({ message, type: "error" }));
       return rejectWithValue(message);
     }
-  }
+  },
 );
-// endregion
-
-// region register
-// Register thunk removed as public signup is disabled
 // endregion
 
 // region logout
 export const logout = createAsyncThunk(
   "auth/logout",
-    async (_ = null, { dispatch, rejectWithValue }) => {
+  async (_ = null, { dispatch, rejectWithValue }) => {
     /* Logout user and clear token */
     try {
       await logoutUser();
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-
 
       dispatch(showToast({ message: "Logged out", type: "info" }));
       return null;
@@ -86,7 +80,7 @@ export const logout = createAsyncThunk(
       dispatch(showToast({ message, type: "error" }));
       return rejectWithValue(message);
     }
-  }
+  },
 );
 // endregion
 
@@ -99,9 +93,11 @@ export const fetchCurrentUser = createAsyncThunk(
       const res = await getCurrentUser();
       return res?.data?.data?.user || null;
     } catch (err) {
-      return rejectWithValue?.(err?.response?.data?.message || "Failed to fetch user");
+      return rejectWithValue?.(
+        err?.response?.data?.message || "Failed to fetch user",
+      );
     }
-  }
+  },
 );
 // endregion
 
@@ -110,13 +106,13 @@ export const updateMyProfile = createAsyncThunk(
   async (data = {}, { rejectWithValue }) => {
     try {
       const res = await editCurrentUser(data);
-     return res?.data?.data || res?.data || {};
+      return res?.data?.data || res?.data || {};
     } catch (err) {
       const backend = err?.response?.data;
 
-      if (backend?.error && typeof backend.error === "object") {
+      if (backend?.error && typeof backend?.error === "object") {
         return rejectWithValue({
-          fieldErrors: backend.error,
+          fieldErrors: backend?.error,
           message: "Validation failed",
         });
       }
@@ -125,9 +121,8 @@ export const updateMyProfile = createAsyncThunk(
         message: backend?.message || err?.message || "Update failed",
       });
     }
-  }
+  },
 );
-
 
 // endregion
 
@@ -171,11 +166,6 @@ const authSlice = createSlice({
         state.error = action?.payload || "Unknown error";
         state.isAuthenticated = false;
       })
-      // endregion
-
-      // endregion
-
-      // region register - removed
       // endregion
 
       // region logout reducers
@@ -222,12 +212,12 @@ const authSlice = createSlice({
         state.authChecked = true;
         localStorage.removeItem("user"); // Clear stale user data if fetch fails
       })
-    // endregion
+      // endregion
 
-    .addCase(updateMyProfile.pending, (state) => {
-  state.loading = true;
-  state.error = null;
-})
+      .addCase(updateMyProfile.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(updateMyProfile.fulfilled, (state, action) => {
         state.loading = false;
         state.user = action.payload;
@@ -237,7 +227,6 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       });
-
   },
 });
 // endregion
