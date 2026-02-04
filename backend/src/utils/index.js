@@ -5,7 +5,6 @@ export {
     generateToken,
     verifyToken,
     sendResponse,
-    asyncHandler,
     getFormattedDateTime,
 } from './common/commonFunctions.js';
 

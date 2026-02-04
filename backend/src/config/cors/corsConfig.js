@@ -14,10 +14,6 @@ const allowedOrigins = Array.isArray(env?.CORS_ORIGIN)
 // endregion
 
 // region CORS Options
-/**
- * Configuration object for Express CORS middleware.
- * Implements origin whitelisting, credentials support, and method restriction.
- */
 const corsConfig = {
   // use function because multiple frontend origins may exist (dev, prod, staging)
   origin: (origin = '', callback = () => { }) => {

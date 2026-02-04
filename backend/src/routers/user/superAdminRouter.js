@@ -1,7 +1,8 @@
 // region imports
-import express from 'express';
-import { auth } from '../../middleware/index.js';
-import { createAdmin, removeAdmin } from '../../controllers/user/superAdminController.js';
+import express from "express";
+import { auth } from "../../middleware/index.js";
+import { removeAdmin } from "../../controllers/user/superAdminController.js";
+import { signup } from "../../controllers/auth/authController.js";
 // endregion
 
 // region router initialization
@@ -9,15 +10,10 @@ const router = express.Router();
 // endregion
 
 // region super admin routes
-/**
- * Routes strictly reserved for the Super Admin.
- */
+router.use(auth("SUPER_ADMIN"));
 
-// Only Super Admin can create Admin accounts
-router.post('/create-admin', auth('SUPER_ADMIN'), createAdmin);
-
-// Only Super Admin can delete Admin accounts
-router.delete('/delete-admin/:id', auth('SUPER_ADMIN'), removeAdmin);
+router.post("/create-admin", signup);
+router.delete("/delete-admin/:id", removeAdmin);
 // endregion
 
 // region exports

@@ -7,20 +7,11 @@ import {
 } from '../../utils/index.js';
 
 import {
-  signup,
-} from '../auth/authController.js';
-
-import {
   deleteUserAccount,
   findUserById,
 } from '../../queries/index.js';
 
 import { validateObjectId } from '../../validations/helpers/typeValidations.js';
-// endregion
-
-// region create admin
-// Reuse authentication signup logic which handles role creation based on permission
-const createAdmin = signup;
 // endregion
 
 // region delete admin
@@ -87,7 +78,6 @@ const removeAdmin = async (req = {}, res = {}) => {
 
 // region exports
 export {
-  createAdmin,
   removeAdmin,
 };
 // endregion

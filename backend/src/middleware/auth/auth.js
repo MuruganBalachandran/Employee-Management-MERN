@@ -1,28 +1,20 @@
 // region imports
-import { verifyToken, sendResponse, STATUS_CODE, RESPONSE_STATUS } from "../../utils/index.js";
-import { env } from "../../config/index.js";
+import {
+  verifyToken,
+  sendResponse,
+  STATUS_CODE,
+  RESPONSE_STATUS,
+} from "../../utils/index.js";
 import { User } from "../../models/index.js";
 // endregion
 
-// 🔐 AUTHENTICATION & AUTHORIZATION
-/**
- * Combined authentication and authorization middleware
- * @param {...string} allowedRoles - Optional roles that are allowed to access the route
- * @example
- * // Just authenticate (any logged-in user)
- * router.get('/profile', auth(), getProfile);
- * 
- * // Authenticate and authorize for ADMIN only
- * router.get('/employees', auth('ADMIN'), listEmployees);
- * 
- * // Authenticate and authorize for multiple roles
- * router.post('/create', auth('ADMIN', 'SUPER_ADMIN'), createUser);
- */
+// authentication and authorization
+// region auth middleware
 const auth = (...allowedRoles) => {
   return async (req, res, next) => {
     try {
-      // STEP 1: Authentication - verify token
-      const authHeader = req.headers?.authorization;
+      // Authentication - verify token
+      const authHeader = req?.headers?.authorization;
 
       const token = authHeader?.startsWith("Bearer ")
         ? authHeader.replace("Bearer ", "")
@@ -32,19 +24,19 @@ const auth = (...allowedRoles) => {
         return sendResponse(
           res,
           STATUS_CODE?.UNAUTHORIZED || 401,
-          RESPONSE_STATUS.FAILURE,
-          'Please authenticate'
+          RESPONSE_STATUS?.FAILURE,
+          "Unauthorized access",
         );
       }
 
-      const decoded = verifyToken(token, env.JWT_SECRET);
-      
+      const decoded = verifyToken(token);
+
       if (!decoded?._id) {
         return sendResponse(
           res,
           STATUS_CODE?.UNAUTHORIZED || 401,
-          RESPONSE_STATUS.FAILURE,
-          'Invalid token'
+          RESPONSE_STATUS?.FAILURE,
+          "Invalid token",
         );
       }
 
@@ -54,8 +46,8 @@ const auth = (...allowedRoles) => {
         return sendResponse(
           res,
           STATUS_CODE?.UNAUTHORIZED || 401,
-          RESPONSE_STATUS.FAILURE,
-          'Please authenticate'
+          RESPONSE_STATUS?.FAILURE,
+          "Unauthorized access",
         );
       }
 
@@ -63,15 +55,15 @@ const auth = (...allowedRoles) => {
       req.user = user;
 
       // STEP 2: Authorization - check role if roles are specified
-      if (allowedRoles.length > 0) {
-        const userRole = user.Role;
+      if (allowedRoles?.length > 0) {
+        const userRole = user?.Role;
 
-        if (!allowedRoles.includes(userRole)) {
+        if (!allowedRoles?.includes(userRole)) {
           return sendResponse(
             res,
             STATUS_CODE?.UNAUTHORIZED || 401,
-            RESPONSE_STATUS.FAILURE,
-            'Unauthorized access'
+            RESPONSE_STATUS?.FAILURE,
+            "Unauthorized access",
           );
         }
       }
@@ -81,9 +73,9 @@ const auth = (...allowedRoles) => {
     } catch (err) {
       return sendResponse(
         res,
-        STATUS_CODE?.UNAUTHORIZED ?? 401,
-        RESPONSE_STATUS.FAILURE,
-        'Please authenticate'
+        STATUS_CODE?.UNAUTHORIZED || 401,
+        RESPONSE_STATUS?.FAILURE,
+        "Unauthorized access",
       );
     }
   };

@@ -6,34 +6,15 @@ import {
   validateDepartment,
   validatePhone,
   validateAddress,
-} from '../helpers/typeValidations.js';
+} from "../helpers/typeValidations.js";
 
-import { validationError } from '../helpers/validationError.js';
-import { VALIDATION_MESSAGES } from '../../utils/index.js';
+import { validationError } from "../helpers/validationError.js";
+import { VALIDATION_MESSAGES } from "../../utils/index.js";
 // endregion
 
 // region validate update profile
-/**
- * Validates profile update requests.
- * Restricts updates to name, password, and age.
- */
 const validateUpdateProfile = (data = {}) => {
-  const allowedUpdates = ['name', 'password', 'age', 'department', 'phone', 'address'];
-  const updates = Object.keys(data || {});
   const errors = [];
-
-  // region no fields
-  if (updates?.length === 0) {
-    errors.push(VALIDATION_MESSAGES?.NO_FIELDS_FOR_UPDATE || 'No fields provided for update');
-  }
-  // endregion
-
-  // region invalid fields
-  const invalidFields = updates?.filter?.((key) => !allowedUpdates?.includes?.(key)) || [];
-  if (invalidFields?.length > 0) {
-    errors.push(`${VALIDATION_MESSAGES?.INVALID_FIELDS_UPDATE || 'Invalid fields for update'}: ${invalidFields?.join?.(', ')}`);
-  }
-  // endregion
 
   const { name, password, age, department, phone, address } = data || {};
 
@@ -102,7 +83,5 @@ const validateUpdateProfile = (data = {}) => {
 // endregion
 
 // region exports
-export {
-  validateUpdateProfile,
-};
+export { validateUpdateProfile };
 // endregion
