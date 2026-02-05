@@ -56,11 +56,14 @@ const Login = () => {
         ? "Password is required"
         : passwordValidation(password),
     };
-
+    
+    // Remove fields that have no errors
     const filteredErrors = Object.fromEntries(
+      // Keeps only entries where value is truthy (actual error message).
       Object.entries(errors).filter(([_, value]) => value),
     );
 
+    // Stop if validation failed
     if (Object.keys(filteredErrors).length > 0) {
       setFormErrors(filteredErrors);
       return;
@@ -75,10 +78,10 @@ const Login = () => {
       setPassword("");
       setFormErrors({});
 
-      // redirect based on role
-      if (user?.Role === "EMPLOYEE") navigate("/me");
-      else navigate("/");
+      // redirect 
+      navigate("/");
     } catch (err) {
+      console.log("error while login:",err)
       dispatch(showToast({ message: err || "Login failed!", type: "error" }));
     }
   };

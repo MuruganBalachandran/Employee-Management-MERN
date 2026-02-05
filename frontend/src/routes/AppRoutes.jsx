@@ -23,9 +23,6 @@ import {
   ViewEmployees,
   NotFound,
 } from "../pages";
-
-
-// Layout
 import MainLayout from "../layout/MainLayout";
 // endregion
 
@@ -61,7 +58,9 @@ const PublicRoute = () => {
 const AppRoutes = () => {
   const authChecked = useSelector(selectAuthChecked) || false;
 
-  if (!authChecked) return null;
+  if (!authChecked) {
+    return null;
+  }
 
   return (
     <Routes>

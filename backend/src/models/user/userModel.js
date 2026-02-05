@@ -10,13 +10,16 @@ import {
 // region schema
 const UserSchema = new mongoose.Schema(
   {
+    User_Id: {
+      type: mongoose.Schema.Types.ObjectId,
+      auto: true,
+    },
     Name: {
       type: String,
     },
 
     Email: {
       type: String,
-      lowercase: true,
     },
 
     Password: {
@@ -43,11 +46,11 @@ const UserSchema = new mongoose.Schema(
     },
 
     Address: {
-      Line1: { type: String, required: true },
+      Line1: { type: String },
       Line2: { type: String },
-      City: { type: String, required: true },
-      State: { type: String, required: true },
-      ZipCode: { type: String, required: true },
+      City: { type: String },
+      State: { type: String },
+      ZipCode: { type: String },
     },
 
     Is_Deleted: {

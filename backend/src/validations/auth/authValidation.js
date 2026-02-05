@@ -3,10 +3,6 @@ import {
   validateName,
   validateEmail,
   validatePassword,
-  validateAge,
-  validateDepartment,
-  validatePhone,
-  validateAddress,
 } from "../helpers/typeValidations.js";
 
 import { validationError } from "../helpers/validationError.js";
@@ -21,7 +17,7 @@ const validateSignup = (data = {}) => {
     name = "",
     email = "",
     password = "",
-    age = undefined,
+    age = 0,
     department = "",
     phone = "",
     address = {},
@@ -46,12 +42,12 @@ const validateSignup = (data = {}) => {
   }
 
   // Age (optional)
-  if (age !== undefined) {
-    const ageError = validateAge(age);
-    if (ageError) {
-      errors.push(ageError);
-    }
-  }
+  // if (age !== undefined) {
+  //   const ageError = validateAge(age);
+  //   if (ageError) {
+  //     errors.push(ageError);
+  //   }
+  // }
 
   // // Department
   // if (department !== undefined) {

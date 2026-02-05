@@ -2,8 +2,8 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { EmployeeForm } from "../../components";
-import { showToast, updateMyProfile,selectUser  } from "../../features";
+import { BackButton, EmployeeForm } from "../../components";
+import { showToast, updateMyProfile, selectUser } from "../../features";
 
 // endregion
 
@@ -13,7 +13,7 @@ const EditProfile = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   // const user = useSelector((state) => state?.auth?.user) || {};
-  const user = useSelector(selectUser )
+  const user = useSelector(selectUser);
   // endregion
 
   // region submit handler
@@ -30,7 +30,9 @@ const EditProfile = () => {
       await dispatch(updateMyProfile(cleanData)).unwrap();
 
       // success toast + redirect
-      dispatch(showToast({ message: "Profile updated" || "", type: "success" }));
+      dispatch(
+        showToast({ message: "Profile updated" || "", type: "success" }),
+      );
       navigate("/me" || "/");
     } catch (err) {
       // set field errors
@@ -41,7 +43,7 @@ const EditProfile = () => {
         showToast({
           message: err?.message || "Update failed",
           type: "error",
-        })
+        }),
       );
     }
   };
@@ -49,7 +51,8 @@ const EditProfile = () => {
 
   // region render
   return (
-    <div className="container mt-4">
+    <div className='container mt-4'>
+      <BackButton />
       <h3>{"Edit Profile" || ""}</h3>
 
       <EmployeeForm

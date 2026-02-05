@@ -1,7 +1,7 @@
 // region imports
 import express from "express";
 import { auth } from "../../middleware/index.js";
-import { removeAdmin } from "../../controllers/user/superAdminController.js";
+import { removeAdmin } from "../../controllers/superAdmin/superAdminController.js";
 import { signup } from "../../controllers/auth/authController.js";
 // endregion
 

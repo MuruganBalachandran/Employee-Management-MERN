@@ -135,7 +135,7 @@ const createNewEmployee = async (req = {}, res = {}) => {
     // Extract all fields in camelCase and map to PascalCase for database
     const {
       name = "",
-      email="",
+      email = "",
       password = "",
       age = 0,
       department = "",
@@ -168,11 +168,11 @@ const createNewEmployee = async (req = {}, res = {}) => {
     const mappedAddress =
       address && typeof address === "object"
         ? {
-            Line1: address?.line1 || address?.Line1 || "",
-            Line2: address?.line2 || address?.Line2 || "",
-            City: address?.city || address?.City || "",
-            State: address?.state || address?.State || "",
-            ZipCode: address?.zipCode || address?.ZipCode || "",
+            Line1: address?.line1 || "",
+            Line2: address?.line2 || "",
+            City: address?.city || "",
+            State: address?.state || "",
+            ZipCode: address?.zipCode || "",
           }
         : {};
 
@@ -258,11 +258,11 @@ const updateEmployeeDetails = async (req = {}, res = {}) => {
     }
     if (address !== undefined && typeof address === "object") {
       updateData.Address = {
-        Line1: address.line1 || address.Line1 || "",
-        Line2: address.line2 || address.Line2 || "",
-        City: address.city || address.City || "",
-        State: address.state || address.State || "",
-        ZipCode: address.zipCode || address.ZipCode || "",
+        Line1: address.line1 || "",
+        Line2: address.line2 || "",
+        City: address.city || "",
+        State: address.state || "",
+        ZipCode: address.zipCode || "",
       };
     }
 

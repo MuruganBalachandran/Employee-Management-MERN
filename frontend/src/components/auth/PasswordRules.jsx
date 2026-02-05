@@ -5,7 +5,7 @@ import { passwordRules } from "../../validations/authValidation";
 
 // region PasswordRules component
 const PasswordRules = ({ password = "" }) => {
-  // region derive rules
+  // derive rules
   const rules = passwordRules(password ?? "") ?? {
     length: false,
     lowercase: false,

@@ -145,7 +145,7 @@ const EmployeeForm = ({
     }
 
     let validationErrors = hideCredentials
-      ? {} // profile edit → skip employee validation
+      ? {} // profile edit -> skip employee validation
       : validateEmployee(
           { ...payload, confirmPassword: form.confirmPassword },
           isEdit,

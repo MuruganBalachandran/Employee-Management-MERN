@@ -41,7 +41,7 @@ const validateCreateEmployee = (data = {}) => {
   }
 
   // Password
-  const passwordError = validatePassword(password || "Password1!", {
+  const passwordError = validatePassword(password || "", {
     name,
     email,
   });

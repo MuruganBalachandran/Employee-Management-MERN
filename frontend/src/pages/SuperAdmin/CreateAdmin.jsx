@@ -2,20 +2,13 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-
 import { Input, Loader, PasswordRules } from "../../components";
-
-import {
-  createNewAdmin,
-  selectSuperAdminLoading,
-} from "../../features";
-
+import { createNewAdmin, selectSuperAdminLoading } from "../../features";
 import {
   nameValidation,
   emailValidation,
   passwordValidation,
 } from "../../validations/authValidation";
-
 // endregion
 
 // region component
@@ -182,16 +175,6 @@ const CreateAdmin = () => {
           onChange={handleEmailChange}
           error={formErrors?.email}
           placeholder='admin@spanadmin.com'
-        />
-        {/* age */}
-        <Input
-          label='Age'
-          type='number'
-          value={age}
-          onChange={handleAgeChange}
-          error={formErrors?.age}
-          placeholder='Age (min 18)'
-          min='18'
         />
         {/* password */}
 

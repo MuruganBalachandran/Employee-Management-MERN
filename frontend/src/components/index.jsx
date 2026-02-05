@@ -8,4 +8,5 @@ export {default as Input} from './ui/Input'
 export {default as Loader} from './ui/Loader'
 export {default as Pagination} from './ui/Pagination'
 export {default as Toaster} from './ui/Toaster'
+export { default as ProfileDetails } from "./employees/ProfileDetails";
 // endregion

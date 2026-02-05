@@ -463,14 +463,16 @@ const validateAge = (value) => {
     return VALIDATION_MESSAGES?.AGE_WHOLE || "Age must be a whole number";
   }
 
-  // MINIMUM AGE CHECK (COPPA compliance - 13 years)
-  if (value < 10) {
-    return VALIDATION_MESSAGES?.AGE_MIN || "You must be at least 10 years old";
+  // MINIMUM AGE CHECK
+  if (value < 13) {
+    return VALIDATION_MESSAGES?.AGE_MIN || "You must be at least 13 years old";
   }
 
   // MAXIMUM AGE CHECK (realistic limit)
   if (value > 120) {
-    return VALIDATION_MESSAGES?.AGE_MAX || "Please enter a valid age";
+    return (
+      VALIDATION_MESSAGES?.AGE_MAX || "Please enter a valid age (witin 120)"
+    );
   }
 
   return null;
