@@ -1,8 +1,7 @@
 // region imports
 import React, { useState, useRef, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { selectEmployeeFilters } from "../../features/employees/employeeSelectors";
-import { setFilters } from "../../features/employees/employeeSlice";
+import { selectEmployeeFilters, setFilters } from "../../features";
 import { VALID_DEPARTMENTS } from "../../validations/employeeValidation";
 // endregion
 

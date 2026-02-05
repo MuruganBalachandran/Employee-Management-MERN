@@ -2,12 +2,12 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { selectIsAdmin } from "../../features";
 // endregion
 
 // region component
 const Home = () => {
-  const { user } = useSelector((state) => state.auth);
-  const isAdmin = ["admin", "super_admin"].includes(user?.Role);
+   const isAdmin = useSelector(selectIsAdmin);
 
   return (
     <div className="container mt-5">

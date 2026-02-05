@@ -3,12 +3,9 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
-import Input from "../../components/UI/Input";
-import Loader from "../../components/UI/Loader";
+import { Input, Loader } from "../../components";
+import { login, selectAuthLoading, showToast } from "../../features";
 
-import { login } from "../../features/auth/authSlice";
-import { selectAuthLoading } from "../../features/auth/authSelectors";
-import { showToast } from "../../features/toast/toastSlice";
 import {
   emailValidation,
   passwordValidation,

@@ -1,24 +1,24 @@
 // region imports
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { BsExclamationCircle } from "react-icons/bs";
+
 import {
   getEmployees,
   removeEmployee,
   setPage,
-} from "../../features/employees/employeeSlice";
-import {
   selectEmployees,
   selectEmployeeCount,
   selectEmployeeLoading,
   selectEmployeeError,
   selectCurrentPage,
   selectEmployeeFilters,
-} from "../../features/employees/employeeSelectors";
-import Loader from "../../components/UI/Loader";
-import { showToast } from "../../features/toast/toastSlice";
-import { useNavigate } from "react-router-dom";
-import Pagination from "../ui/Pagination";
-import { BsExclamationCircle } from "react-icons/bs";
+  showToast,
+} from "../../features";
+
+import { Loader, Pagination } from "../../components";
+
 // endregion
 
 // region EmployeeList component

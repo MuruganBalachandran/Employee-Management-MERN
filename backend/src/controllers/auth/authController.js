@@ -35,24 +35,18 @@ const signup = async (req = {}, res = {}) => {
     }
 
     // extract fields with camelCase from req.body with defaults
-    const {
-      name = "",
-      email = "",
-      password = "",
-      age = 0,
-    } = req.body || {};
+    const { name = "", email = "", password = "", age = 0 } = req.body || {};
 
-   const role="ADMIN";
+    const role = "ADMIN";
 
-      const department = "Administration";
-      const phone = "000-000-0000";
-        const address = {
-          Line1: "Admin HQ",
-          City: "Admin City",
-          State: "AD",
-          ZipCode: "00000",
-        };
-      
+    const department = "Administration";
+    const phone = "000-000-0000";
+    const address = {
+      Line1: "Admin HQ",
+      City: "Admin City",
+      State: "AD",
+      ZipCode: "00000",
+    };
 
     // Domain Validation based on Role
     const domainError = validateEmailDomain({ email, role });

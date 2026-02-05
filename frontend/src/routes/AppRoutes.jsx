@@ -2,26 +2,28 @@
 import React from "react";
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { useSelector } from "react-redux";
-
 // Selectors
 import {
   selectIsAuthenticated,
   selectAuthChecked,
   selectIsAdmin,
   selectIsSuperAdmin,
-} from "../features/auth/authSelectors";
+} from "../features";
 
 // Pages
-import Login from "../pages/auth/Login";
-import Home from "../pages/common/Home";
-import CreateEmployee from "../pages/employees/CreateEmployee";
-import EditEmployee from "../pages/employees/EditEmployee";
-import EmployeeView from "../pages/employees/EmployeeView";
-import MyProfile from "../pages/common/MyProfile";
-import EditProfile from "../pages/common/EditProfile";
-import CreateAdmin from "../pages/SuperAdmin/CreateAdmin";
-import ViewEmployees from "../pages/Employees/ViewEmployees";
-import NotFound from "../pages/common/NotFound";
+import {
+  Login,
+  Home,
+  CreateEmployee,
+  EditEmployee,
+  EmployeeView,
+  MyProfile,
+  EditProfile,
+  CreateAdmin,
+  ViewEmployees,
+  NotFound,
+} from "../pages";
+
 
 // Layout
 import MainLayout from "../layout/MainLayout";

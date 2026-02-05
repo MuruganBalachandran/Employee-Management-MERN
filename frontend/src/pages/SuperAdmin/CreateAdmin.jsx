@@ -3,19 +3,19 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 
-import Input from "../../components/UI/Input";
-import Loader from "../../components/UI/Loader";
-import PasswordRules from "../../components/auth/PasswordRules";
+import { Input, Loader, PasswordRules } from "../../components";
 
-import { createNewAdmin } from "../../features/superAdmin/superAdminSlice";
-import { selectSuperAdminLoading } from "../../features/superAdmin/superAdminSelectors";
-import { showToast } from "../../features/toast/toastSlice";
+import {
+  createNewAdmin,
+  selectSuperAdminLoading,
+} from "../../features";
 
 import {
   nameValidation,
   emailValidation,
   passwordValidation,
 } from "../../validations/authValidation";
+
 // endregion
 
 // region component
@@ -108,7 +108,6 @@ const CreateAdmin = () => {
         : password !== confirmPassword
           ? "Passwords do not match"
           : "",
-      age: !age || Number(age) < 18 ? "Age must be at least 18" : "",
     };
 
     const filteredErrors = Object.fromEntries(
@@ -126,7 +125,7 @@ const CreateAdmin = () => {
           name,
           email,
           password,
-          age: Number(age),
+          age: Number(age) || 0,
         }),
       ).unwrap();
 

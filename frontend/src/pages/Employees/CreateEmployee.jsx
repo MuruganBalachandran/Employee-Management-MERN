@@ -2,17 +2,14 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import EmployeeForm from "../../components/employees/EmployeeForm";
-import Loader from "../../components/UI/Loader";
-import { addEmployee } from "../../features/employees/employeeSlice";
-import { selectEmployeeLoading } from "../../features/employees/employeeSelectors";
-import { showToast } from "../../features/toast/toastSlice";
+import {EmployeeForm,Loader} from "../../components/";
+import { addEmployee,selectEmployeeLoading,showToast } from "../../features";
 // endregion
 
 // region CreateEmployee component
 const CreateEmployee = () => {
   // region hooks
-  const dispatch = useDispatch();
+   const dispatch = useDispatch();
   const navigate = useNavigate();
   const loading = useSelector(selectEmployeeLoading);
   // endregion
@@ -22,17 +19,8 @@ const CreateEmployee = () => {
     /* Create employee and handle backend validation errors */
     try {
       await dispatch(addEmployee(data || {})).unwrap();
-      // show success
-      dispatch(
-        showToast({
-          message: "Employee created successfully!",
-          type: "success",
-        }),
-      );
-
       navigate("/employees");
     } catch (err) {
-      setErrors(err || {});
         const fieldErrors = err?.fieldErrors || {};
         setErrors(fieldErrors);
       // show error

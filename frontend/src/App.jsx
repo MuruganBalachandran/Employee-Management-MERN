@@ -1,17 +1,11 @@
 // region imports
 import React, { useEffect } from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-  Outlet,
-} from "react-router-dom";
+import { BrowserRouter as Router } from "react-router-dom";
 import { useDispatch } from "react-redux";
 
 import AppRoutes from "./routes/AppRoutes";
-import Toaster from "./components/ui/Toaster";
-import { fetchCurrentUser, setAuthChecked } from "./features/auth/authSlice";
+import { Toaster } from "./components";
+import { fetchCurrentUser, setAuthChecked } from "./features";
 // endregion
 
 // region main App component

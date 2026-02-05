@@ -5,10 +5,9 @@ import {
   selectEmployeeCount,
   selectEmployeeFilters,
   selectIsEmployeeListEmpty,
-} from "../../features/employees/employeeSelectors";
-import { setFilters } from "../../features/employees/employeeSlice";
-import EmployeeFilters from "../../components/employees/EmployeeFilters";
-import EmployeeList from "../../components/employees/EmployeeList";
+  setFilters,
+} from "../../features/";
+import { EmployeeFilters, EmployeeList } from "../../components/";
 // endregion
 
 // region component
@@ -35,7 +34,7 @@ const ViewEmployees = () => {
 
   // region render
   return (
-    <div className="container mt-4">
+    <div className='container mt-4'>
       <h3>Employees</h3>
 
       {/* Show filters if employees exist OR if filters are active */}
@@ -43,7 +42,7 @@ const ViewEmployees = () => {
 
       {/* Show empty state if list is empty and no filters are active */}
       {isListEmpty && !showFilters && (
-        <div className="alert alert-info text-center mt-4">
+        <div className='alert alert-info text-center mt-4'>
           No employees found. Create one to get started!
         </div>
       )}

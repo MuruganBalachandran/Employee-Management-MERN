@@ -1,8 +1,8 @@
 // region imports
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { hideToast } from "../../features/toast/toastSlice";
-import { selectToastData } from "../../features/toast/toastSelectors";
+import { hideToast, selectToastData } from "../../features";
+
 import {
   FiCheckCircle,
   FiAlertCircle,

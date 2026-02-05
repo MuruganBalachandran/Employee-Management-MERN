@@ -6,8 +6,8 @@ import {
   // registerUser,
   getCurrentUser,
   editCurrentUser,
-} from "../../services/authService";
-import { showToast } from "../toast/toastSlice";
+} from "../../services/";
+import { showToast } from "../../features";
 // endregion
 
 // region initial state

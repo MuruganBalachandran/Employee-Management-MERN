@@ -2,9 +2,9 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import EmployeeForm from "../../components/employees/EmployeeForm";
-import { showToast } from "../../features/toast/toastSlice";
-import { updateMyProfile } from "../../features/auth/authSlice";
+import { EmployeeForm } from "../../components";
+import { showToast, updateMyProfile,selectUser  } from "../../features";
+
 // endregion
 
 // region component
@@ -12,7 +12,8 @@ const EditProfile = () => {
   // region hooks
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const user = useSelector((state) => state?.auth?.user) || {};
+  // const user = useSelector((state) => state?.auth?.user) || {};
+  const user = useSelector(selectUser )
   // endregion
 
   // region submit handler

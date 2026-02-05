@@ -6,8 +6,8 @@ import {
   createEmployee,
   updateEmployee,
   deleteEmployee,
-} from "../../services/employeeService";
-import { showToast } from "../toast/toastSlice";
+} from "../../services/";
+import { showToast } from "../../features";
 // endregion
 
 // region initialState

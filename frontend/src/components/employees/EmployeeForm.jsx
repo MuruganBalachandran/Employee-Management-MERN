@@ -1,9 +1,8 @@
 // region imports
 import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import Input from "../../components/UI/Input";
-import PasswordRules from "../../components/auth/PasswordRules";
-import { showToast } from "../../features/toast/toastSlice";
+import { Input, PasswordRules } from "../../components";
+import { showToast } from "../../features";
 import {
   validateEmployee,
   nameValidation,
@@ -28,18 +27,18 @@ const EmployeeForm = ({
 
   // region form state
   const [form, setForm] = useState({
-    name: "vicky",
-    email: "vicky@spanemployee.com",
+    name: "rajesh",
+    email: "rajesh@spanemployee.com",
     password: "Pass&135",
     confirmPassword: "Pass&135",
     department: "Full Stack Developer",
     phone: "9999999999",
     address: {
-      line1: "sssss",
+      line1: "ss stret",
       line2: "",
-      city: "cccc",
-      state: "cccc",
-      zipCode: "777777",
+      city: "coimbatore",
+      state: "tamil nadu",
+      zipCode: "641556",
     },
   });
   const [errors, setErrors] = useState({});

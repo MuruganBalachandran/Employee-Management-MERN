@@ -12,10 +12,7 @@ export const selectUser = createSelector(
     (auth) => auth?.user || null
 );
 
-/**
- * Select user role
- * Useful for role-based components
- */
+// Select user role-Useful for role-based components
 export const selectUserRole = createSelector(
     [selectUser],
     (user) => user?.Role || null

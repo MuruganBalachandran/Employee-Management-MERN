@@ -6,10 +6,11 @@ import {
   selectCurrentEmployee,
   selectCurrentEmployeeLoading,
   selectEmployeeFromNormalizedState,
-} from "../../features/employees/employeeSelectors";
-import { getEmployee } from "../../features/employees/employeeSlice";
-import Loader from "../../components/UI/Loader";
-import BackButton from "../../components/ui/BackButton";
+  getEmployee,
+} from "../../features";
+
+import { Loader, BackButton } from "../../components";
+
 // endregion
 
 

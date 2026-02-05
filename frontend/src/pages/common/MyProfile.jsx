@@ -1,11 +1,14 @@
 // region imports
 import React from "react";
 import { useSelector } from "react-redux";
+import { Link } from "react-router-dom";
+import { selectUser } from "../../features";
 // endregion
 
 // region component
 const MyProfile = () => {
-  const user = useSelector((state) => state?.auth?.user ?? {});
+   const user = useSelector(selectUser);
+
 
   if (!user?._id) {
     return <div className='p-4'>No user data found.</div>;
@@ -17,9 +20,9 @@ const MyProfile = () => {
       <div className="card-body">
   <h4 className="card-title mb-4">My Profile</h4>
 <div className="d-flex justify-content-end mb-3">
-  <a href="/me/edit" className="btn btn-outline-primary btn-sm">
-    Edit Profile
-  </a>
+        <Link to="/me/edit" className="btn btn-outline-primary btn-sm">
+              Edit Profile
+            </Link> 
 </div>
   <div className="row mb-2">
     <div className="col-sm-3 fw-bold">Name</div>

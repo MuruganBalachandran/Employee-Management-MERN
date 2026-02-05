@@ -1,7 +1,7 @@
 // region imports
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { createAdmin, deleteAdmin } from "../../services/superAdminService";
-import { showToast } from "../toast/toastSlice";
+import { createAdmin, deleteAdmin } from "../../services/";
+import { showToast } from "../../features";
 // endregion
 
 // region async thunks
