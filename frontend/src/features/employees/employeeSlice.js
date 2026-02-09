@@ -218,9 +218,9 @@ const employeeSlice = createSlice({
         state.allIds = [];
 
         items.forEach((emp) => {
-          if (emp?._id) {
-            state.byId[emp._id] = emp;
-            state.allIds.push(emp?._id);
+          if (emp?.Employee_Id) {
+            state.byId[emp.Employee_Id] = emp;
+            state.allIds.push(emp?.Employee_Id);
           }
         });
 
@@ -243,8 +243,8 @@ const employeeSlice = createSlice({
         state.currentEmployeeLoading = false;
         state.currentEmployee = action?.payload || null;
         // Also add to normalized state
-        if (action?.payload?._id) {
-          state.byId[action.payload._id] = action?.payload;
+        if (action?.payload?.Employee_Id) {
+          state.byId[action.payload.Employee_Id] = action?.payload;
         }
       })
       .addCase(getEmployee?.rejected, (state = {}, action = {}) => {
@@ -263,11 +263,11 @@ const employeeSlice = createSlice({
         const employee = action?.payload || {};
 
         // Add to normalized state
-        if (employee?._id) {
-          state.byId[employee._id] = employee;
+        if (employee?.Employee_Id) {
+          state.byId[employee.Employee_Id] = employee;
           // Add to front of list if not already present
-          if (!state.allIds.includes(employee?._id)) {
-            state.allIds.unshift(employee?._id);
+          if (!state.allIds.includes(employee?.Employee_Id)) {
+            state.allIds.unshift(employee?.Employee_Id);
           }
         }
       })
@@ -286,11 +286,11 @@ const employeeSlice = createSlice({
         state.loading = false;
         const updatedEmp = action?.payload?.employee || action?.payload || null;
 
-        if (updatedEmp?._id) {
+        if (updatedEmp?.Employee_Id) {
           // Update normalized state
-          state.byId[updatedEmp._id] = updatedEmp;
+          state.byId[updatedEmp.Employee_Id] = updatedEmp;
           // Update current employee if it's the same one
-          if (state.currentEmployee?._id === updatedEmp?._id) {
+          if (state.currentEmployee?.Employee_Id === updatedEmp?.Employee_Id) {
             state.currentEmployee = updatedEmp;
           }
         }
@@ -315,7 +315,7 @@ const employeeSlice = createSlice({
         state.allIds = state?.allIds?.filter((id) => id !== employeeId);
 
         // Clear current employee if deleted
-        if (state.currentEmployee?._id === employeeId) {
+        if (state.currentEmployee?.Employee_Id === employeeId) {
           state.currentEmployee = null;
         }
       })

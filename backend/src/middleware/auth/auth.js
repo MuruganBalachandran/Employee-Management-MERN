@@ -31,7 +31,7 @@ const auth = (...allowedRoles) => {
 
       const decoded = verifyToken(token);
 
-      if (!decoded?._id) {
+      if (!decoded?.User_Id) {
         return sendResponse(
           res,
           STATUS_CODE?.UNAUTHORIZED || 401,
@@ -40,7 +40,7 @@ const auth = (...allowedRoles) => {
         );
       }
 
-      const user = await User.findOne({ _id: decoded._id, Is_Deleted: 0 });
+      const user = await User.findOne({ User_Id: decoded.User_Id, Is_Deleted: 0 });
 
       if (!user) {
         return sendResponse(

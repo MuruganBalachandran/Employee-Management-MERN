@@ -14,8 +14,8 @@ import {
 import {
   Login,
   Home,
-  CreateEmployee,
-  EditEmployee,
+//   CreateEmployee,
+//   EditEmployee,
   EmployeeView,
   MyProfile,
   EditProfile,
@@ -44,7 +44,7 @@ const AdminRoute = () => {
 // region Super Admin Route
 const SuperAdminRoute = () => {
   const isSuperAdmin = useSelector(selectIsSuperAdmin) || false;
-  return isSuperAdmin ? <Outlet /> : <Navigate to='/me' replace />;
+  return isSuperAdmin ? <Outlet /> : <Navigate to='/' replace />;
 };
 // endregion
 
@@ -83,8 +83,7 @@ const AppRoutes = () => {
           {/* Admin only */}
           <Route element={<AdminRoute />}>
             <Route path='/employees' element={<ViewEmployees />} />
-            <Route path='/employees/create' element={<CreateEmployee />} />
-            <Route path='/employees/edit/:id' element={<EditEmployee />} />
+            {/* CreateEmployee and EditEmployee routes removed as they are now modals in ViewEmployees */}
             <Route path='/employees/view/:id' element={<EmployeeView />} />
           </Route>
 

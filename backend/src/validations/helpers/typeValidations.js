@@ -464,14 +464,14 @@ const validateAge = (value) => {
   }
 
   // MINIMUM AGE CHECK
-  if (value < 13) {
-    return VALIDATION_MESSAGES?.AGE_MIN || "You must be at least 13 years old";
+  if (value < 18) {
+    return VALIDATION_MESSAGES?.AGE_MIN || "You must be at least 18 years old";
   }
 
   // MAXIMUM AGE CHECK (realistic limit)
-  if (value > 120) {
+  if (value > 65) {
     return (
-      VALIDATION_MESSAGES?.AGE_MAX || "Please enter a valid age (witin 120)"
+      VALIDATION_MESSAGES?.AGE_MAX || "Please enter a valid age (within 65)"
     );
   }
 

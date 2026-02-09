@@ -55,12 +55,10 @@ const validateCreateEmployee = (data = {}) => {
     errors.password = passwordError;
   }
 
-  // Age (Optional)
-  if (age !== undefined) {
-    const ageError = validateAge(age);
-    if (ageError) {
-      errors.age = ageError;
-    }
+  // Age (Required)
+  const ageError = validateAge(age);
+  if (ageError) {
+    errors.age = ageError;
   }
 
   // Department (Required for Employee)
@@ -81,11 +79,46 @@ const validateCreateEmployee = (data = {}) => {
     errors.address = addressError;
   }
 
-  const { salary, joiningDate, reportingManager, isActive } = data;
+  // Additional Fields
+  const { salary, joiningDate, reportingManager, isActive, employeeCode } = data;
 
-  if (salary !== undefined && (typeof salary !== 'number' || salary < 0)) errors.salary = "Salary must be a non-negative number";
-  if (joiningDate !== undefined && isNaN(Date.parse(joiningDate))) errors.joiningDate = "Invalid joining date";
-  // reportingManager is optional, no validation needed (just a string ID)
+  // Employee Code
+  if (!employeeCode || typeof employeeCode !== 'string' || !employeeCode.trim()) {
+    errors.employeeCode = "Employee Code is required";
+  } else if (!/^EMP\d+$/.test(employeeCode)) {
+    errors.employeeCode = "Employee Code must start with EMP followed by numbers (e.g. EMP123)";
+  }
+
+  // Salary
+  if (salary === undefined || salary === null || salary === "") {
+    errors.salary = "Salary is required";
+  } else if (typeof salary !== 'number' || isNaN(salary)) {
+    errors.salary = "Salary must be a number";
+  } else if (salary <= 0) {
+    errors.salary = "Salary must be greater than 0";
+  }
+
+  // Reporting Manager (name/ID)
+  if (!reportingManager || (typeof reportingManager === 'string' && !reportingManager.trim())) {
+    errors.reportingManager = "Reporting Manager is required";
+  }
+
+  // Joining Date
+  if (!joiningDate) {
+    errors.joiningDate = "Joining Date is required";
+  } else if (isNaN(Date.parse(joiningDate))) {
+    errors.joiningDate = "Invalid joining date";
+  } else {
+    // Check if past
+    const date = new Date(joiningDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    date.setHours(0, 0, 0, 0); // Normalize input date if it's YYYY-MM-DD
+    if (date < today) {
+      errors.joiningDate = "Joining Date must not be in the past";
+    }
+  }
+
   if (isActive !== undefined && ![0, 1].includes(isActive)) errors.isActive = "Is Active must be 0 or 1";
 
   if (Object.keys(errors).length > 0) {
@@ -137,6 +170,48 @@ const validateUpdateEmployee = (data = {}) => {
     }
   }
 
+  // Validate additional fields if provided
+  const { salary, joiningDate, reportingManager, employeeCode } = data;
+
+  if (employeeCode !== undefined) {
+    if (!employeeCode || typeof employeeCode !== 'string' || !employeeCode.trim()) {
+      errors.employeeCode = "Employee Code cannot be empty";
+    } else if (!/^EMP\d+$/.test(employeeCode)) {
+      errors.employeeCode = "Employee Code must start with EMP followed by numbers (e.g. EMP123)";
+    }
+  }
+
+  if (salary !== undefined) {
+    if (salary === null || salary === "") {
+        errors.salary = "Salary is required";
+    } else if (typeof salary !== 'number' || isNaN(salary)) {
+        errors.salary = "Salary must be a number";
+    } else if (salary <= 0) {
+        errors.salary = "Salary must be greater than 0";
+    }
+  }
+
+  if (reportingManager !== undefined) {
+     if (!reportingManager || (typeof reportingManager === 'string' && !reportingManager.trim())) {
+        errors.reportingManager = "Reporting Manager cannot be empty";
+     }
+  }
+
+  if (joiningDate !== undefined) {
+    if (!joiningDate) {
+        errors.joiningDate = "Joining Date cannot be empty";
+    } else if (isNaN(Date.parse(joiningDate))) {
+        errors.joiningDate = "Invalid joining date";
+    } else {
+        const date = new Date(joiningDate);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        date.setHours(0, 0, 0, 0);
+        if (date < today) {
+            errors.joiningDate = "Joining Date must not be in the past";
+        }
+    }
+  }
 
   if (Object.keys(errors).length > 0) {
     return validationError(errors);

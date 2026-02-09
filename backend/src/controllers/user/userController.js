@@ -1,69 +1,52 @@
 // region imports
-// package imports
 import {
   sendResponse,
   STATUS_CODE,
   RESPONSE_STATUS,
+  ROLE,
 } from "../../utils/index.js";
 
-// validation imports
 import { validateUpdateProfile } from "../../validations/index.js";
-
-// query imports
-import { updateUserProfile, deleteUserAccount } from "../../queries/index.js";
+import {
+  updateUserProfile,
+  deleteUserAccount,
+} from "../../queries/index.js";
+import { getEmployeeById } from "../../queries/index.js";
 // endregion
 
-// region get profile controller
+// region get profile
 const getProfile = async (req = {}, res = {}) => {
   try {
     const user = req?.user;
-    
-    // If user is an employee, fetch complete employee data
-    if (user?.Role === "EMPLOYEE") {
-      const Employee = (await import("../../models/employee/employeeModel.js")).default;
-      const employeeData = await Employee.findOne({ 
-        User_Id: user._id, 
-        Is_Deleted: 0 
-      }).lean();
+
+    if (user?.Role === ROLE.EMPLOYEE) {
+      const employee = await getEmployeeById(user?.User_Id);
       
-      if (employeeData) {
-        // Merge user data (Name, Email) with employee data
-        const completeProfile = {
-          _id: employeeData._id,
-          Name: user.Name,
-          Email: user.Email,
-          Employee_Code: employeeData.Employee_Code,
-          Age: employeeData.Age,
-          Department: employeeData.Department,
-          Phone: employeeData.Phone,
-          Address: employeeData.Address,
-          Salary: employeeData.Salary,
-          Reporting_Manager: employeeData.Reporting_Manager,
-          Joining_date: employeeData.Joining_date,
-          Created_At: employeeData.Created_At,
-          Updated_At: employeeData.Updated_At,
-        };
-        
+      if (employee) {
         return sendResponse(
           res,
           STATUS_CODE?.OK || 200,
           RESPONSE_STATUS?.SUCCESS || "SUCCESS",
           "Profile fetched successfully",
-          { user: completeProfile },
+          employee,
         );
       }
     }
-    
-    // For admins or if employee data not found, return user data only
+
     return sendResponse(
       res,
       STATUS_CODE?.OK || 200,
       RESPONSE_STATUS?.SUCCESS || "SUCCESS",
       "Profile fetched successfully",
-      { user: req?.user },
+      {
+        User_Id: user?.User_Id,
+        Name: user?.Name,
+        Email: user?.Email,
+        Role: user?.Role,
+      },
     );
   } catch (err) {
-    console.error("Error getting profile:", err);
+    console.error("Error fetching profile:", err);
     return sendResponse(
       res,
       STATUS_CODE?.INTERNAL_SERVER_ERROR || 500,
@@ -74,47 +57,47 @@ const getProfile = async (req = {}, res = {}) => {
 };
 // endregion
 
-// region update profile controller
+// region update profile
 const updateProfile = async (req = {}, res = {}) => {
   try {
-    // validate update input
     const validation = validateUpdateProfile(req?.body || {});
     if (!validation?.isValid) {
       return sendResponse(
         res,
-        validation?.statusCode || STATUS_CODE?.BAD_REQUEST || 400,
-        RESPONSE_STATUS.FAILURE || "FAILURE",
-        validation?.error || "Invalid input",
+        STATUS_CODE?.BAD_REQUEST || 400,
+        RESPONSE_STATUS?.FAILURE || "FAILURE",
+        validation?.error,
       );
     }
 
-    // Extract fields in camelCase from API payload with defaults
-    const { name, password } = req.body || {};
+    const { name, password } = req?.body || {};
 
+    const updateData = {};
+    if (name !== undefined) updateData.Name = name?.trim() || "";
+    if (password !== undefined) updateData.Password = password;
 
-
-    // Map to PascalCase for database update
-    const updatedUser = await updateUserProfile(req?.user, {
-      Name: name,
-      Password: password,
-    });
+    const updatedUser = await updateUserProfile(req?.user, updateData);
 
     if (!updatedUser) {
       return sendResponse(
         res,
-        STATUS_CODE?.OK || 200,
-        RESPONSE_STATUS?.SUCCESS || "SUCCESS",
-        "No changes detected",
+        STATUS_CODE?.BAD_REQUEST || 400,
+        RESPONSE_STATUS?.FAILURE || "FAILURE",
+        "No changes made",
       );
     }
 
-    // send success response
     return sendResponse(
       res,
       STATUS_CODE?.OK || 200,
       RESPONSE_STATUS?.SUCCESS || "SUCCESS",
       "Profile updated successfully",
-      updatedUser,
+      {
+        User_Id: updatedUser?.User_Id,
+        Name: updatedUser?.Name,
+        Email: updatedUser?.Email,
+        Role: updatedUser?.Role,
+      },
     );
   } catch (err) {
     console.error("Error updating profile:", err);
@@ -128,25 +111,32 @@ const updateProfile = async (req = {}, res = {}) => {
 };
 // endregion
 
-// region delete user controller
+// region delete account
 const deleteAccount = async (req = {}, res = {}) => {
   try {
-    const targetUser = req?.user;
-    const deletedUser = await deleteUserAccount(targetUser);
+    const result = await deleteUserAccount(req?.user);
+
+    if (!result) {
+      return sendResponse(
+        res,
+        STATUS_CODE?.BAD_REQUEST || 400,
+        RESPONSE_STATUS?.FAILURE || "FAILURE",
+        "Unable to delete account",
+      );
+    }
 
     return sendResponse(
       res,
       STATUS_CODE?.OK || 200,
       RESPONSE_STATUS?.SUCCESS || "SUCCESS",
       "Account deleted successfully",
-      deletedUser,
     );
   } catch (err) {
     console.error("Error deleting account:", err);
     return sendResponse(
       res,
       STATUS_CODE?.INTERNAL_SERVER_ERROR || 500,
-      RESPONSE_STATUS?.FAILURE || 500,
+      RESPONSE_STATUS?.FAILURE || "FAILURE",
       "Error deleting account",
     );
   }

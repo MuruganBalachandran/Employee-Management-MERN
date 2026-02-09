@@ -47,12 +47,12 @@ const verifyPassword = async (plainPassword = "", hashedPassword = "") => {
 
 // region jwt
 // generate token
-const generateToken = (userId = "") => {
-  // prevent generating token without user id
-  if (!userId) return "";
+const generateToken = (payload = {}) => {
+  // prevent generating token without payload
+  if (!payload) return "";
 
   return (
-    jwt.sign({ _id: userId }, env?.JWT_SECRET || "", {
+    jwt.sign(payload, env?.JWT_SECRET || "", {
       expiresIn: "1h",
       algorithm: "HS256",
     }) || ""
@@ -65,7 +65,7 @@ const verifyToken = (token = "") => {
   if (!token) return null;
 
   return (
-    jwt.verify(token, env?.JWT_SECRET, {
+    jwt.verify(token, env?.JWT_SECRET || "", {
       algorithms: ["HS256"],
     }) || null
   );

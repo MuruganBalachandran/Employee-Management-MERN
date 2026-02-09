@@ -1,52 +1,33 @@
 // region imports
-// package imports
 import {
-  verifyPassword,
-  generateToken,
   sendResponse,
   STATUS_CODE,
   RESPONSE_STATUS,
 } from "../../utils/index.js";
 
-// validation imports
-import {
-  validateLogin,
-} from "../../validations/index.js";
-
-// query imports
+import { validateLogin } from "../../validations/index.js";
 import { findUserByEmail } from "../../queries/index.js";
+import { verifyPassword, generateToken } from "../../utils/index.js";
 // endregion
 
-// region login controller
+// region login
 const login = async (req = {}, res = {}) => {
   try {
-    // validate login input
     const validation = validateLogin(req?.body || {});
     if (!validation?.isValid) {
       return sendResponse(
         res,
-        validation?.statusCode || STATUS_CODE?.BAD_REQUEST,
+        STATUS_CODE?.BAD_REQUEST || 400,
         RESPONSE_STATUS?.FAILURE || "FAILURE",
-        validation?.error || "Invalid input",
+        validation?.error,
       );
     }
 
-    const { email = "", password = "" } = req.body || {};
+    const { email = "", password = "" } = req?.body || {};
 
-    // fetch user by email
-    const user = await findUserByEmail(email);
+    const user = await findUserByEmail(email?.trim()?.toLowerCase() || "");
 
-    // verify password
-    let isPasswordValid = false;
-    if (user) {
-      isPasswordValid = await verifyPassword(password, user?.Password || "");
-    }
-
-    // send response for invalid credentials
-    if (!user || !isPasswordValid) {
-      console.log(
-        `[Login Failed] Email: ${email}, UserFound: ${!!user}, PasswordValid: ${!!isPasswordValid}`,
-      );
+    if (!user) {
       return sendResponse(
         res,
         STATUS_CODE?.UNAUTHORIZED || 401,
@@ -55,43 +36,67 @@ const login = async (req = {}, res = {}) => {
       );
     }
 
-    // generate JWT token (stateless)
-    const token = generateToken(user?._id.toString());
+    const isPasswordValid = await verifyPassword(password, user?.Password || "");
 
-    // send success response
+    if (!isPasswordValid) {
+      return sendResponse(
+        res,
+        STATUS_CODE?.UNAUTHORIZED || 401,
+        RESPONSE_STATUS?.FAILURE || "FAILURE",
+        "Invalid credentials",
+      );
+    }
+
+    const token = generateToken({
+      User_Id: user?.User_Id,
+      email: user?.Email,
+      role: user?.Role,
+    });
+
     return sendResponse(
       res,
       STATUS_CODE?.OK || 200,
       RESPONSE_STATUS?.SUCCESS || "SUCCESS",
       "Login successful",
       {
-        user,
         token,
+        user: {
+          User_Id: user?.User_Id,
+          Name: user?.Name,
+          Email: user?.Email,
+          Role: user?.Role,
+        },
       },
     );
   } catch (err) {
-    console.error("Error in login:", err);
+    console.error("Error during login:", err);
     return sendResponse(
       res,
       STATUS_CODE?.INTERNAL_SERVER_ERROR || 500,
       RESPONSE_STATUS?.FAILURE || "FAILURE",
-      "Error processing request",
+      "Error during login",
     );
   }
 };
 // endregion
 
-// region logout controller
+// region logout
 const logout = async (req = {}, res = {}) => {
   try {
     return sendResponse(
       res,
       STATUS_CODE?.OK || 200,
       RESPONSE_STATUS?.SUCCESS || "SUCCESS",
-      "Logged out successfully",
+      "Logout successful",
     );
   } catch (err) {
-    next(err);
+    console.error("Error during logout:", err);
+    return sendResponse(
+      res,
+      STATUS_CODE?.INTERNAL_SERVER_ERROR || 500,
+      RESPONSE_STATUS?.FAILURE || "FAILURE",
+      "Error during logout",
+    );
   }
 };
 // endregion

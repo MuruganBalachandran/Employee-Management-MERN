@@ -15,7 +15,9 @@ const ProfileDetails = ({
   user = {},        // user object with profile details
   showMeta = false, // flag to show meta info like IDs and timestamps
 }) => {
-  if (!user?._id) {
+  const id = user?.User_Id || user?.userId || user?.Employee_Id || user?._id;
+
+  if (!id) {
     return (
       <div className="p-4 text-center text-muted">
         No data found.
@@ -97,7 +99,7 @@ const ProfileDetails = ({
             <h6 className="text-secondary mb-2">Meta Information</h6>
             <div className="row mb-2">
               <div className="col-sm-3 fw-bold">User ID</div>
-              <div className="col-sm-9">{user?._id}</div>
+              <div className="col-sm-9">{id}</div>
             </div>
             <div className="row mb-2">
               <div className="col-sm-3 fw-bold">Created</div>

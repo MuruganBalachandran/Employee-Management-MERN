@@ -17,6 +17,9 @@ export const ZIP_REGEX = /^\d{5,6}$/;
 export const EMAIL_REGEX =
   /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
 
+// Regex for employee code (EMP followed by numbers)
+export const EMP_CODE_REGEX = /^EMP\d+$/;
+
 // Reserved names not allowed for users
 export const RESERVED_NAMES = [
   "admin",
@@ -370,6 +373,104 @@ export const addressValidation = (address = {}) => {
 };
 // endregion
 
+// region age validation
+export const ageValidation = (age) => {
+  if (age === "" || age === null || age === undefined) return "Age is required";
+    
+  const num = parseInt(age, 10);
+
+  if (isNaN(num)) {
+    return "Age must be a number";
+  }
+
+  if (num < 18) {
+    return "Age must be at least 18";
+  }
+
+  if (num > 65) {
+    return "Age must be at most 65";
+  }
+
+  return "";
+}
+// endregion
+
+// region employee code validation
+export const employeeCodeValidation = (code = "") => {
+  if (!code) return "Employee Code is required";
+  if (!EMP_CODE_REGEX.test(code)) {
+    return "Employee Code must start with EMP followed by numbers (e.g. EMP123)";
+  }
+  return "";
+}
+// endregion
+
+// region salary validation
+export const salaryValidation = (salary) => {
+  if (salary === "" || salary === null || salary === undefined) return "Salary is required";
+  
+  const num = parseFloat(salary);
+  
+  if (isNaN(num)) {
+      return "Salary must be a valid number";
+  }
+
+  if (num <= 0) {
+      return "Salary must be greater than 0";
+  }
+
+  if (num > 10000000) {
+      return "Salary seems unreasonably high";
+  }
+
+  return "";
+}
+// endregion
+
+// region reporting manager validation
+export const reportingManagerValidation = (manager = "") => {
+  if (!manager) return "Reporting Manager is required"; 
+
+  const trimmed = manager?.trim() ?? "";
+
+  if (trimmed.length < 2) {
+      return "Reporting Manager must be at least 2 characters";
+  }
+
+  if (trimmed.length > 50) {
+      return "Reporting Manager cannot exceed 50 characters";
+  }
+
+  return "";
+}
+// endregion
+
+// region joining date validation
+export const joiningDateValidation = (date = "") => {
+  if (!date) return "Joining Date is required";
+
+  const dateObj = new Date(date);
+
+  if (isNaN(dateObj.getTime())) {
+      return "Invalid date format";
+  }
+
+  // Set today to midnight for comparison
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // Normalize input date to midnight
+  const inputDate = new Date(dateObj);
+  inputDate.setHours(0, 0, 0, 0);
+
+  if (inputDate < today) {
+      return "Joining Date must not be in the past";
+  }
+
+  return "";
+}
+// endregion
+
 // region full employee validation
 export const validateEmployee = (data = {}, isEdit = false) => {
   const errors = {};
@@ -438,6 +539,52 @@ export const validateEmployee = (data = {}, isEdit = false) => {
       errors[`address.${key}`] = addrErrors?.[key];
     });
   }
+
+  // New validations
+  // Need to handle hideCredentials? 
+  // If isEdit is true, some fields might be editable only by Admin.
+  // Assuming frontend passes all current form values.
+
+  // Age
+  // But wait, Age is "new field" as per user request. 
+  // Should validate unless it's hidden/not provided? 
+  // User said "add the age field ... and add validation for everything".
+  // So validation should run.
+    const ageErr = ageValidation(data?.age);
+    if (ageErr) errors.age = ageErr;
+
+
+  // Employee Code (only for creation?)
+  // User said "employee code must be EMP001...".
+  // Employee Code is usually immutable on Edit.
+  // If user is editing, do we validate it?
+  // Only if provided. But my form logic DELETES it from payload on edit.
+  // Wait, `validateEmployee` is called BEFORE submission.
+  // If `isEdit` is true, typical flow is: don't change Employee Code.
+  // But usage in `EmployeeForm`:
+  /*
+    const errors = validateEmployee(form, isEdit);
+  */
+  // Form has `employeeCode` in state.
+  // If `isEdit`, `employeeCode` is disabled in UI.
+  // But we can still validate it exists.
+  // For Create (`!isEdit`), MUST validate format.
+  if (!isEdit) {
+      const codeErr = employeeCodeValidation(data?.employeeCode);
+      if (codeErr) errors.employeeCode = codeErr;
+  }
+
+  // Salary
+  const salaryErr = salaryValidation(data?.salary);
+  if (salaryErr) errors.salary = salaryErr;
+
+  // Reporting Manager
+  const managerErr = reportingManagerValidation(data?.reportingManager);
+  if (managerErr) errors.reportingManager = managerErr;
+
+  // Joining Date
+  const dateErr = joiningDateValidation(data?.joiningDate);
+  if (dateErr) errors.joiningDate = dateErr;
 
   return errors;
 };

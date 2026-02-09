@@ -12,7 +12,7 @@ const UserSchema = new mongoose.Schema(
   {
     User_Id: {
       type: mongoose.Schema.Types.ObjectId,
-      auto: true,
+      default: () => new mongoose.Types.ObjectId(),
     },
     Name: {
       type: String,
@@ -63,6 +63,7 @@ UserSchema?.index(
 );
 
 // admin filtering and sorting
+UserSchema?.index({ User_Id: 1 }, { unique: true }); // Important for lookups and updates
 UserSchema?.index({ Role: 1, Is_Deleted: 1 });
 UserSchema?.index({ Created_At: -1 }); // Optimize recent user sorting
 UserSchema?.index({ Name: 1 }); // Optimize user searching

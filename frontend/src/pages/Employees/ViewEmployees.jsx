@@ -41,11 +41,7 @@ const ViewEmployees = () => {
       {showFilters && <EmployeeFilters onFilter={handleFilter} />}
 
       {/* Show empty state if list is empty and no filters are active */}
-      {isListEmpty && !showFilters && (
-        <div className='alert alert-info text-center mt-4'>
-          No employees found. Create one to get started!
-        </div>
-      )}
+
 
       {/* Employee list */}
       <EmployeeList />

@@ -36,7 +36,7 @@ export const emailValidation = (email = "", type = "login") => {
 
   // Email format regex
   const regex =
-    /^(?!.*\.\.)(? !.*\.$)(?!^\.)[ a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    /^(?!.*\.\.)(?!.*\.$)(?!^\.)[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
   // Validate email format
   if (!regex?.test(trimmed)) {

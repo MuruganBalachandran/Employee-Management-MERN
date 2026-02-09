@@ -8,6 +8,8 @@ import api from "./api";
 export const createAdmin = (data = {}) =>
   api.post("/super-admin", data);
 
+
+
 // Delete an admin by ID (Super Admin only)
 export const deleteAdmin = (id = "") =>
   api.delete(`/super-admin/${id}`);

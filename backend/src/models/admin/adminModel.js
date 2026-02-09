@@ -10,7 +10,7 @@ const AdminSchema = new mongoose.Schema(
     {
         Admin_Id: {
             type: mongoose.Schema.Types.ObjectId,
-            auto: true,
+            default: () => new mongoose.Types.ObjectId(),
         },
         User_Id: {
             type: mongoose.Schema.Types.ObjectId,
@@ -41,7 +41,8 @@ const AdminSchema = new mongoose.Schema(
 // region minimal indexes
 // Email unique only for ACTIVE admins
 // admin filtering and sorting
-AdminSchema?.index({ Admin_Id: 1 });
+AdminSchema?.index({ Admin_Id: 1 }, { unique: true }); // Important for lookups and updates
+AdminSchema?.index({ User_Id: 1 });
 AdminSchema?.index({ Is_Deleted: 1 });
 AdminSchema?.index({ Created_At: -1 }); // Optimize recent admin sorting
 

@@ -60,11 +60,7 @@ const Header = () => {
                     Employees
                   </Link>
                 </li>
-                <li className="nav-item">
-                  <Link to="/employees/create" className="nav-link text-light">
-                    Add Employee
-                  </Link>
-                </li>
+                {/* Add Employee link removed (use modal in ViewEmployees) */}
               </>
             )}
 

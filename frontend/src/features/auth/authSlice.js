@@ -91,7 +91,7 @@ export const fetchCurrentUser = createAsyncThunk(
     /* Fetch logged-in user from backend */
     try {
       const res = await getCurrentUser();
-      return res?.data?.data?.user || null;
+      return res?.data?.data || null;
     } catch (err) {
       return rejectWithValue?.(
         err?.response?.data?.message || "Failed to fetch user",

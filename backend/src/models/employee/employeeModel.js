@@ -9,19 +9,15 @@ const EmployeeSchema = new mongoose.Schema(
     {
         Employee_Id:{
             type: mongoose.Schema.Types.ObjectId,
-            auto: true,
+            default: () => new mongoose.Types.ObjectId(),
         },
-        // refer to User model
         User_Id: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
-            auto: true,
         },
-        // who created
         Admin_Id: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Admin',
-            auto: true,
         },
 
         // Employee unique code/ID
@@ -100,6 +96,7 @@ const EmployeeSchema = new mongoose.Schema(
 
 // region minimal indexes
 // employee filtering and sorting
+EmployeeSchema?.index({ Employee_Id: 1 }, { unique: true }); // Important for lookups and updates
 EmployeeSchema?.index({ User_Id: 1 });
 EmployeeSchema?.index({ Is_Deleted: 1 });
 EmployeeSchema?.index({ Created_At: -1 }); // Optimize recent employee sorting

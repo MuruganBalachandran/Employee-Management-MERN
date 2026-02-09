@@ -28,7 +28,7 @@ const EditEmployee = () => {
   // region fetchEmployee
   useEffect(() => {
     // Fetch employee details by ID
-    if (!currentEmployee && !currentEmployeeLoading) {
+    if ((!currentEmployee || currentEmployee.Employee_Id !== id) && !currentEmployeeLoading) {
       dispatch(getEmployee(id || ""))
         .unwrap()
         .catch((err) =>

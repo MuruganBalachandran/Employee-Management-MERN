@@ -11,13 +11,13 @@ import {
   departmentValidation,
   phoneValidation,
   addressValidation,
-  VALID_DEPARTMENTS,
-} from "../../validations/employeeValidation";
-import {
+  ageValidation,
+  employeeCodeValidation,
   salaryValidation,
   reportingManagerValidation,
   joiningDateValidation,
-} from "../../validations/newFieldValidations";
+  VALID_DEPARTMENTS,
+} from "../../validations/employeeValidation";
 // endregion
 
 // region EmployeeForm component
@@ -28,23 +28,24 @@ const EmployeeForm = ({
 }) => {
   // hooks
   const dispatch = useDispatch();
-  const isEdit = !!initialData?._id;
+  const isEdit = !!initialData?.Employee_Id || !!initialData?.User_Id || !!initialData?.userId;
 
   // region form state
   const [form, setForm] = useState({
-    name: "rajesh",
-    email: "rajesh@spanemployee.com",
-    password: "Pass&135",
-    confirmPassword: "Pass&135",
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
     employeeCode: "",
-    department: "Full Stack Developer",
-    phone: "9999999999",
+    age: "",
+    department: "",
+    phone: "",
     address: {
-      line1: "ss stret",
+      line1: "",
       line2: "",
-      city: "coimbatore",
-      state: "tamil nadu",
-      zipCode: "641556",
+      city: "",
+      state: "",
+      zipCode: "",
     },
     salary: "",
     reportingManager: "",
@@ -56,25 +57,28 @@ const EmployeeForm = ({
   // region sync form when editing
   useEffect(() => {
     // Sync form state with initial employee data
-    if (initialData?._id) {
+    if (initialData?.Employee_Id || initialData?.User_Id || initialData?.userId) {
       setForm({
-        name: initialData?.Name ?? "",
-        email: initialData?.Email ?? "",
+        name: initialData?.Name ?? initialData?.name ?? "",
+        email: initialData?.Email ?? initialData?.email ?? "",
         password: "",
         confirmPassword: "",
-        employeeCode: initialData?.Employee_Code ?? "",
-        department: initialData?.Department ?? "",
-        phone: initialData?.Phone ?? "",
+        employeeCode: initialData?.Employee_Code ?? initialData?.employeeCode ?? "",
+        age: initialData?.Age ?? initialData?.age ?? "",
+        department: initialData?.Department ?? initialData?.department ?? "",
+        phone: initialData?.Phone ?? initialData?.phone ?? "",
         address: {
-          line1: initialData?.Address?.Line1 ?? "",
-          line2: initialData?.Address?.Line2 ?? "",
-          city: initialData?.Address?.City ?? "",
-          state: initialData?.Address?.State ?? "",
-          zipCode: initialData?.Address?.ZipCode ?? "",
+          line1: initialData?.Address?.Line1 ?? initialData?.address?.line1 ?? "",
+          line2: initialData?.Address?.Line2 ?? initialData?.address?.line2 ?? "",
+          city: initialData?.Address?.City ?? initialData?.address?.city ?? "",
+          state: initialData?.Address?.State ?? initialData?.address?.state ?? "",
+          zipCode: initialData?.Address?.ZipCode ?? initialData?.address?.zipCode ?? "",
         },
-        salary: initialData?.Salary ?? "",
-        reportingManager: initialData?.Reporting_Manager ?? "",
-        joiningDate: initialData?.Joining_date ? initialData.Joining_date.split('T')[0] : "",
+        salary: initialData?.Salary ?? initialData?.salary ?? "",
+        reportingManager: initialData?.Reporting_Manager ?? initialData?.reportingManager ?? "",
+        joiningDate: (initialData?.Joining_date || initialData?.joiningDate)
+          ? (initialData.Joining_date || initialData.joiningDate).split("T")[0]
+          : "",
       });
     }
   }, [initialData]);
@@ -127,6 +131,12 @@ const EmployeeForm = ({
         case "joiningDate":
           fieldError = joiningDateValidation(value);
           break;
+        case "age":
+          fieldError = ageValidation(value);
+          break;
+        case "employeeCode":
+          fieldError = employeeCodeValidation(value);
+          break;
       }
 
       setForm((prev) => ({ ...prev, [field]: value }));
@@ -152,6 +162,7 @@ const EmployeeForm = ({
       email: form.email,
       password: form.password,
       employeeCode: form.employeeCode,
+      age: form.age ? parseInt(form.age) : "",
       department: form.department,
       phone: form.phone,
       address: {
@@ -164,10 +175,11 @@ const EmployeeForm = ({
     };
 
     // Include salary, reportingManager, joiningDate only during creation (and only if provided)
-    if (!isEdit) {
-      if (form.salary && form.salary.trim()) payload.salary = parseFloat(form.salary);
-      if (form.reportingManager && form.reportingManager.trim()) payload.reportingManager = form.reportingManager.trim();
-      if (form.joiningDate && form.joiningDate.trim()) payload.joiningDate = form.joiningDate.trim();
+    // Include salary, reportingManager, joiningDate if admin (hideCredentials is false)
+    if (!hideCredentials) {
+      payload.salary = form.salary ? parseFloat(form.salary) : "";
+      payload.reportingManager = form.reportingManager ? form.reportingManager.trim() : "";
+      payload.joiningDate = form.joiningDate ? form.joiningDate.trim() : "";
     }
 
     if (isEdit) {
@@ -250,6 +262,19 @@ const EmployeeForm = ({
           />
         </>
       )}
+      
+      {/* Age */}
+      {!hideCredentials && (
+        <Input
+          label='Age'
+          type='number'
+          placeholder='Enter age'
+          value={form?.age || ""}
+          onChange={(e) => handleChange("age", e?.target?.value || "")}
+          error={errors?.age || ""}
+        />
+      )}
+
       {/* department */}
       <Input
         label='Department'
@@ -328,8 +353,8 @@ const EmployeeForm = ({
           
           {/* Reporting Manager */}
           <Input
-            label='Reporting Manager ID (Optional)'
-            placeholder='Enter reporting manager ID'
+            label='Reporting Manager Name/ID'
+            placeholder='Enter reporting manager'
             value={form?.reportingManager || ""}
             onChange={(e) => handleChange("reportingManager", e?.target?.value || "")}
             error={errors?.reportingManager || ""}
@@ -337,7 +362,7 @@ const EmployeeForm = ({
           
           {/* Joining Date */}
           <Input
-            label='Joining Date (Optional)'
+            label='Joining Date'
             type='date'
             value={form?.joiningDate || ""}
             onChange={(e) => handleChange("joiningDate", e?.target?.value || "")}

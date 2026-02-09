@@ -66,17 +66,21 @@ const EmployeeFilters = ({ onFilter = () => {} }) => {
         ))}
       </select>
 
-      {/* Apply & Clear buttons */}
-      {hasFilter && (
-        <>
-          <button className="btn btn-primary" onClick={handleApply}>
-            Apply
-          </button>
-          <button className="btn btn-secondary" onClick={handleClear}>
-            Clear
-          </button>
-        </>
-      )}
+
+      <button
+        className="btn btn-primary"
+        onClick={handleApply}
+        disabled={!hasFilter}
+      >
+        Apply
+      </button>
+      <button
+        className="btn btn-secondary"
+        onClick={handleClear}
+        disabled={!hasFilter}
+      >
+        Clear
+      </button>
     </div>
   );
 };

@@ -20,6 +20,8 @@ export const createNewAdmin = createAsyncThunk(
   }
 );
 
+
+
 // Optional: For future use if admin deletion UI is added
 export const removeAdmin = createAsyncThunk(
   "superAdmin/removeAdmin",
@@ -43,6 +45,7 @@ const superAdminSlice = createSlice({
   initialState: {
     loading: false,
     error: null,
+
   },
   reducers: {
     clearSuperAdminError: (state) => {
@@ -77,6 +80,7 @@ const superAdminSlice = createSlice({
         state.loading = false;
         state.error = action.payload || "Unknown error";
       });
+      // endregion
       // endregion
   },
 });

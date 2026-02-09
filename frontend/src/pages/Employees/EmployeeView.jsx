@@ -28,7 +28,7 @@ const EmployeeView = () => {
   const employee = currentEmployee || employeeFromState;
 
   useEffect(() => {
-    if ((!employee || employee._id !== id) && !currentEmployeeLoading && id) {
+    if ((!employee || employee.Employee_Id !== id) && !currentEmployeeLoading && id) {
       dispatch(getEmployee(id));
     }
   }, [id, employee, currentEmployeeLoading, dispatch]);

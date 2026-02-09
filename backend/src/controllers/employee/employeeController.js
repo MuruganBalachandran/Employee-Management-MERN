@@ -3,7 +3,6 @@ import {
   sendResponse,
   STATUS_CODE,
   RESPONSE_STATUS,
-  ROLE,
 } from "../../utils/index.js";
 
 import {
@@ -25,26 +24,15 @@ import { validateObjectId } from "../../validations/helpers/typeValidations.js";
 // region list employees
 const listEmployees = async (req = {}, res = {}) => {
   try {
-    // Support both skip/limit (frontend style) and page/limit (traditional style)
     const limit = Math.min(100, Number(req?.query?.limit) || 5);
-
-    let skip = 0;
-    if (req?.query?.skip !== undefined) {
-      // Frontend sends skip directly
-      skip = Math.max(0, Number(req?.query?.skip) || 0);
-    } else {
-      // Traditional page parameter
-      const page = Math.max(1, Number(req?.query?.page) || 1);
-      skip = (page - 1) * limit;
-    }
-
+    const skip = req?.query?.skip !== undefined 
+      ? Math.max(0, Number(req?.query?.skip) || 0)
+      : (Math.max(1, Number(req?.query?.page) || 1) - 1) * limit;
+    
     const search = req?.query?.search || "";
     const department = req?.query?.department || "";
 
     const result = await getAllEmployees(limit, skip, search, department);
-
-    const currentPage = Math.floor(skip / limit) + 1;
-    const totalPages = Math.ceil(result?.total / limit);
 
     return sendResponse(
       res,
@@ -52,12 +40,12 @@ const listEmployees = async (req = {}, res = {}) => {
       RESPONSE_STATUS?.SUCCESS || "SUCCESS",
       "Employees fetched successfully",
       {
-        employees: result?.employees,
-        total: result?.total,
+        employees: result?.employees || [],
+        total: result?.total || 0,
         skip,
         limit,
-        currentPage,
-        totalPages,
+        currentPage: Math.floor(skip / limit) + 1,
+        totalPages: Math.ceil((result?.total || 0) / limit),
       },
     );
   } catch (err) {
@@ -117,7 +105,7 @@ const getEmployee = async (req = {}, res = {}) => {
 };
 // endregion
 
-// region create employee (admin)
+// region create employee
 const createNewEmployee = async (req = {}, res = {}) => {
   try {
     const validation = validateCreateEmployee(req?.body || {});
@@ -130,7 +118,6 @@ const createNewEmployee = async (req = {}, res = {}) => {
       );
     }
 
-    // Extract all fields in camelCase and map to PascalCase for database
     const {
       name = "",
       email = "",
@@ -145,37 +132,30 @@ const createNewEmployee = async (req = {}, res = {}) => {
       joiningDate = null,
     } = req?.body || {};
 
-
-
-
-
-    // Map address from camelCase (API) to PascalCase (DB)
-    const mappedAddress =
-      address && typeof address === "object"
-        ? {
-            Line1: address?.line1 || "",
-            Line2: address?.line2 || "",
-            City: address?.city || "",
-            State: address?.state || "",
-            ZipCode: address?.zipCode || "",
-          }
-        : {};
-        
-    const adminId = req?.user?.Role === ROLE.ADMIN ? req.user._id : null; 
+    // Map address from camelCase to PascalCase
+    const mappedAddress = address && typeof address === "object"
+      ? {
+          Line1: address?.line1 || "",
+          Line2: address?.line2 || "",
+          City: address?.city || "",
+          State: address?.state || "",
+          ZipCode: address?.zipCode || "",
+        }
+      : {};
 
     const employee = await createEmployee({
-      Name: name,
-      Email: email,
+      Name: name?.trim() || "",
+      Email: email?.trim()?.toLowerCase() || "",
       Password: password,
       Employee_Code: employeeCode,
       Age: age,
-      Department: department,
-      Phone: phone,
+      Department: department?.trim() || "",
+      Phone: phone?.trim() || "",
       Address: mappedAddress,
       Salary: salary,
       Reporting_Manager: reportingManager,
       Joining_date: joiningDate,
-    }, adminId);
+    }, req?.user?.User_Id);
 
     return sendResponse(
       res,
@@ -186,27 +166,25 @@ const createNewEmployee = async (req = {}, res = {}) => {
     );
   } catch (err) {
     console.error("Error creating employee:", err);
-    console.error("Error details:", {
-      code: err.code,
-      message: err.message,
-      name: err.name,
-      stack: err.stack
-    });
     
-    if (err.code === 11000) {
-         return sendResponse(
-            res,
-            STATUS_CODE?.BAD_REQUEST || 400,
-            RESPONSE_STATUS?.FAILURE || "FAILURE",
-            "Email already registered",
-        );
+    if (err?.code === 11000) {
+      const key = Object.keys(err.keyPattern || {})[0];
+      if (key === "Employee_Code") {
+        return sendResponse(res, STATUS_CODE?.BAD_REQUEST || 400, RESPONSE_STATUS?.FAILURE || "FAILURE", "Employee Code already exists");
+      }
+      return sendResponse(
+        res,
+        STATUS_CODE?.BAD_REQUEST || 400,
+        RESPONSE_STATUS?.FAILURE || "FAILURE",
+        "Email already registered",
+      );
     }
 
     return sendResponse(
       res,
       STATUS_CODE?.INTERNAL_SERVER_ERROR || 500,
       RESPONSE_STATUS?.FAILURE || "FAILURE",
-      err.message || "Error creating employee",
+      err?.message || "Error creating employee",
     );
   }
 };
@@ -226,9 +204,6 @@ const updateEmployeeDetails = async (req = {}, res = {}) => {
         idError,
       );
     }
-    
-    // NOTE: Removed previous pre-fetch of getEmployeeById(id) to save 1 DB hit.
-    // We proceed directly to update. If not found, updateEmployee returns null.
 
     const validation = validateUpdateEmployee(req?.body || {});
     if (!validation?.isValid) {
@@ -240,18 +215,26 @@ const updateEmployeeDetails = async (req = {}, res = {}) => {
       );
     }
 
-    // Extract fields
     const { 
-        name, age, department, phone, address, personalEmail,
-        salary, reportingManager, joiningDate, employeeCode
+      name, 
+      age, 
+      department, 
+      phone, 
+      address, 
+      personalEmail,
+      salary, 
+      reportingManager, 
+      joiningDate, 
+      employeeCode
     } = req?.body || {};
     
+    // Build update object - only include provided fields
     const updateData = {};
-    if (name !== undefined) updateData.Name = name;
+    if (name !== undefined) updateData.Name = name?.trim() || "";
     if (age !== undefined) updateData.Age = age;
-    if (department !== undefined) updateData.Department = department;
-    if (phone !== undefined) updateData.Phone = phone;
-    if (personalEmail !== undefined) updateData.Personal_Email = personalEmail;
+    if (department !== undefined) updateData.Department = department?.trim() || "";
+    if (phone !== undefined) updateData.Phone = phone?.trim() || "";
+    if (personalEmail !== undefined) updateData.Personal_Email = personalEmail?.trim() || "";
     if (salary !== undefined) updateData.Salary = salary;
     if (reportingManager !== undefined) updateData.Reporting_Manager = reportingManager;
     if (joiningDate !== undefined) updateData.Joining_date = joiningDate;
@@ -259,24 +242,23 @@ const updateEmployeeDetails = async (req = {}, res = {}) => {
     
     if (address !== undefined && typeof address === "object") {
       updateData.Address = {
-        Line1: address.line1 || "",
-        Line2: address.line2 || "",
-        City: address.city || "",
-        State: address.state || "",
-        ZipCode: address.zipCode || "",
+        Line1: address?.line1?.trim() || "",
+        Line2: address?.line2?.trim() || "",
+        City: address?.city?.trim() || "",
+        State: address?.state?.trim() || "",
+        ZipCode: address?.zipCode?.trim() || "",
       };
     }
-    
-    // Admin update logic (isSelfUpdate = false by default in query)
+
     const updated = await updateEmployee({ _id: id }, updateData);
 
     if (!updated) {
-       return sendResponse(
+      return sendResponse(
         res,
         STATUS_CODE?.NOT_FOUND || 404,
         RESPONSE_STATUS?.FAILURE || "FAILURE",
         "Employee not found or no changes made",
-      );     
+      );
     }
 
     return sendResponse(
@@ -288,6 +270,11 @@ const updateEmployeeDetails = async (req = {}, res = {}) => {
     );
   } catch (err) {
     console.error("Error updating employee:", err);
+    if (err?.code === 11000) {
+      const key = Object.keys(err.keyPattern || {})[0];
+      if (key === "Employee_Code") return sendResponse(res, STATUS_CODE?.BAD_REQUEST || 400, RESPONSE_STATUS?.FAILURE || "FAILURE", "Employee Code already exists");
+      return sendResponse(res, STATUS_CODE?.BAD_REQUEST || 400, RESPONSE_STATUS?.FAILURE || "FAILURE", "Duplicate entry");
+    }
     return sendResponse(
       res,
       STATUS_CODE?.INTERNAL_SERVER_ERROR || 500,
@@ -298,7 +285,7 @@ const updateEmployeeDetails = async (req = {}, res = {}) => {
 };
 // endregion
 
-// region delete employee (admin)
+// region delete employee
 const removeEmployee = async (req = {}, res = {}) => {
   try {
     const { id = "" } = req?.params || {};
@@ -312,13 +299,11 @@ const removeEmployee = async (req = {}, res = {}) => {
         idError,
       );
     }
-    
-    // Removed pre-fetch to save DB hit.
 
     const result = await deleteEmployee(id);
     
     if (!result) {
-        return sendResponse(
+      return sendResponse(
         res,
         STATUS_CODE?.NOT_FOUND || 404,
         RESPONSE_STATUS?.FAILURE || "FAILURE",
