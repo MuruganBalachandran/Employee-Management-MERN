@@ -149,12 +149,8 @@ const EmployeeList = ({ onTotalUpdate = () => {} }) => {
       if (err?.fieldErrors) {
         setErrors(err.fieldErrors);
       }
-      dispatch(
-        showToast({
-          message: err?.message || "Operation failed",
-          type: "error",
-        })
-      );
+      // Toast is now handled by the thunks themselves to ensure consistency.
+      // We only catch here to setErrors or perform other UI cleanup.
     }
   };
   // endregion

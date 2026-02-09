@@ -7,43 +7,41 @@ import { getFormattedDateTime, ROLE } from "../../utils/index.js";
 
 // region create employee
 const createEmployee = async (userData = {}, adminId = null) => {
-  const {
-    Name = "",
-    Email = "",
-    Password = "",
-    Employee_Code = "",
-    Age = 0,
-    Department = "",
-    Phone = "",
-    Address = {},
-    Salary = 0,
-    Reporting_Manager = null,
-    Joining_date = null,
-  } = userData;
+    const {
+      Name = "",
+      Email = "",
+      Password = "",
+      Age = 0,
+      Department = "",
+      Phone = "",
+      Address = {},
+      Salary = 0,
+      Reporting_Manager = null,
+      Joining_date = null,
+    } = userData || {};
 
-  // Create User document
-  const user = new User({
-    Name,
-    Email,
-    Password,
-    Role: ROLE.EMPLOYEE,
-  });
-  await user.save();
-  
-  // Create Employee document
-  const employee = new Employee({
-    User_Id: user.User_Id,
-    Admin_Id: adminId,
-    Employee_Code,
-    Age,
-    Department,
-    Phone,
-    Address,
-    Salary,
-    Reporting_Manager, 
-    Joining_date: Joining_date || new Date(),
-    Is_Active: 1
-  });
+    // Create User document
+    const user = new User({
+        Name: Name.trim() || "",
+        Email: Email.trim().toLowerCase() || "",
+        Password: Password,
+        Role: ROLE.EMPLOYEE,
+    });
+    await user.save();
+    
+    // Create Employee document
+    const employee = new Employee({
+      User_Id: user._id,
+      Admin_Id: adminId, // Record who created this employee
+      Age: Age || 0,
+      Department: Department.trim() || "",
+      Phone: Phone.trim() || "",
+      Address: Address || {},
+      Salary: Salary || 0,
+      Reporting_Manager: Reporting_Manager, 
+      Joining_date: Joining_date || new Date(),
+      Is_Active: 1
+    });
 
   await employee.save();
   return employee;
@@ -144,7 +142,10 @@ const getEmployeeById = async (id = "") => {
   const employees = await Employee.aggregate([
     {
       $match: {
-          Employee_Id: new mongoose.Types.ObjectId(id),
+          $or: [
+              { Employee_Id: new mongoose.Types.ObjectId(id) },
+              { User_Id: new mongoose.Types.ObjectId(id) }
+          ],
         Is_Deleted: 0,
       },
     },
@@ -281,10 +282,25 @@ const deleteEmployee = async (employeeId = "") => {
 };
 // endregion
 
+// region check employee code uniqueness
+const isEmployeeCodeTaken = async (code, excludeId = null) => {
+  const query = { Employee_Code: code };
+
+  // while editing, ignore same employee
+  if (excludeId) {
+    query._id = { $ne: excludeId };
+  }
+
+  const existing = await Employee.findOne(query).lean();
+  return !!existing;
+};
+// endregion
+
 export {
   createEmployee,
   getAllEmployees,
   getEmployeeById,
   updateEmployee,
   deleteEmployee,
+  isEmployeeCodeTaken,
 };

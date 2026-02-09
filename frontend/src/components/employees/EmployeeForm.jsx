@@ -11,12 +11,12 @@ import {
   departmentValidation,
   phoneValidation,
   addressValidation,
+  VALID_DEPARTMENTS,
   ageValidation,
   employeeCodeValidation,
   salaryValidation,
   reportingManagerValidation,
   joiningDateValidation,
-  VALID_DEPARTMENTS,
 } from "../../validations/employeeValidation";
 // endregion
 
@@ -112,9 +112,7 @@ const EmployeeForm = ({
           fieldError = passwordValidation(value, isEdit);
           break;
         case "confirmPassword":
-          if (value !== form.password) {
-            fieldError = "Passwords do not match";
-          }
+          fieldError = value !== form.password ? "Passwords do not match" : "";
           break;
         case "department":
           fieldError = departmentValidation(value);
@@ -135,7 +133,7 @@ const EmployeeForm = ({
           fieldError = ageValidation(value);
           break;
         case "employeeCode":
-          fieldError = employeeCodeValidation(value);
+          fieldError = employeeCodeValidation(value, isEdit);
           break;
       }
 
@@ -153,47 +151,42 @@ const EmployeeForm = ({
   };
   // endregion
 
-  // region handleSubmit
+  /// region handleSubmit
   const handleSubmit = (e) => {
     e.preventDefault();
 
     const payload = {
-      name: form.name,
-      email: form.email,
-      password: form.password,
-      employeeCode: form.employeeCode,
-      age: form.age ? parseInt(form.age) : "",
+      name: form.name?.trim(),
+      age: form.age ? parseInt(form.age, 10) : "",
       department: form.department,
-      phone: form.phone,
-      address: {
-        line1: form.address.line1,
-        line2: form.address.line2,
-        city: form.address.city,
-        state: form.address.state,
-        zipCode: form.address.zipCode,
-      },
+      phone: form.phone?.trim(),
+      address: { ...form.address },
     };
 
-    // Include salary, reportingManager, joiningDate only during creation (and only if provided)
-    // Include salary, reportingManager, joiningDate if admin (hideCredentials is false)
+    if (!isEdit) {
+        payload.email = form.email?.trim()?.toLowerCase();
+        payload.password = form.password;
+        payload.employeeCode = form.employeeCode?.trim();
+    }
+
+    // Include sensitive fields only if allowed (admin view)
     if (!hideCredentials) {
-      payload.salary = form.salary ? parseFloat(form.salary) : "";
-      payload.reportingManager = form.reportingManager ? form.reportingManager.trim() : "";
-      payload.joiningDate = form.joiningDate ? form.joiningDate.trim() : "";
+      payload.salary = form.salary !== "" ? Number(form.salary) : "";
+      payload.reportingManager = form.reportingManager?.trim() || "";
+      payload.joiningDate = form.joiningDate?.trim() || "";
+      if (isEdit) {
+          // Note: On edit, email/password/employeeCode are usually ignored by backend, 
+          // but we can still send them if needed. However, service deletes them.
+      }
     }
 
-    if (isEdit) {
-      delete payload.email;
-      delete payload.password;
-      delete payload.employeeCode;
-    }
-
-    let validationErrors = hideCredentials
-      ? {} // profile edit -> skip employee validation
-      : validateEmployee(
-          { ...payload, confirmPassword: form.confirmPassword },
-          isEdit,
-        );
+    //  ALL FIELDS VALIDATED TOGETHER
+    const validationErrors = {
+      ...validateEmployee(
+        { ...payload, confirmPassword: form.confirmPassword },
+        isEdit,
+      ),
+    };
 
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -337,7 +330,6 @@ const EmployeeForm = ({
         error={errors["address.zipCode"]}
       />
 
-
       {/* Salary, Reporting Manager, Joining Date */}
       {!hideCredentials && (
         <>
@@ -350,22 +342,24 @@ const EmployeeForm = ({
             onChange={(e) => handleChange("salary", e?.target?.value || "")}
             error={errors?.salary || ""}
           />
-          
+
           {/* Reporting Manager */}
           <Input
-            label='Reporting Manager Name/ID'
-            placeholder='Enter reporting manager'
-            value={form?.reportingManager || ""}
-            onChange={(e) => handleChange("reportingManager", e?.target?.value || "")}
-            error={errors?.reportingManager || ""}
+            label='Reporting Manager (Name + Code)'
+            placeholder='Example: Ramesh (EMP002)'
+            value={form.reportingManager}
+            onChange={(e) => handleChange("reportingManager", e.target.value)}
+            error={errors.reportingManager}
           />
-          
+
           {/* Joining Date */}
           <Input
             label='Joining Date'
             type='date'
             value={form?.joiningDate || ""}
-            onChange={(e) => handleChange("joiningDate", e?.target?.value || "")}
+            onChange={(e) =>
+              handleChange("joiningDate", e?.target?.value || "")
+            }
             error={errors?.joiningDate || ""}
           />
         </>

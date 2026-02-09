@@ -6,6 +6,7 @@ export {
     getEmployeeById,
     updateEmployee,
     deleteEmployee,
+    isEmployeeCodeTaken
 } from './employee/employeeQueries.js';
 export {
     findUserById,

@@ -371,30 +371,6 @@ const validatePassword = (value = "", context = {}) => {
     );
   }
 
-  // SEQUENTIAL CHARACTERS CHECK
-  const sequences = [
-    "012",
-    "123",
-    "234",
-    "345",
-    "456",
-    "567",
-    "678",
-    "789",
-    "abc",
-    "bcd",
-    "cde",
-    "def",
-  ];
-  for (const seq of sequences) {
-    if (passwordLower?.includes?.(seq)) {
-      return (
-        VALIDATION_MESSAGES?.PASSWORD_SEQUENCE ||
-        "Password cannot contain sequential characters"
-      );
-    }
-  }
-
   // CONTEXT CHECKS (SAFE) - prevent password containing user info
   const nameSafe =
     typeof context?.Name === "string"

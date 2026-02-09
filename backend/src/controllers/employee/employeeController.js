@@ -16,6 +16,7 @@ import {
   getEmployeeById,
   updateEmployee,
   deleteEmployee,
+  isEmployeeCodeTaken,
 } from "../../queries/index.js";
 
 import { validateObjectId } from "../../validations/helpers/typeValidations.js";
@@ -132,6 +133,16 @@ const createNewEmployee = async (req = {}, res = {}) => {
       joiningDate = null,
     } = req?.body || {};
 
+    const codeExists = await isEmployeeCodeTaken(employeeCode);
+    if (codeExists) {
+      return sendResponse(
+        res,
+        STATUS_CODE?.BAD_REQUEST || 400,
+        RESPONSE_STATUS.FAILURE,
+        "Employee Code already exists",
+      );
+    }
+
     // Map address from camelCase to PascalCase
     const mappedAddress = address && typeof address === "object"
       ? {
@@ -142,6 +153,8 @@ const createNewEmployee = async (req = {}, res = {}) => {
           ZipCode: address?.zipCode || "",
         }
       : {};
+
+    const adminId = req?.user?.User_Id || req?.user?._id || null;
 
     const employee = await createEmployee({
       Name: name?.trim() || "",
@@ -155,7 +168,7 @@ const createNewEmployee = async (req = {}, res = {}) => {
       Salary: salary,
       Reporting_Manager: reportingManager,
       Joining_date: joiningDate,
-    }, req?.user?.User_Id);
+    }, adminId);
 
     return sendResponse(
       res,
@@ -166,11 +179,15 @@ const createNewEmployee = async (req = {}, res = {}) => {
     );
   } catch (err) {
     console.error("Error creating employee:", err);
-    
     if (err?.code === 11000) {
       const key = Object.keys(err.keyPattern || {})[0];
-      if (key === "Employee_Code") {
-        return sendResponse(res, STATUS_CODE?.BAD_REQUEST || 400, RESPONSE_STATUS?.FAILURE || "FAILURE", "Employee Code already exists");
+      if (key === "Employee_Code" || key === "employeeCode") {
+        return sendResponse(
+          res,
+          STATUS_CODE?.BAD_REQUEST || 400,
+          RESPONSE_STATUS?.FAILURE || "FAILURE",
+          "Employee Code already exists"
+        );
       }
       return sendResponse(
         res,
@@ -204,6 +221,8 @@ const updateEmployeeDetails = async (req = {}, res = {}) => {
         idError,
       );
     }
+    // NOTE: Removed previous pre-fetch of getEmployeeById(id) to save 1 DB hit.
+    // We proceed directly to update. If not found, updateEmployee returns null.
 
     const validation = validateUpdateEmployee(req?.body || {});
     if (!validation?.isValid) {
@@ -227,8 +246,6 @@ const updateEmployeeDetails = async (req = {}, res = {}) => {
       joiningDate, 
       employeeCode
     } = req?.body || {};
-    
-    // Build update object - only include provided fields
     const updateData = {};
     if (name !== undefined) updateData.Name = name?.trim() || "";
     if (age !== undefined) updateData.Age = age;
@@ -236,10 +253,11 @@ const updateEmployeeDetails = async (req = {}, res = {}) => {
     if (phone !== undefined) updateData.Phone = phone?.trim() || "";
     if (personalEmail !== undefined) updateData.Personal_Email = personalEmail?.trim() || "";
     if (salary !== undefined) updateData.Salary = salary;
-    if (reportingManager !== undefined) updateData.Reporting_Manager = reportingManager;
+    if (reportingManager !== undefined)
+      updateData.Reporting_Manager = reportingManager;
     if (joiningDate !== undefined) updateData.Joining_date = joiningDate;
     if (employeeCode !== undefined) updateData.Employee_Code = employeeCode;
-    
+
     if (address !== undefined && typeof address === "object") {
       updateData.Address = {
         Line1: address?.line1?.trim() || "",
@@ -250,6 +268,7 @@ const updateEmployeeDetails = async (req = {}, res = {}) => {
       };
     }
 
+    // Admin update logic (isSelfUpdate = false by default in query)
     const updated = await updateEmployee({ _id: id }, updateData);
 
     if (!updated) {
@@ -299,9 +318,10 @@ const removeEmployee = async (req = {}, res = {}) => {
         idError,
       );
     }
+    // Removed pre-fetch to save DB hit.
 
     const result = await deleteEmployee(id);
-    
+
     if (!result) {
       return sendResponse(
         res,

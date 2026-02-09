@@ -104,6 +104,7 @@ export const addEmployee = createAsyncThunk(
       return res?.data || {};
     } catch (err) {
       const backend = err?.response?.data || {};
+      const message = backend?.message || err?.message || "Failed to add employee";
 
       // Validation errors
       if (backend?.error && typeof backend?.error === "object") {
@@ -113,9 +114,8 @@ export const addEmployee = createAsyncThunk(
         });
       }
 
-      return rejectWithValue({
-        message: backend?.message || err?.message || "Failed to add employee",
-      });
+      dispatch(showToast({ message, type: "error" }));
+      return rejectWithValue(message);
     }
   },
 );
@@ -130,9 +130,9 @@ export const editEmployee = createAsyncThunk(
       const res = await updateEmployee(id || null, data || {});
       return res?.data || null;
     } catch (err) {
-      return rejectWithValue(
-        err?.response?.data?.message || "Failed to update employee",
-      );
+      const message = err?.response?.data?.message || "Failed to update employee";
+      dispatch(showToast({ message, type: "error" }));
+      return rejectWithValue(message);
     }
   },
 );
@@ -147,9 +147,9 @@ export const removeEmployee = createAsyncThunk(
       await deleteEmployee(id || null);
       return id || null;
     } catch (err) {
-      return rejectWithValue(
-        err?.response?.data?.message || "Failed to delete employee",
-      );
+      const message = err?.response?.data?.message || err?.message || "Failed to delete employee";
+      dispatch(showToast({ message, type: "error" }));
+      return rejectWithValue(message);
     }
   },
 );
