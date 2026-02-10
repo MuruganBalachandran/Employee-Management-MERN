@@ -101,20 +101,23 @@ export const addEmployee = createAsyncThunk(
     try {
       const res = await createEmployee(data || {});
       dispatch(showToast({ message: "Employee added!", type: "success" }));
-      return res?.data || {};
+      return res?.data?.data || {};
     } catch (err) {
       const backend = err?.response?.data || {};
       const message = backend?.message || err?.message || "Failed to add employee";
 
-      // Validation errors
-      if (backend?.error && typeof backend?.error === "object") {
+      // If message is an object (validation errors), reject with fieldErrors
+      if (message && typeof message === "object") {
         return rejectWithValue({
-          fieldErrors: backend?.error,
+          fieldErrors: message,
           message: "Validation failed",
         });
       }
 
-      dispatch(showToast({ message, type: "error" }));
+      // Ensure toast message is a string
+      const toastMsg = typeof message === "string" ? message : "Add failed";
+      dispatch(showToast({ message: toastMsg, type: "error" }));
+      
       return rejectWithValue(message);
     }
   },
@@ -124,14 +127,24 @@ export const addEmployee = createAsyncThunk(
 // region editEmployee
 export const editEmployee = createAsyncThunk(
   "employees/editEmployee",
-  async ({ id = null, data = {} } = {}, { rejectWithValue } = {}) => {
+  async ({ id = null, data = {} } = {}, { rejectWithValue, dispatch }) => {
     /* Update existing employee */
     try {
       const res = await updateEmployee(id || null, data || {});
-      return res?.data || null;
+      return res?.data?.data || null;
     } catch (err) {
-      const message = err?.response?.data?.message || "Failed to update employee";
-      dispatch(showToast({ message, type: "error" }));
+      const backend = err?.response?.data || {};
+      const message = backend?.message || "Failed to update employee";
+
+      // Validation errors
+      if (message && typeof message === "object") {
+        return rejectWithValue({
+          fieldErrors: message,
+          message: "Validation failed",
+        });
+      }
+
+      dispatch(showToast({ message: typeof message === 'string' ? message : "Update failed", type: "error" }));
       return rejectWithValue(message);
     }
   },
@@ -141,14 +154,15 @@ export const editEmployee = createAsyncThunk(
 // region removeEmployee
 export const removeEmployee = createAsyncThunk(
   "employees/removeEmployee",
-  async (id = null, { rejectWithValue } = {}) => {
+  async (id = null, { rejectWithValue, dispatch }) => {
     /* Delete employee */
     try {
       await deleteEmployee(id || null);
       return id || null;
     } catch (err) {
-      const message = err?.response?.data?.message || err?.message || "Failed to delete employee";
-      dispatch(showToast({ message, type: "error" }));
+      const backend = err?.response?.data || {};
+      const message = backend?.message || err?.message || "Failed to delete employee";
+      dispatch(showToast({ message: typeof message === 'string' ? message : "Delete failed", type: "error" }));
       return rejectWithValue(message);
     }
   },
@@ -273,7 +287,6 @@ const employeeSlice = createSlice({
       })
       .addCase(addEmployee?.rejected, (state = {}, action = {}) => {
         state.loading = false;
-        state.error = action?.payload || "Unknown error";
       })
       // endregion
 
@@ -297,7 +310,6 @@ const employeeSlice = createSlice({
       })
       .addCase(editEmployee?.rejected, (state = {}, action = {}) => {
         state.loading = false;
-        state.error = action?.payload || "Unknown error";
       })
       // endregion
 
@@ -321,7 +333,8 @@ const employeeSlice = createSlice({
       })
       .addCase(removeEmployee?.rejected, (state = {}, action = {}) => {
         state.loading = false;
-        state.error = action?.payload || "Unknown error";
+        const payload = action?.payload;
+        state.error = (typeof payload === "string" ? payload : payload?.message) || "Unknown error";
       });
     // endregion
   },

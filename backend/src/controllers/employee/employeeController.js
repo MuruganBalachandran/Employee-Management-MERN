@@ -186,7 +186,7 @@ const createNewEmployee = async (req = {}, res = {}) => {
           res,
           STATUS_CODE?.BAD_REQUEST || 400,
           RESPONSE_STATUS?.FAILURE || "FAILURE",
-          "Employee Code already exists"
+          "Employee Code already exists",
         );
       }
       return sendResponse(
@@ -291,8 +291,20 @@ const updateEmployeeDetails = async (req = {}, res = {}) => {
     console.error("Error updating employee:", err);
     if (err?.code === 11000) {
       const key = Object.keys(err.keyPattern || {})[0];
-      if (key === "Employee_Code") return sendResponse(res, STATUS_CODE?.BAD_REQUEST || 400, RESPONSE_STATUS?.FAILURE || "FAILURE", "Employee Code already exists");
-      return sendResponse(res, STATUS_CODE?.BAD_REQUEST || 400, RESPONSE_STATUS?.FAILURE || "FAILURE", "Duplicate entry");
+      if (key === "Employee_Code" || key === "employeeCode") {
+        return sendResponse(
+          res,
+          STATUS_CODE?.BAD_REQUEST || 400,
+          RESPONSE_STATUS?.FAILURE || "FAILURE",
+          "Employee Code already exists",
+        );
+      }
+      return sendResponse(
+        res,
+        STATUS_CODE?.BAD_REQUEST || 400,
+        RESPONSE_STATUS?.FAILURE || "FAILURE",
+        "Email already registered",
+      );
     }
     return sendResponse(
       res,

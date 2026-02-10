@@ -58,7 +58,7 @@ const Toaster = ({ duration = 3000 }) => {
   return (
     <div
       className="toast-container position-fixed top-0 end-0 p-3"
-      style={{ zIndex: 1055 }}
+      style={{ zIndex: 9999 }}
     >
       <div
         className={`toast show align-items-center text-white border-0 shadow-lg ${bgClass}`}

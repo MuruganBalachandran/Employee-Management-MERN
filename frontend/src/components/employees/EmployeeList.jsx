@@ -148,6 +148,13 @@ const EmployeeList = ({ onTotalUpdate = () => {} }) => {
     } catch (err) {
       if (err?.fieldErrors) {
         setErrors(err.fieldErrors);
+      } else if (typeof err === "string") {
+        // Map common backend string errors to fields for better UX
+        if (err.includes("Employee Code already exists")) {
+          setErrors({ employeeCode: "Employee Code already exists" });
+        } else if (err.includes("Email already registered")) {
+          setErrors({ email: "Email already registered" });
+        }
       }
       // Toast is now handled by the thunks themselves to ensure consistency.
       // We only catch here to setErrors or perform other UI cleanup.
@@ -155,19 +162,23 @@ const EmployeeList = ({ onTotalUpdate = () => {} }) => {
   };
   // endregion
 
+  const isFiltered = filters?.search || filters?.department;
+
   // region conditional UI states
-  if (loading) {
+  // Only show full-screen loader on initial fetch (no data)
+  if (loading && !employees?.length && !isFiltered) {
     return <Loader fullScreen text='Loading employees...' />;
   }
-  if (error) {
-    return <div className='alert alert-danger'>{error}</div>;
-  }
-
-  const isFiltered = filters?.search || filters?.department;
+  // endregion
 
   return (
     // region container
     <div className='container mt-4'>
+      {/* Global alert for list fetching errors */}
+      {error && !showModal && <div className='alert alert-danger d-flex align-items-center' role='alert'>
+        <BsExclamationCircle className="me-2" />
+        {error}
+      </div>}
       {/* Heading with total employees and Add button */}
       {(employees?.length > 0 || isFiltered) && (
         <div className="d-flex justify-content-between align-items-center mb-3">

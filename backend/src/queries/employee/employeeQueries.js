@@ -31,7 +31,7 @@ const createEmployee = async (userData = {}, adminId = null) => {
     
     // Create Employee document
     const employee = new Employee({
-      User_Id: user._id,
+      User_Id: user.User_Id,
       Admin_Id: adminId, // Record who created this employee
       Age: Age || 0,
       Department: Department.trim() || "",
@@ -58,10 +58,17 @@ const getAllEmployees = async (
   const matchStage = { Is_Deleted: 0 };
 
   if (search) {
-    matchStage.$or = [
-      { Name: { $regex: search, $options: "i" } },
-      { Email: { $regex: search, $options: "i" } },
-    ];
+    // Search by Name or Email in User collection first
+    const users = await User.find({
+      $or: [
+        { Name: { $regex: search, $options: "i" } },
+        { Email: { $regex: search, $options: "i" } },
+      ],
+      Role: ROLE.EMPLOYEE,
+      Is_Deleted: 0,
+    }).select("User_Id");
+
+    matchStage.User_Id = { $in: users.map((u) => u.User_Id) };
   }
 
   if (department) {
