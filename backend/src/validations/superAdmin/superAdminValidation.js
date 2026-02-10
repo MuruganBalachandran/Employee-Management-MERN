@@ -15,7 +15,9 @@ const validateCreateAdmin = (data = {}) => {
   const { name = "", email = "", password = "" } = data || {};
 
   const nameError = validateName(name);
-  if (nameError) errors.name = nameError;
+  if (nameError) {
+    errors.name = nameError;
+  }
 
   const emailError = validateEmail(email);
   if (emailError) {
@@ -23,11 +25,15 @@ const validateCreateAdmin = (data = {}) => {
   } else {
     // Only check domain if email format is valid
     const domainError = validateEmailDomain({ email, role: 'ADMIN' });
-    if (domainError) errors.email = domainError;
+    if (domainError) {
+      errors.email = domainError;
+    }
   }
 
   const passwordError = validatePassword(password);
-  if (passwordError) errors.password = passwordError;
+  if (passwordError) {
+    errors.password = passwordError;
+  }
 
   if (Object.keys(errors).length > 0) {
     return validationError(errors);

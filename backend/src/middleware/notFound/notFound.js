@@ -1,7 +1,7 @@
 // region imports
-// utils import for standardized API responses
+// utils imports
 import { sendResponse } from "../../utils/common/commonFunctions.js";
-// constants import for status codes
+// constants imports
 import {
   STATUS_CODE,
   RESPONSE_STATUS,
@@ -9,14 +9,12 @@ import {
 // endregion
 
 // region not found middleware
-
 const notFound = (req, res, next) => {
-  // immediately send 404 response for unmatched routes
   return sendResponse(
-    res, // Express response object
-    STATUS_CODE?.NOT_FOUND || 404, // HTTP 404
-    RESPONSE_STATUS?.FAILURE || "", // status
-    "Route not found", // descriptive message
+    res, 
+    STATUS_CODE?.NOT_FOUND || 404, 
+    RESPONSE_STATUS?.FAILURE || "FAILURE", 
+    "Route not found", 
   );
 };
 // endregion

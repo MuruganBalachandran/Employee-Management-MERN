@@ -42,8 +42,8 @@ export const login = createAsyncThunk(
     /* Attempt user login and store token */
     try {
       const res = await loginUser(credentials || {});
-      const token = res?.data?.data?.token || "";
-      const user = res?.data?.data?.user || null;
+      const token = res?.token || "";
+      const user = res?.user || null;
 
       if (token) {
         localStorage.setItem("token", token);
@@ -91,7 +91,7 @@ export const fetchCurrentUser = createAsyncThunk(
     /* Fetch logged-in user from backend */
     try {
       const res = await getCurrentUser();
-      return res?.data?.data || null;
+      return res || null;
     } catch (err) {
       return rejectWithValue?.(
         err?.response?.data?.message || "Failed to fetch user",
@@ -106,7 +106,7 @@ export const updateMyProfile = createAsyncThunk(
   async (data = {}, { rejectWithValue }) => {
     try {
       const res = await editCurrentUser(data);
-      return res?.data?.data || res?.data || {};
+      return res || {};
     } catch (err) {
       const backend = err?.response?.data;
 

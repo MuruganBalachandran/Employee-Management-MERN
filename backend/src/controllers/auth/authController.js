@@ -27,18 +27,9 @@ const login = async (req = {}, res = {}) => {
 
     const user = await findUserByEmail(email?.trim()?.toLowerCase() || "");
 
-    if (!user) {
-      return sendResponse(
-        res,
-        STATUS_CODE?.UNAUTHORIZED || 401,
-        RESPONSE_STATUS?.FAILURE || "FAILURE",
-        "Invalid credentials",
-      );
-    }
+    const isPasswordValid = user && await verifyPassword(password, user?.Password || "");
 
-    const isPasswordValid = await verifyPassword(password, user?.Password || "");
-
-    if (!isPasswordValid) {
+    if (!user || !isPasswordValid) {
       return sendResponse(
         res,
         STATUS_CODE?.UNAUTHORIZED || 401,

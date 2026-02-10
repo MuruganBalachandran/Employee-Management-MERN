@@ -28,6 +28,7 @@ router.post("/", createNewEmployee);
 router.patch("/:id", updateEmployeeDetails);
 router.delete("/:id", removeEmployee);
 // endregion
+
 // region exports
 export default router;
 // endregion

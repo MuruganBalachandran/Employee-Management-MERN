@@ -1,7 +1,7 @@
 
 // region imports
 import dotenv from 'dotenv';
-dotenv.config(); // Load variables from .env file into process.env
+dotenv.config();
 // endregion
 
 // region extract APP config safely

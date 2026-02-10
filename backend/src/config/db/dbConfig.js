@@ -24,22 +24,17 @@ const connectDB = async (options = {}) => {
 // endregion
 
 // region connection events
-
-// log when MongoDB connection drops (network issue, server down, etc.)
 mongoose.connection.on('disconnected', () => {
   console.warn(chalk.yellow('Database disconnected'));
 });
 
-// log when MongoDB reconnects automatically
 mongoose.connection.on('reconnected', () => {
   console.log(chalk.cyan('Database reconnected'));
 });
 
-// log low-level Mongo errors
 mongoose.connection.on('error', (err = {}) => {
   console.error(chalk.red('Database runtime error:'), err?.message || 'Unknown database error');
 });
-
 // endregion
 
 // region exports

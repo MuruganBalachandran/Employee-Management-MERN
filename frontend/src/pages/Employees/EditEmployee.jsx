@@ -5,79 +5,91 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   selectCurrentEmployee,
   selectCurrentEmployeeLoading,
+  selectEmployeeLoading,
   selectEmployeeError,
   getEmployee,
   editEmployee,
+  clearCurrentEmployee,
   showToast,
 } from "../../features";
-import { EmployeeForm, BackButton } from "../../components";
+import { EmployeeForm, BackButton, Loader } from "../../components";
 // endregion
 
 // region EditEmployee component
 const EditEmployee = () => {
-  // region hooks
+ // hooks 
   const { id = "" } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  // selectors
   const currentEmployee = useSelector(selectCurrentEmployee);
-  const currentEmployeeLoading = useSelector(selectCurrentEmployeeLoading);
+  const fetching = useSelector(selectCurrentEmployeeLoading);
+  const updating = useSelector(selectEmployeeLoading);
   const error = useSelector(selectEmployeeError);
-  // endregion
 
-  // region fetchEmployee
   useEffect(() => {
-    // Fetch employee details by ID
-    if ((!currentEmployee || currentEmployee.Employee_Id !== id) && !currentEmployeeLoading) {
-      dispatch(getEmployee(id || ""))
+    // Only fetch if we don't have the employee or it's a different one
+    if ((!currentEmployee || currentEmployee.Employee_Id !== id) && !fetching) {
+      dispatch(getEmployee(id))
         .unwrap()
-        .catch((err) =>
-          dispatch(
-            showToast({
-              message: err?.message || "Failed to load employee",
-              type: "error",
-            }),
-          ),
-        );
+        .catch((err) => {
+          const message = typeof err === "string" ? err : err?.message || "Failed to load employee";
+          dispatch(showToast({ message, type: "error" }));
+        });
     }
-  }, [dispatch, id, currentEmployee, currentEmployeeLoading]);
-  // endregion
 
-  // region handleUpdate
-  const handleUpdate = async (updatedData = {}) => {
+    return () => {
+      dispatch(clearCurrentEmployee());
+    };
+  }, [dispatch, id]);
+
+  const handleUpdate = async (updatedData = {}, setErrors = () => {}) => {
     try {
-      // Update employee details
       await dispatch(editEmployee({ id, data: updatedData })).unwrap();
+      dispatch(showToast({ message: "Employee updated successfully!", type: "success" }));
       navigate("/employees");
     } catch (err) {
+      const fieldErrors = err?.fieldErrors || {};
+      const message = typeof err === "string" ? err : err?.message || "Failed to update employee";
+
+      setErrors(fieldErrors);
       dispatch(
         showToast({
-          message: err?.message || "Failed to update employee",
+          message: Object.keys(fieldErrors).length > 0 ? "Please fix the validation errors" : message,
           type: "error",
         }),
       );
     }
   };
-  // endregion
 
-  if (currentEmployeeLoading || !currentEmployee) {
-    return <div>Loading employee...</div>;
+  if (fetching && !currentEmployee) {
+    return <Loader fullScreen text="Fetching employee details..." />;
   }
 
-  if (error) {
-    return <div className='alert alert-danger'>{error}</div>;
+  if (error && !currentEmployee) {
+    return (
+      <div className="container mt-5 text-center">
+        <div className="alert alert-danger shadow-sm border-0">{error}</div>
+        <BackButton />
+      </div>
+    );
   }
 
   return (
-    <div className='container mt-4'>
-          <div className="d-flex align-items-center gap-3 mb-2">
-      <BackButton />
-      <h3>Edit Employee</h3>
-      </div>
-      {/* back button */}
+    <div className="container mt-4 pb-5">
+      {updating && <Loader fullScreen text="Updating employee..." />}
 
-      {/* form to edit employee */}
-      <EmployeeForm initialData={currentEmployee} onSubmit={handleUpdate} />
+      <div className="d-flex align-items-center gap-3 mb-4">
+        <BackButton />
+        <h3 className="mb-0 fw-bold text-gradient">Edit Employee Details</h3>
+      </div>
+
+      <div className="card shadow-sm border-0 bg-glass animate-fade-in">
+        <div className="card-body p-4">
+          <EmployeeForm initialData={currentEmployee} onSubmit={handleUpdate} />
+        </div>
+      </div>
     </div>
   );
 };

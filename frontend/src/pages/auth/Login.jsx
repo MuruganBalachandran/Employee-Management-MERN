@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
-import { Input, Loader, PasswordRules } from "../../components";
+import { Input, Loader } from "../../components";
 import { login, selectAuthLoading, showToast } from "../../features";
 
 import {
@@ -21,28 +21,34 @@ const Login = () => {
   // endregion
 
   // region form state
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [formErrors, setFormErrors] = useState({});
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+  });
+  const [errors, setErrors] = useState({});
   // endregion
 
-  // region handle input changes with live validation
-  const handleEmailChange = (e) => {
-    const value = e?.target?.value || "";
-    setEmail(value);
-    setFormErrors((prev) => ({
-      ...prev,
-      email: !value ? "Email is required" : emailValidation(value, "login"),
-    }));
-  };
+  // region handleChange
+  const handleChange = (field, value) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
 
-  const handlePasswordChange = (e) => {
-    const value = e?.target?.value || "";
-    setPassword(value);
-    setFormErrors((prev) => ({
-      ...prev,
-      password: !value ? "Password is required" : passwordValidation(value),
-    }));
+    // Live validation
+    let err = "";
+    if (field === "email") {
+      err = !value ? "Email is required" : emailValidation(value, "login");
+    } else if (field === "password") {
+      err = !value ? "Password is required" : passwordValidation(value);
+    }
+
+    setErrors((prev) => {
+      const next = { ...prev };
+      if (err) {
+        next[field] = err;
+      } else {
+        delete next[field];
+      }
+      return next;
+    });
   };
   // endregion
 
@@ -50,39 +56,30 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const errors = {
-      email: !email ? "Email is required" : emailValidation(email, "login"),
-      password: !password
-        ? "Password is required"
-        : passwordValidation(password),
+    const validationErrors = {
+      email: !form.email ? "Email is required" : emailValidation(form.email, "login"),
+      password: !form.password ? "Password is required" : passwordValidation(form.password),
     };
 
-    // Remove fields that have no errors
-    const filteredErrors = Object.fromEntries(
-      // Keeps only entries where value is truthy (actual error message).
-      Object.entries(errors).filter(([_, value]) => value),
-    );
+    // Filter out fields with no errors
+    const activeErrors = Object.keys(validationErrors).reduce((acc, key) => {
+      if (validationErrors[key]) {
+        acc[key] = validationErrors[key];
+      }
+      return acc;
+    }, {});
 
-    // Stop if validation failed
-    if (Object.keys(filteredErrors).length > 0) {
-      setFormErrors(filteredErrors);
+    if (Object.keys(activeErrors).length > 0) {
+      setErrors(activeErrors);
       return;
     }
 
     try {
-      const user = await dispatch(
-        login({ email: email, password: password }),
-      ).unwrap();
-
-      setEmail("");
-      setPassword("");
-      setFormErrors({});
-
-      // redirect
+      await dispatch(login(form)).unwrap();
       navigate("/");
     } catch (err) {
-      console.log("error while login:", err);
-      dispatch(showToast({ message: err || "Login failed!", type: "error" }));
+      const message = typeof err === "string" ? err : "Login failed!";
+      dispatch(showToast({ message, type: "error" }));
     }
   };
   // endregion
@@ -101,26 +98,25 @@ const Login = () => {
         <h2 className='mb-4 text-center'>Login</h2>
         {/* email field */}
         <Input
-          label='Email'
-          type='email'
-          value={email}
-          onChange={handleEmailChange}
-          error={formErrors?.email}
-          placeholder='Enter your email'
+          label="Email"
+          type="email"
+          value={form.email}
+          onChange={(e) => handleChange("email", e.target.value)}
+          error={errors.email}
+          placeholder="Enter your email"
         />
         {/* password field */}
         <Input
-          label='Password'
-          type='password'
-          value={password}
-          onChange={handlePasswordChange}
-          error={formErrors?.password}
-          placeholder='Enter your password'
+          label="Password"
+          type="password"
+          value={form.password}
+          onChange={(e) => handleChange("password", e.target.value)}
+          error={errors.password}
+          placeholder="Enter your password"
         />
-        {/* <PasswordRules password={password} /> */}
 
         {/* login btn */}
-        <button type='submit' className='btn btn-primary w-100 mt-3'>
+        <button type="submit" className="btn btn-primary w-100 mt-3">
           Login
         </button>
       </form>

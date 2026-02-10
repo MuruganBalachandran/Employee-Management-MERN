@@ -55,27 +55,22 @@ const UserSchema = new mongoose.Schema(
 );
 // endregion
 
-// region minimal indexes
-// Email unique only for ACTIVE users
+// region indexes
 UserSchema?.index(
   { Email: 1 },
   { unique: true, partialFilterExpression: { Is_Deleted: 0 } },
 );
 
 // admin filtering and sorting
-UserSchema?.index({ User_Id: 1 }, { unique: true }); // Important for lookups and updates
+UserSchema?.index({ User_Id: 1 }, { unique: true });
 UserSchema?.index({ Role: 1, Is_Deleted: 1 });
-UserSchema?.index({ Created_At: -1 }); // Optimize recent user sorting
-UserSchema?.index({ Name: 1 }); // Optimize user searching
-
+UserSchema?.index({ Created_At: -1 });
+UserSchema?.index({ Name: 1 });
 // endregion
 
 // region middleware
-
-// Pre-save hook to hash password and update the Updated_At timestamp
 UserSchema?.pre("save", async function () {
   if (this?.isModified("Password")) {
-    // Standardize: Only hash if it's not already hashed (prevents double-hashing)
     if (!this.Password?.startsWith("$argon2")) {
       this.Password = await hashPassword(this.Password);
     }
@@ -92,8 +87,12 @@ UserSchema?.pre("findOneAndUpdate", async function () {
 
   if (pwd && !pwd?.startsWith("$argon2")) {
     const hashed = await hashPassword(pwd);
-    if (update?.Password) update.Password = hashed;
-    if (update?.$set?.Password) update.$set.Password = hashed;
+    if (update?.Password) {
+      update.Password = hashed;
+    }
+    if (update?.$set?.Password) {
+      update.$set.Password = hashed;
+    }
   }
 
   if (!update?.$set) update.$set = {};
@@ -103,7 +102,6 @@ UserSchema?.pre("findOneAndUpdate", async function () {
 // endregion
 
 // region methods
-// Instance method to compare a plain password with the stored hash
 UserSchema.methods.comparePassword = async function (password = "") {
   return verifyPassword(password, this.Password) || false;
 };

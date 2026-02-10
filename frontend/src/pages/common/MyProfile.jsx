@@ -4,6 +4,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
 import { selectUser, fetchCurrentUser } from "../../features";
 import { ProfileDetails } from "../../components";
+import { FaEdit } from "react-icons/fa";
 // endregion
 
 // region component
@@ -30,12 +31,16 @@ const MyProfile = () => {
   return (
     <div className="container mt-4">
       {/* header row */}
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h4 className="mb-0">My Profile</h4>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h4 className="mb-0 fw-bold">My Profile</h4>
 
-        {/* <Link to="/me/edit" className="btn btn-outline-primary btn-sm">
-          Edit Profile
-        </Link> */}
+        <Link 
+          to="/me/edit" 
+          className="btn btn-primary d-flex align-items-center gap-2 px-3"
+        >
+          <FaEdit />
+          <span>Edit Profile</span>
+        </Link>
       </div>
 
       {/* profile details */}

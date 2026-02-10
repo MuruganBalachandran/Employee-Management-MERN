@@ -19,7 +19,7 @@ import {
   showToast,
 } from "../../features";
 
-import { Loader, Pagination, Modal, EmployeeForm } from "../../components";
+import { Loader, Pagination } from "../../components";
 import { FaEye, FaPen, FaTrash, FaPlus } from "react-icons/fa";
 
 // endregion
@@ -29,9 +29,6 @@ const EmployeeList = ({ onTotalUpdate = () => {} }) => {
   // region hooks
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
-  const [showModal, setShowModal] = React.useState(false);
-  const [currentEmployee, setCurrentEmployee] = React.useState(null);
   // endregion
 
   // region redux state
@@ -105,60 +102,13 @@ const EmployeeList = ({ onTotalUpdate = () => {} }) => {
   };
   // endregion
 
-  // region modal handlers
-  const handleOpenCreateModal = () => {
-    setCurrentEmployee(null);
-    setShowModal(true);
+  // region navigation handlers
+  const handleOpenCreatePage = () => {
+    navigate("/employees/create");
   };
 
-  const handleOpenEditModal = (emp = {}) => {
-    setCurrentEmployee(emp);
-    setShowModal(true);
-  };
-
-  const handleCloseModal = () => {
-    setShowModal(false);
-    setCurrentEmployee(null);
-  };
-
-  const handleModalSubmit = async (data = {}, setErrors = () => {}) => {
-    try {
-      if (currentEmployee) {
-        // Edit mode
-        await dispatch(
-          editEmployee({ id: currentEmployee.Employee_Id, data })
-        ).unwrap();
-        dispatch(showToast({ message: "Employee updated!", type: "success" }));
-      } else {
-        // Create mode
-        await dispatch(addEmployee(data)).unwrap();
-        // showToast is handled in slice/thunk for addEmployee usually, or here.
-        // Slice says: dispatch(showToast({ message: "Employee added!", type: "success" }));
-      }
-      handleCloseModal();
-      // Refresh list
-      dispatch(
-        getEmployees({
-          page,
-          limit,
-          search: filters?.search || "",
-          department: filters?.department || "",
-        })
-      );
-    } catch (err) {
-      if (err?.fieldErrors) {
-        setErrors(err.fieldErrors);
-      } else if (typeof err === "string") {
-        // Map common backend string errors to fields for better UX
-        if (err.includes("Employee Code already exists")) {
-          setErrors({ employeeCode: "Employee Code already exists" });
-        } else if (err.includes("Email already registered")) {
-          setErrors({ email: "Email already registered" });
-        }
-      }
-      // Toast is now handled by the thunks themselves to ensure consistency.
-      // We only catch here to setErrors or perform other UI cleanup.
-    }
+  const handleOpenEditPage = (emp = {}) => {
+    navigate(`/employees/edit/${emp.Employee_Id}`);
   };
   // endregion
 
@@ -181,10 +131,10 @@ const EmployeeList = ({ onTotalUpdate = () => {} }) => {
       </div>}
       {/* Heading with total employees and Add button */}
       {(employees?.length > 0 || isFiltered) && (
-        <div className="d-flex justify-content-between align-items-center mb-3">
-          {employees?.length > 0 ? <h3 className='mb-0'>Employee List (Total: {count})</h3> : <div></div>}
-          <button className="btn btn-primary" onClick={handleOpenCreateModal}>
-            <FaPlus className="me-2" /> Add Employee
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          {employees?.length > 0 ? <h3 className='mb-0 fw-bold'>Employee List (Total: {count})</h3> : <div></div>}
+          <button className="btn btn-primary d-flex align-items-center gap-2" onClick={handleOpenCreatePage}>
+            <FaPlus /> <span>Add Employee</span>
           </button>
         </div>
       )}
@@ -200,8 +150,8 @@ const EmployeeList = ({ onTotalUpdate = () => {} }) => {
             <BsExclamationCircle size={50} className='text-muted mb-3' />
             <h4 className='text-muted'>No employees found</h4>
             <p className='text-muted'>Create an employee to get started.</p>
-            <button className="btn btn-primary mt-3" onClick={handleOpenCreateModal}>
-              <FaPlus className="me-2" /> Add Employee
+            <button className="btn btn-primary mt-3 d-flex align-items-center gap-2" onClick={handleOpenCreatePage}>
+              <FaPlus /> <span>Add Employee</span>
             </button>
           </div>
         )
@@ -255,10 +205,10 @@ const EmployeeList = ({ onTotalUpdate = () => {} }) => {
 
                         {/* Edit */}
                         <div
-                          className='d-flex align-items-center justify-content-center border rounded p-1'
+                          className='d-flex align-items-center justify-content-center border rounded p-1 btn-action-edit'
                           style={{ width: 28, height: 28, cursor: "pointer" }}
                           title='Edit'
-                          onClick={() => handleOpenEditModal(emp)}
+                          onClick={() => handleOpenEditPage(emp)}
                         >
                           <FaPen size={14} className='text-primary' />
                         </div>
@@ -289,18 +239,6 @@ const EmployeeList = ({ onTotalUpdate = () => {} }) => {
         </>
       )}
 
-      {/* Create/Edit Modal */}
-      <Modal
-        isOpen={showModal}
-        onClose={handleCloseModal}
-        title={currentEmployee ? "Edit Employee" : "Create Employee"}
-      >
-        <EmployeeForm
-          initialData={currentEmployee || {}}
-          onSubmit={handleModalSubmit}
-          hideCredentials={false}
-        />
-      </Modal>
     </div>
     // endregion
   );

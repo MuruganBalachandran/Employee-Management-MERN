@@ -1,8 +1,3 @@
-/**
- * Centralized Constants File
- * Contains status codes, response status, role enums, and validation messages only
- */
-
 // region Status Codes
 const STATUS_CODE = {
     OK: 200,
@@ -95,10 +90,10 @@ const VALIDATION_MESSAGES = {
     CITY_REQUIRED: 'City is required',
     STATE_REQUIRED: 'State is required',
     ZIPCODE_REQUIRED: 'Zip code is required',
-    
+
     // JSON validation
     INVALID_JSON_PAYLOAD: 'Invalid JSON payload',
-    
+
     // General validation
     NO_FIELDS_FOR_UPDATE: 'No fields provided for update',
     INVALID_FIELDS_UPDATE: 'Invalid fields for update',

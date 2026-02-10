@@ -8,7 +8,6 @@ import {
 import { User } from "../../models/index.js";
 // endregion
 
-// authentication and authorization
 // region auth middleware
 const auth = (...allowedRoles) => {
   return async (req, res, next) => {
@@ -16,27 +15,19 @@ const auth = (...allowedRoles) => {
       // Authentication - verify token
       const authHeader = req?.headers?.authorization;
 
+      // extract token from header
       const token = authHeader?.startsWith("Bearer ")
         ? authHeader.replace("Bearer ", "")
         : null;
 
-      if (!token) {
+      const decoded = token && verifyToken(token);
+
+      if (!token || !decoded?.User_Id) {
         return sendResponse(
           res,
           STATUS_CODE?.UNAUTHORIZED || 401,
-          RESPONSE_STATUS?.FAILURE,
+          RESPONSE_STATUS?.FAILURE || "FAILURE",
           "Unauthorized access",
-        );
-      }
-
-      const decoded = verifyToken(token);
-
-      if (!decoded?.User_Id) {
-        return sendResponse(
-          res,
-          STATUS_CODE?.UNAUTHORIZED || 401,
-          RESPONSE_STATUS?.FAILURE,
-          "Invalid token",
         );
       }
 
@@ -46,7 +37,7 @@ const auth = (...allowedRoles) => {
         return sendResponse(
           res,
           STATUS_CODE?.UNAUTHORIZED || 401,
-          RESPONSE_STATUS?.FAILURE,
+          RESPONSE_STATUS?.FAILURE || "FAILURE",
           "Unauthorized access",
         );
       }
@@ -54,7 +45,7 @@ const auth = (...allowedRoles) => {
       // Attach user to request
       req.user = user;
 
-      // STEP 2: Authorization - check role if roles are specified
+      //Authorization - check role if roles are specified
       if (allowedRoles?.length > 0) {
         const userRole = user?.Role;
 
@@ -62,7 +53,7 @@ const auth = (...allowedRoles) => {
           return sendResponse(
             res,
             STATUS_CODE?.UNAUTHORIZED || 401,
-            RESPONSE_STATUS?.FAILURE,
+            RESPONSE_STATUS?.FAILURE || "FAILURE",
             "Unauthorized access",
           );
         }
@@ -74,7 +65,7 @@ const auth = (...allowedRoles) => {
       return sendResponse(
         res,
         STATUS_CODE?.UNAUTHORIZED || 401,
-        RESPONSE_STATUS?.FAILURE,
+        RESPONSE_STATUS?.FAILURE || "FAILURE",
         "Unauthorized access",
       );
     }

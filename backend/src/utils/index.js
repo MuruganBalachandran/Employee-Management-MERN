@@ -6,6 +6,7 @@ export {
     verifyToken,
     sendResponse,
     getFormattedDateTime,
+    toObjectId,
 } from './common/commonFunctions.js';
 
 export {

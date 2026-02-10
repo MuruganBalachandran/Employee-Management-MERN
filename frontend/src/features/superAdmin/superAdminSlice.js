@@ -11,7 +11,7 @@ export const createNewAdmin = createAsyncThunk(
     try {
       const res = await createAdmin(data || {});
       dispatch(showToast({ message: "Admin created successfully!", type: "success" }));
-      return res?.data?.data || null;
+      return res || null;
     } catch (err) {
       const message = err?.response?.data?.message || "Failed to create admin";
       dispatch(showToast({ message, type: "error" }));

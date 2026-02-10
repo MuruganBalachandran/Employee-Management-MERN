@@ -1,10 +1,8 @@
 // region imports
 // package imports
 import express from "express";
-
 // middleware imports
-import { auth } from "../../middleware/index.js"; // verifies JWT and attaches req.user
-
+import { auth } from "../../middleware/index.js";
 // controller imports
 import {
   getProfile,
@@ -17,14 +15,12 @@ import {
 const router = express.Router();
 // endregion
 
-// region protected routes
-
+// region routes
 router.use(auth());
 
 router.get("/getProfile", getProfile);
 router.patch("/updateProfile", updateProfile);
 router.delete("/deleteProfile", deleteAccount);
-
 // endregion
 
 // region exports

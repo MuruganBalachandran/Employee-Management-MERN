@@ -154,56 +154,6 @@ const createNewAdmin = async (req = {}, res = {}) => {
 };
 // endregion
 
-// region update admin
-const updateAdminDetails = async (req = {}, res = {}) => {
-  try {
-    const { id = "" } = req?.params || {};
-
-    const idError = validateObjectId(id);
-    if (idError) {
-      return sendResponse(
-        res,
-        STATUS_CODE?.BAD_REQUEST || 400,
-        RESPONSE_STATUS?.FAILURE || "FAILURE",
-        idError,
-      );
-    }
-
-    const { name } = req?.body || {};
-
-    const updateData = {};
-    if (name !== undefined) updateData.Name = name?.trim() || "";
-
-    const updated = await updateAdmin(id, updateData);
-
-    if (!updated) {
-      return sendResponse(
-        res,
-        STATUS_CODE?.NOT_FOUND || 404,
-        RESPONSE_STATUS?.FAILURE || "FAILURE",
-        "Admin not found",
-      );
-    }
-
-    return sendResponse(
-      res,
-      STATUS_CODE?.OK || 200,
-      RESPONSE_STATUS?.SUCCESS || "SUCCESS",
-      "Admin updated successfully",
-      updated,
-    );
-  } catch (err) {
-    console.error("Error updating admin:", err);
-    return sendResponse(
-      res,
-      STATUS_CODE?.INTERNAL_SERVER_ERROR || 500,
-      RESPONSE_STATUS?.FAILURE || "FAILURE",
-      "Error updating admin",
-    );
-  }
-};
-// endregion
-
 // region delete admin
 const removeAdmin = async (req = {}, res = {}) => {
   try {
@@ -253,7 +203,6 @@ export {
   listAdmins,
   getAdmin,
   createNewAdmin,
-  updateAdminDetails,
   removeAdmin,
 };
 // endregion

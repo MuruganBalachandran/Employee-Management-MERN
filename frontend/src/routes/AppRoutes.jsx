@@ -22,6 +22,8 @@ import {
   CreateAdmin,
   ViewEmployees,
   NotFound,
+  CreateEmployee,
+  EditEmployee,
 } from "../pages";
 import MainLayout from "../layout/MainLayout";
 // endregion
@@ -83,7 +85,8 @@ const AppRoutes = () => {
           {/* Admin only */}
           <Route element={<AdminRoute />}>
             <Route path='/employees' element={<ViewEmployees />} />
-            {/* CreateEmployee and EditEmployee routes removed as they are now modals in ViewEmployees */}
+            <Route path='/employees/create' element={<CreateEmployee />} />
+            <Route path='/employees/edit/:id' element={<EditEmployee/>} />
             <Route path='/employees/view/:id' element={<EmployeeView />} />
           </Route>
 

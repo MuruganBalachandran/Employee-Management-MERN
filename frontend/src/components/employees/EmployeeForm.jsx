@@ -44,7 +44,13 @@ const EmployeeForm = ({
     age: "",
     department: "",
     phone: "",
-    address: { line1: "", line2: "", city: "", state: "", zipCode: "" },
+    address: {
+      line1: "",
+      line2: "",
+      city: "",
+      state: "",
+      zipCode: "",
+    },
     salary: "",
     reportingManager: "",
     joiningDate: "",
@@ -54,26 +60,26 @@ const EmployeeForm = ({
 
   // Sync edit data
   useEffect(() => {
-    if (isEdit) {
+    if (isEdit && initialData) {
       setForm({
-        name: initialData?.Name ?? "",
-        email: initialData?.Email ?? "",
+        name: initialData.Name || "",
+        email: initialData.Email || "",
         password: "",
         confirmPassword: "",
-        employeeCode: initialData?.Employee_Code ?? "",
-        age: initialData?.Age ?? "",
-        department: initialData?.Department ?? "",
-        phone: initialData?.Phone ?? "",
+        employeeCode: initialData.Employee_Code || "",
+        age: initialData.Age || "",
+        department: initialData.Department || "",
+        phone: initialData.Phone || "",
         address: {
-          line1: initialData?.Address?.Line1 ?? "",
-          line2: initialData?.Address?.Line2 ?? "",
-          city: initialData?.Address?.City ?? "",
-          state: initialData?.Address?.State ?? "",
-          zipCode: initialData?.Address?.ZipCode ?? "",
+          line1: initialData.Address?.Line1 || "",
+          line2: initialData.Address?.Line2 || "",
+          city: initialData.Address?.City || "",
+          state: initialData.Address?.State || "",
+          zipCode: initialData.Address?.ZipCode || "",
         },
-        salary: initialData?.Salary ?? "",
-        reportingManager: initialData?.Reporting_Manager ?? "",
-        joiningDate: initialData?.Joining_date
+        salary: initialData.Salary || "",
+        reportingManager: initialData.Reporting_Manager || "",
+        joiningDate: initialData.Joining_date
           ? initialData.Joining_date.split("T")[0]
           : "",
       });
@@ -82,62 +88,47 @@ const EmployeeForm = ({
 
   // Handle change
   const handleChange = (field, value) => {
+    setForm((p) => {
+      const next = { ...p };
+      if (field.startsWith("address.")) {
+        const key = field.split(".")[1];
+        next.address = { ...next.address, [key]: value };
+      } else {
+        next[field] = value;
+      }
+      return next;
+    });
+
+    // Validation map
+    const validations = {
+      name: nameValidation,
+      email: (v) => emailValidation(v, "employee", isEdit),
+      password: (v) => passwordValidation(v, isEdit),
+      confirmPassword: (v) => (v !== form.password ? "Passwords do not match" : ""),
+      department: departmentValidation,
+      phone: phoneValidation,
+      salary: salaryValidation,
+      reportingManager: reportingManagerValidation,
+      joiningDate: joiningDateValidation,
+      age: ageValidation,
+      employeeCode: (v) => employeeCodeValidation(v, isEdit),
+    };
+
+    let error = "";
     if (field.startsWith("address.")) {
       const key = field.split(".")[1];
-      const updatedAddress = { ...form.address, [key]: value };
-      const addressErrors = addressValidation(updatedAddress);
-
-      setForm((p) => ({ ...p, address: updatedAddress }));
-      setErrors((p) => {
-        const next = { ...p };
-        if (addressErrors?.[key]) next[`address.${key}`] = addressErrors[key];
-        else delete next[`address.${key}`];
-        return next;
+      const addressErrors = addressValidation({
+        ...form.address,
+        [key]: value,
       });
-      return;
+      error = addressErrors[key] || "";
+    } else if (validations[field]) {
+      error = validations[field](value);
     }
 
-    let fieldError = "";
-    switch (field) {
-      case "name":
-        fieldError = nameValidation(value);
-        break;
-      case "email":
-        fieldError = emailValidation(value, "employee", isEdit);
-        break;
-      case "password":
-        fieldError = passwordValidation(value, isEdit);
-        break;
-      case "confirmPassword":
-        fieldError = value !== form.password ? "Passwords do not match" : "";
-        break;
-      case "department":
-        fieldError = departmentValidation(value);
-        break;
-      case "phone":
-        fieldError = phoneValidation(value);
-        break;
-      case "salary":
-        fieldError = salaryValidation(value);
-        break;
-      case "reportingManager":
-        fieldError = reportingManagerValidation(value);
-        break;
-      case "joiningDate":
-        fieldError = joiningDateValidation(value);
-        break;
-      case "age":
-        fieldError = ageValidation(value);
-        break;
-      case "employeeCode":
-        fieldError = employeeCodeValidation(value, isEdit);
-        break;
-    }
-
-    setForm((p) => ({ ...p, [field]: value }));
     setErrors((p) => {
       const next = { ...p };
-      fieldError ? (next[field] = fieldError) : delete next[field];
+      error ? (next[field] = error) : delete next[field];
       return next;
     });
   };
@@ -146,7 +137,7 @@ const EmployeeForm = ({
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // BASE fields allowed everywhere
+    // Base fields (always editable)
     const payload = {
       name: form.name.trim(),
       age: form.age ? parseInt(form.age, 10) : "",
@@ -154,23 +145,23 @@ const EmployeeForm = ({
       address: { ...form.address },
     };
 
-    // CREATE EMPLOYEE
-    if (!isEdit) {
-      payload.email = form.email.trim().toLowerCase();
-      payload.password = form.password;
-      payload.employeeCode = form.employeeCode.trim();
-      payload.department = form.department;
-      payload.salary = form.salary ? Number(form.salary) : "";
-      payload.reportingManager = form.reportingManager.trim();
-      payload.joiningDate = form.joiningDate;
+    // Admin-only or Create-only fields
+    if (!profileEdit) {
+      Object.assign(payload, {
+        department: form.department,
+        salary: form.salary ? Number(form.salary) : "",
+        reportingManager: form.reportingManager.trim(),
+        joiningDate: form.joiningDate,
+      });
     }
 
-    // ADMIN EDIT EMPLOYEE
-    if (isEdit && !profileEdit) {
-      payload.department = form.department;
-      payload.salary = form.salary ? Number(form.salary) : "";
-      payload.reportingManager = form.reportingManager.trim();
-      payload.joiningDate = form.joiningDate;
+    // Create-only fields
+    if (!isEdit) {
+      Object.assign(payload, {
+        email: form.email.trim().toLowerCase(),
+        password: form.password,
+        employeeCode: form.employeeCode.trim(),
+      });
     }
 
     const validationErrors = validateEmployee(
@@ -198,7 +189,7 @@ const EmployeeForm = ({
       />
 
       <Input
-        label='Email'
+         label="Email (@spanemployee.com)"
         type='email'
         value={form.email}
         onChange={(e) => handleChange("email", e.target.value)}
@@ -263,32 +254,29 @@ const EmployeeForm = ({
       />
 
       <Input
-        label='Address Line 1'
+        label="Address Line 1"
         value={form.address.line1}
         onChange={(e) => handleChange("address.line1", e.target.value)}
         error={errors["address.line1"]}
       />
       <Input
-        label='City'
+        label="City"
         value={form.address.city}
         onChange={(e) => handleChange("address.city", e.target.value)}
         error={errors["address.city"]}
       />
       <Input
-  label="State"
-  placeholder="State"
-  value={form.address.state}
-  onChange={(e) => handleChange("address.state", e.target.value)}
-  error={errors["address.state"]}
-/>
-
-<Input
-  label="ZIP Code"
-  placeholder="ZIP / Postal code"
-  value={form.address.zipCode}
-  onChange={(e) => handleChange("address.zipCode", e.target.value)}
-  error={errors["address.zipCode"]}
-/>
+        label="State"
+        value={form.address.state}
+        onChange={(e) => handleChange("address.state", e.target.value)}
+        error={errors["address.state"]}
+      />
+      <Input
+        label="ZIP Code"
+        value={form.address.zipCode}
+        onChange={(e) => handleChange("address.zipCode", e.target.value)}
+        error={errors["address.zipCode"]}
+      />
 
       {!hideCredentials && (
         <>

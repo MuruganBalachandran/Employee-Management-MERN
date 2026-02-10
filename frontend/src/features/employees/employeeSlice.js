@@ -40,7 +40,6 @@ const initialState = {
 // region Async Thunks
 
 // region getEmployees
-// region getEmployees
 export const getEmployees = createAsyncThunk(
   "employees/getEmployees",
   async (
@@ -62,8 +61,8 @@ export const getEmployees = createAsyncThunk(
         ignoreFilters,
       });
       return {
-        items: res?.data?.data?.employees || [],
-        count: res?.data?.data?.total || 0,
+        items: res?.employees || [],
+        count: res?.total || 0,
       };
     } catch (err) {
       return rejectWithValue(
@@ -82,8 +81,7 @@ export const getEmployee = createAsyncThunk(
     /* Fetch single employee by ID */
     try {
       const res = await fetchEmployeeById(id || null);
-      // Controller sends: { data: employeeObject }
-      return res?.data?.data || null;
+      return res || null;
     } catch (err) {
       return rejectWithValue(
         err?.response?.data?.message || "Failed to fetch employee",
@@ -100,13 +98,11 @@ export const addEmployee = createAsyncThunk(
     /* Add a new employee */
     try {
       const res = await createEmployee(data || {});
-      dispatch(showToast({ message: "Employee added!", type: "success" }));
-      return res?.data?.data || {};
+      return res || {};
     } catch (err) {
       const backend = err?.response?.data || {};
       const message = backend?.message || err?.message || "Failed to add employee";
 
-      // If message is an object (validation errors), reject with fieldErrors
       if (message && typeof message === "object") {
         return rejectWithValue({
           fieldErrors: message,
@@ -114,10 +110,6 @@ export const addEmployee = createAsyncThunk(
         });
       }
 
-      // Ensure toast message is a string
-      const toastMsg = typeof message === "string" ? message : "Add failed";
-      dispatch(showToast({ message: toastMsg, type: "error" }));
-      
       return rejectWithValue(message);
     }
   },
@@ -131,12 +123,11 @@ export const editEmployee = createAsyncThunk(
     /* Update existing employee */
     try {
       const res = await updateEmployee(id || null, data || {});
-      return res?.data?.data || null;
+      return res || null;
     } catch (err) {
       const backend = err?.response?.data || {};
-      const message = backend?.message || "Failed to update employee";
+      const message = backend?.message || err?.message || "Failed to update employee";
 
-      // Validation errors
       if (message && typeof message === "object") {
         return rejectWithValue({
           fieldErrors: message,
@@ -144,7 +135,6 @@ export const editEmployee = createAsyncThunk(
         });
       }
 
-      dispatch(showToast({ message: typeof message === 'string' ? message : "Update failed", type: "error" }));
       return rejectWithValue(message);
     }
   },

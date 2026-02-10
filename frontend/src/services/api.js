@@ -22,7 +22,10 @@ api.interceptors.request.use((config = {}) => {
 
 // region response interceptor
 api.interceptors.response.use(
-  (res) => res,
+  (res) => {
+    // Return backend payload directly (checking for 'response' key)
+    return res?.data?.response !== undefined ? res.data.response : res?.data;
+  },
   (err) => {
     // Handle unauthorized globally
     if (err?.response?.status === 401) {

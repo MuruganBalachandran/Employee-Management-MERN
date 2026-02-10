@@ -16,7 +16,6 @@ import {
   getEmployeeById,
   updateEmployee,
   deleteEmployee,
-  isEmployeeCodeTaken,
 } from "../../queries/index.js";
 
 import { validateObjectId } from "../../validations/helpers/typeValidations.js";
@@ -26,10 +25,10 @@ import { validateObjectId } from "../../validations/helpers/typeValidations.js";
 const listEmployees = async (req = {}, res = {}) => {
   try {
     const limit = Math.min(100, Number(req?.query?.limit) || 5);
-    const skip = req?.query?.skip !== undefined 
+    const skip = req?.query?.skip !== undefined
       ? Math.max(0, Number(req?.query?.skip) || 0)
       : (Math.max(1, Number(req?.query?.page) || 1) - 1) * limit;
-    
+
     const search = req?.query?.search || "";
     const department = req?.query?.department || "";
 
@@ -109,7 +108,9 @@ const getEmployee = async (req = {}, res = {}) => {
 // region create employee
 const createNewEmployee = async (req = {}, res = {}) => {
   try {
-    const validation = validateCreateEmployee(req?.body || {});
+    const payload = req?.body || {};
+    const validation = validateCreateEmployee(payload);
+
     if (!validation?.isValid) {
       return sendResponse(
         res,
@@ -131,30 +132,18 @@ const createNewEmployee = async (req = {}, res = {}) => {
       salary = 0,
       reportingManager = null,
       joiningDate = null,
-    } = req?.body || {};
+    } = payload;
 
-    const codeExists = await isEmployeeCodeTaken(employeeCode);
-    if (codeExists) {
-      return sendResponse(
-        res,
-        STATUS_CODE?.BAD_REQUEST || 400,
-        RESPONSE_STATUS.FAILURE,
-        "Employee Code already exists",
-      );
-    }
+    // Simplified address mapping
+    const mappedAddress = {
+      Line1: address?.line1 || "",
+      Line2: address?.line2 || "",
+      City: address?.city || "",
+      State: address?.state || "",
+      ZipCode: address?.zipCode || "",
+    };
 
-    // Map address from camelCase to PascalCase
-    const mappedAddress = address && typeof address === "object"
-      ? {
-          Line1: address?.line1 || "",
-          Line2: address?.line2 || "",
-          City: address?.city || "",
-          State: address?.state || "",
-          ZipCode: address?.zipCode || "",
-        }
-      : {};
-
-    const adminId = req?.user?.User_Id || req?.user?._id || null;
+    const adminId = req?.user?.User_Id || null;
 
     const employee = await createEmployee({
       Name: name?.trim() || "",
@@ -179,21 +168,16 @@ const createNewEmployee = async (req = {}, res = {}) => {
     );
   } catch (err) {
     console.error("Error creating employee:", err);
+
     if (err?.code === 11000) {
-      const key = Object.keys(err.keyPattern || {})[0];
-      if (key === "Employee_Code" || key === "employeeCode") {
-        return sendResponse(
-          res,
-          STATUS_CODE?.BAD_REQUEST || 400,
-          RESPONSE_STATUS?.FAILURE || "FAILURE",
-          "Employee Code already exists",
-        );
-      }
+      const field = Object.keys(err.keyPattern || {})[0];
+      const isCode = field?.toLowerCase()?.includes("code");
+
       return sendResponse(
         res,
         STATUS_CODE?.BAD_REQUEST || 400,
         RESPONSE_STATUS?.FAILURE || "FAILURE",
-        "Email already registered",
+        isCode ? "Employee Code already exists" : "Email already registered",
       );
     }
 
@@ -221,10 +205,10 @@ const updateEmployeeDetails = async (req = {}, res = {}) => {
         idError,
       );
     }
-    // NOTE: Removed previous pre-fetch of getEmployeeById(id) to save 1 DB hit.
-    // We proceed directly to update. If not found, updateEmployee returns null.
 
-    const validation = validateUpdateEmployee(req?.body || {});
+    const payload = req?.body || {};
+    const validation = validateUpdateEmployee(payload);
+
     if (!validation?.isValid) {
       return sendResponse(
         res,
@@ -234,32 +218,47 @@ const updateEmployeeDetails = async (req = {}, res = {}) => {
       );
     }
 
-    const { 
-      name, 
-      age, 
-      department, 
-      phone, 
-      address, 
-      personalEmail,
-      salary, 
-      reportingManager, 
-      joiningDate, 
-      employeeCode
-    } = req?.body || {};
-    const updateData = {};
-    if (name !== undefined) updateData.Name = name?.trim() || "";
-    if (age !== undefined) updateData.Age = age;
-    if (department !== undefined) updateData.Department = department?.trim() || "";
-    if (phone !== undefined) updateData.Phone = phone?.trim() || "";
-    if (personalEmail !== undefined) updateData.Personal_Email = personalEmail?.trim() || "";
-    if (salary !== undefined) updateData.Salary = salary;
-    if (reportingManager !== undefined)
-      updateData.Reporting_Manager = reportingManager;
-    if (joiningDate !== undefined) updateData.Joining_date = joiningDate;
-    if (employeeCode !== undefined) updateData.Employee_Code = employeeCode;
+    const {
+      name,
+      age,
+      department,
+      phone,
+      address,
+      salary,
+      reportingManager,
+      joiningDate,
+      employeeCode,
+    } = payload;
+
+    const updatePayload = {};
+
+    if (name !== undefined) {
+      updatePayload.Name = name?.trim() || "";
+    }
+    if (age !== undefined) {
+      updatePayload.Age = age;
+    }
+    if (department !== undefined) {
+      updatePayload.Department = department?.trim() || "";
+    }
+    if (phone !== undefined) {
+      updatePayload.Phone = phone?.trim() || "";
+    }
+    if (salary !== undefined) {
+      updatePayload.Salary = salary;
+    }
+    if (reportingManager !== undefined) {
+      updatePayload.Reporting_Manager = reportingManager;
+    }
+    if (joiningDate !== undefined) {
+      updatePayload.Joining_date = joiningDate;
+    }
+    if (employeeCode !== undefined) {
+      updatePayload.Employee_Code = employeeCode;
+    }
 
     if (address !== undefined && typeof address === "object") {
-      updateData.Address = {
+      updatePayload.Address = {
         Line1: address?.line1?.trim() || "",
         Line2: address?.line2?.trim() || "",
         City: address?.city?.trim() || "",
@@ -268,8 +267,7 @@ const updateEmployeeDetails = async (req = {}, res = {}) => {
       };
     }
 
-    // Admin update logic (isSelfUpdate = false by default in query)
-    const updated = await updateEmployee({ _id: id }, updateData);
+    const updated = await updateEmployee({ _id: id }, updatePayload);
 
     if (!updated) {
       return sendResponse(
@@ -289,23 +287,19 @@ const updateEmployeeDetails = async (req = {}, res = {}) => {
     );
   } catch (err) {
     console.error("Error updating employee:", err);
+
     if (err?.code === 11000) {
-      const key = Object.keys(err.keyPattern || {})[0];
-      if (key === "Employee_Code" || key === "employeeCode") {
-        return sendResponse(
-          res,
-          STATUS_CODE?.BAD_REQUEST || 400,
-          RESPONSE_STATUS?.FAILURE || "FAILURE",
-          "Employee Code already exists",
-        );
-      }
+      const field = Object.keys(err.keyPattern || {})[0];
+      const isCode = field?.toLowerCase()?.includes("code");
+
       return sendResponse(
         res,
         STATUS_CODE?.BAD_REQUEST || 400,
         RESPONSE_STATUS?.FAILURE || "FAILURE",
-        "Email already registered",
+        isCode ? "Employee Code already exists" : "Email already registered",
       );
     }
+
     return sendResponse(
       res,
       STATUS_CODE?.INTERNAL_SERVER_ERROR || 500,

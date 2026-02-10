@@ -1,13 +1,12 @@
 // region imports
 import mongoose from "mongoose";
-import { getFormattedDateTime } from "../../utils/common/commonFunctions.js";
+import { getFormattedDateTime } from "../../utils/index.js";
 // endregion
-
 
 // region schema
 const EmployeeSchema = new mongoose.Schema(
     {
-        Employee_Id:{
+        Employee_Id: {
             type: mongoose.Schema.Types.ObjectId,
             default: () => new mongoose.Types.ObjectId(),
         },
@@ -20,13 +19,11 @@ const EmployeeSchema = new mongoose.Schema(
             ref: 'Admin',
         },
 
-        // Employee unique code/ID
         Employee_Code: {
             type: String,
             unique: true,
             sparse: true,
         },
-
 
         Age: {
             type: Number,
@@ -38,26 +35,23 @@ const EmployeeSchema = new mongoose.Schema(
         },
 
         Phone: {
-            type: String, 
-        },
-    
-        Personal_Email:{
-
-        },
-        Salary:{
-            type: Number,
-            default: 0,
-        },
-        Reporting_Manager:{
             type: String,
         },
 
-        Joining_date:{
-            type: Date,
-            default: Date.now,
+        Salary: {
+            type: Number,
+            default: 0,
+        },
+        Reporting_Manager: {
+            type: String,
         },
 
-        Is_Active:{
+        Joining_date: {
+            type: Date,
+            default: getFormattedDateTime(),
+        },
+
+        Is_Active: {
             type: Number,
             default: 1,
         },
@@ -75,7 +69,6 @@ const EmployeeSchema = new mongoose.Schema(
             default: 0,
         },
 
-        // manual timestamps
         Created_At: {
             type: String,
             default: () => getFormattedDateTime(),
@@ -94,33 +87,26 @@ const EmployeeSchema = new mongoose.Schema(
 // endregion
 
 
-// region minimal indexes
-// employee filtering and sorting
-EmployeeSchema?.index({ Employee_Id: 1 }, { unique: true }); // Important for lookups and updates
+// region indexes
+EmployeeSchema?.index({ Employee_Id: 1 }, { unique: true });
 EmployeeSchema?.index({ User_Id: 1 });
 EmployeeSchema?.index({ Is_Deleted: 1 });
-EmployeeSchema?.index({ Created_At: -1 }); // Optimize recent employee sorting
-
+EmployeeSchema?.index({ Created_At: -1 });
 // endregion
 
 
 // region middleware
 EmployeeSchema?.pre("save", function (next) {
     this.Updated_At = getFormattedDateTime();
-  
 });
 
 EmployeeSchema?.pre("findOneAndUpdate", function (next) {
     const update = this.getUpdate();
     if (update) {
-         if (!update.$set) update.$set = {};
-         update.$set.Updated_At = getFormattedDateTime();
+        if (!update.$set) update.$set = {};
+        update.$set.Updated_At = getFormattedDateTime();
     }
 });
-// endregion
-// endregion
-
-
 // endregion
 
 

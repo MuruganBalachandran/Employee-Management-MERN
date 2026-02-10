@@ -1,40 +1,38 @@
 // region imports
-// package imports
 import chalk from "chalk";
-// utils imports
-import { sendResponse } from "../../utils/common/commonFunctions.js";
+import { sendResponse } from "../../utils/index.js";
 //  constants imports
 import {
   STATUS_CODE,
   RESPONSE_STATUS,
-} from "../../utils/constants/constants.js";
+} from "../../utils/index.js";
 // endregion
 
 // region error handler middleware
 const errorHandler = (err, req, res, next) => {
   try {
-    // log the error message in red
     console?.error?.(chalk?.red?.("[ERROR]"), err?.message || "Unknown error");
     console?.log?.("from global error handler");
 
-    // determine status code; default to 500
     const statusCode =
       err?.statusCode ||
       err?.status ||
       STATUS_CODE?.INTERNAL_SERVER_ERROR ||
       500;
 
-    // determine error message; default to generic server message
     const message = err?.message || "Internal server error";
 
-    // send standardized error response
-    return sendResponse(res, statusCode, RESPONSE_STATUS.FAILURE, message);
+    return sendResponse(
+      res,
+      statusCode || 500,
+      RESPONSE_STATUS.FAILURE || "FAILURE",
+      message || "Internal server error"
+    );
   } catch (handlerErr) {
-    // fallback if error occurs inside the error handler itself
     return sendResponse(
       res,
       STATUS_CODE?.INTERNAL_SERVER_ERROR || 500,
-      RESPONSE_STATUS.FAILURE,
+      RESPONSE_STATUS.FAILURE || "FAILURE",
       "Something went wrong, please try again later",
     );
   }

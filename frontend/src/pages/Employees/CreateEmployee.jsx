@@ -2,7 +2,7 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { EmployeeForm, Loader } from "../../components/";
+import { EmployeeForm, Loader, BackButton } from "../../components/";
 import { addEmployee, selectEmployeeLoading, showToast } from "../../features";
 // endregion
 
@@ -18,18 +18,21 @@ const CreateEmployee = () => {
   const handleSubmit = async (data = {}, setErrors = () => {}) => {
     /* Create employee and handle backend validation errors */
     try {
-      await dispatch(addEmployee(data || {})).unwrap();
+      await dispatch(addEmployee(data)).unwrap();
+      dispatch(showToast({ message: "Employee created successfully!", type: "success" }));
       navigate("/employees");
     } catch (err) {
+      // payload from rejectWithValue
       const fieldErrors = err?.fieldErrors || {};
+      const errorMessage = typeof err === "string" ? err : err?.message || "Failed to create employee";
+
       setErrors(fieldErrors);
-      // show error
+
       dispatch(
         showToast({
-          message:
-            Object.keys(fieldErrors).length > 0
-              ? "Please fix the highlighted errors"
-              : err?.message || "Failed to create employee",
+          message: Object.keys(fieldErrors).length > 0
+            ? "Please fix the validation errors"
+            : errorMessage,
           type: "error",
         }),
       );
@@ -38,17 +41,22 @@ const CreateEmployee = () => {
   // endregion
 
   return (
-    <div className='container mt-4'>
+    <div className='container mt-4 pb-5'>
       {/* Loader */}
       {loading && <Loader fullScreen text='Creating employee...' />}
 
       {/* Page heading */}
-      <div className='d-flex justify-content-between align-items-center mb-4'>
-        <h3 className='mb-0'>Create Employee</h3>
+      <div className='d-flex align-items-center gap-3 mb-4'>
+        <BackButton />
+        <h3 className='mb-0 fw-bold text-gradient'>Create New Employee</h3>
       </div>
 
       {/* Form card */}
-      <EmployeeForm onSubmit={handleSubmit} />
+      <div className='card shadow-sm border-0 bg-glass animate-fade-in'>
+        <div className='card-body p-4'>
+          <EmployeeForm onSubmit={handleSubmit} />
+        </div>
+      </div>
     </div>
   );
 };

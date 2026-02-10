@@ -8,11 +8,10 @@ import {
   validatePhone,
   validateAddress,
   validateEmailDomain,
-  validateObjectId,
 } from "../helpers/typeValidations.js";
 
 import { validationError } from "../helpers/validationError.js";
-import { VALIDATION_MESSAGES, ROLE } from "../../utils/index.js";
+import { ROLE } from "../../utils/index.js";
 // endregion
 
 // region validate create employee
@@ -99,7 +98,7 @@ const validateCreateEmployee = (data = {}) => {
 const validateUpdateEmployee = (data = {}) => {
   const errors = {};
 
-  const { name, age, department, phone, address,salary, reportingManager, joiningDate, employeeCode } = data || {};
+  const { name, password, age, department, phone, address, salary, reportingManager, joiningDate, employeeCode } = data || {};
 
   if (name !== undefined) {
     const nameError = validateName(name);
@@ -136,6 +135,13 @@ const validateUpdateEmployee = (data = {}) => {
     }
   }
 
+
+  if (password !== undefined) {
+    const passwordError = validatePassword(password, { name });
+    if (passwordError) {
+      errors.password = passwordError;
+    }
+  }
 
   if (Object.keys(errors).length > 0) {
     return validationError(errors);

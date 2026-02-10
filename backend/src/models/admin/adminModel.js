@@ -1,7 +1,6 @@
 // region imports
 import mongoose from "mongoose";
-import validator from "validator";
-import { getFormattedDateTime } from "../../utils/common/commonFunctions.js";
+import { getFormattedDateTime } from "../../utils/index.js";
 // endregion
 
 
@@ -18,8 +17,6 @@ const AdminSchema = new mongoose.Schema(
             required: true
         },
 
-
-        // manual timestamps
         Created_At: {
             type: String,
             default: () => getFormattedDateTime()
@@ -38,16 +35,12 @@ const AdminSchema = new mongoose.Schema(
 // endregion
 
 
-// region minimal indexes
-// Email unique only for ACTIVE admins
-// admin filtering and sorting
-AdminSchema?.index({ Admin_Id: 1 }, { unique: true }); // Important for lookups and updates
+// region indexes
+AdminSchema?.index({ Admin_Id: 1 }, { unique: true });
 AdminSchema?.index({ User_Id: 1 });
 AdminSchema?.index({ Is_Deleted: 1 });
-AdminSchema?.index({ Created_At: -1 }); // Optimize recent admin sorting
-
+AdminSchema?.index({ Created_At: -1 });
 // endregion
-
 
 // region middleware
 AdminSchema?.pre("save", function (next) {
@@ -57,19 +50,13 @@ AdminSchema?.pre("save", function (next) {
 AdminSchema?.pre("findOneAndUpdate", function (next) {
     const update = this.getUpdate();
     if (update) {
-         if (!update.$set) update.$set = {};
-         update.$set.Updated_At = getFormattedDateTime();
+        if (!update.$set) {
+            update.$set = {};
+            update.$set.Updated_At = getFormattedDateTime();
+        }
     }
 });
 // endregion
-
-
-
-// endregion
-
-
-// endregion
-
 
 // region transforms
 const transform = (doc, ret) => {
