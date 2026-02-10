@@ -21,9 +21,10 @@ const EditProfile = () => {
     try {
       // prepare payload
       const cleanData = {
-        name: data?.name || "",
-        phone: data?.phone || "",
-        address: data?.address || {},
+        name: data?.name?.trim(),
+        age: data?.age ? Number(data.age) : undefined,
+        phone: data?.phone?.trim(),
+        address: data?.address,
       };
 
       // update profile
@@ -52,11 +53,10 @@ const EditProfile = () => {
   // region render
   return (
     <div className='container mt-4'>
-          <div className="d-flex align-items-center gap-3 mb-2">
-      <BackButton />
-      <h3>{"Edit Profile" || ""}</h3>
-          </div>
-
+      <div className='d-flex align-items-center gap-3 mb-2'>
+        <BackButton />
+        <h3>{"Edit Profile" || ""}</h3>
+      </div>
 
       <EmployeeForm
         initialData={user}

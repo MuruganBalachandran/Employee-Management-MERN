@@ -20,17 +20,21 @@ import {
 } from "../../validations/employeeValidation";
 // endregion
 
-// region EmployeeForm component
 const EmployeeForm = ({
   initialData = {},
   onSubmit = () => {},
   hideCredentials = false,
 }) => {
-  // hooks
   const dispatch = useDispatch();
-  const isEdit = !!initialData?.Employee_Id || !!initialData?.User_Id || !!initialData?.userId;
 
-  // region form state
+  const isEdit =
+    !!initialData?.Employee_Id ||
+    !!initialData?.User_Id ||
+    !!initialData?.userId;
+
+  // profile edit = employee editing own profile
+  const profileEdit = isEdit && hideCredentials;
+
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -40,155 +44,142 @@ const EmployeeForm = ({
     age: "",
     department: "",
     phone: "",
-    address: {
-      line1: "",
-      line2: "",
-      city: "",
-      state: "",
-      zipCode: "",
-    },
+    address: { line1: "", line2: "", city: "", state: "", zipCode: "" },
     salary: "",
     reportingManager: "",
     joiningDate: "",
   });
-  const [errors, setErrors] = useState({});
-  // endregion
 
-  // region sync form when editing
+  const [errors, setErrors] = useState({});
+
+  // Sync edit data
   useEffect(() => {
-    // Sync form state with initial employee data
-    if (initialData?.Employee_Id || initialData?.User_Id || initialData?.userId) {
+    if (isEdit) {
       setForm({
-        name: initialData?.Name ?? initialData?.name ?? "",
-        email: initialData?.Email ?? initialData?.email ?? "",
+        name: initialData?.Name ?? "",
+        email: initialData?.Email ?? "",
         password: "",
         confirmPassword: "",
-        employeeCode: initialData?.Employee_Code ?? initialData?.employeeCode ?? "",
-        age: initialData?.Age ?? initialData?.age ?? "",
-        department: initialData?.Department ?? initialData?.department ?? "",
-        phone: initialData?.Phone ?? initialData?.phone ?? "",
+        employeeCode: initialData?.Employee_Code ?? "",
+        age: initialData?.Age ?? "",
+        department: initialData?.Department ?? "",
+        phone: initialData?.Phone ?? "",
         address: {
-          line1: initialData?.Address?.Line1 ?? initialData?.address?.line1 ?? "",
-          line2: initialData?.Address?.Line2 ?? initialData?.address?.line2 ?? "",
-          city: initialData?.Address?.City ?? initialData?.address?.city ?? "",
-          state: initialData?.Address?.State ?? initialData?.address?.state ?? "",
-          zipCode: initialData?.Address?.ZipCode ?? initialData?.address?.zipCode ?? "",
+          line1: initialData?.Address?.Line1 ?? "",
+          line2: initialData?.Address?.Line2 ?? "",
+          city: initialData?.Address?.City ?? "",
+          state: initialData?.Address?.State ?? "",
+          zipCode: initialData?.Address?.ZipCode ?? "",
         },
-        salary: initialData?.Salary ?? initialData?.salary ?? "",
-        reportingManager: initialData?.Reporting_Manager ?? initialData?.reportingManager ?? "",
-        joiningDate: (initialData?.Joining_date || initialData?.joiningDate)
-          ? (initialData.Joining_date || initialData.joiningDate).split("T")[0]
+        salary: initialData?.Salary ?? "",
+        reportingManager: initialData?.Reporting_Manager ?? "",
+        joiningDate: initialData?.Joining_date
+          ? initialData.Joining_date.split("T")[0]
           : "",
       });
     }
-  }, [initialData]);
-  // endregion
+  }, [initialData, isEdit]);
 
-  // region handleChange
-  const handleChange = (field = "", value = "") => {
-    if (field?.startsWith?.("address.")) {
-      const key = field.split(".")[1]; // e.g. line1
+  // Handle change
+  const handleChange = (field, value) => {
+    if (field.startsWith("address.")) {
+      const key = field.split(".")[1];
       const updatedAddress = { ...form.address, [key]: value };
       const addressErrors = addressValidation(updatedAddress);
 
-      setForm((prev) => ({ ...prev, address: updatedAddress }));
-      setErrors((prev) => {
-        const next = { ...prev };
+      setForm((p) => ({ ...p, address: updatedAddress }));
+      setErrors((p) => {
+        const next = { ...p };
         if (addressErrors?.[key]) next[`address.${key}`] = addressErrors[key];
         else delete next[`address.${key}`];
         return next;
       });
-    } else {
-      let fieldError = "";
-
-      switch (field) {
-        case "name":
-          fieldError = nameValidation(value);
-          break;
-        case "email":
-          fieldError = emailValidation(value, "employee", isEdit);
-          break;
-        case "password":
-          fieldError = passwordValidation(value, isEdit);
-          break;
-        case "confirmPassword":
-          fieldError = value !== form.password ? "Passwords do not match" : "";
-          break;
-        case "department":
-          fieldError = departmentValidation(value);
-          break;
-        case "phone":
-          fieldError = phoneValidation(value);
-          break;
-        case "salary":
-          fieldError = salaryValidation(value);
-          break;
-        case "reportingManager":
-          fieldError = reportingManagerValidation(value);
-          break;
-        case "joiningDate":
-          fieldError = joiningDateValidation(value);
-          break;
-        case "age":
-          fieldError = ageValidation(value);
-          break;
-        case "employeeCode":
-          fieldError = employeeCodeValidation(value, isEdit);
-          break;
-      }
-
-      setForm((prev) => ({ ...prev, [field]: value }));
-      setErrors((prev) => {
-        const next = { ...prev };
-        if (fieldError) {
-          next[field] = fieldError;
-        } else {
-          delete next[field];
-        }
-        return next;
-      });
+      return;
     }
-  };
-  // endregion
 
-  /// region handleSubmit
+    let fieldError = "";
+    switch (field) {
+      case "name":
+        fieldError = nameValidation(value);
+        break;
+      case "email":
+        fieldError = emailValidation(value, "employee", isEdit);
+        break;
+      case "password":
+        fieldError = passwordValidation(value, isEdit);
+        break;
+      case "confirmPassword":
+        fieldError = value !== form.password ? "Passwords do not match" : "";
+        break;
+      case "department":
+        fieldError = departmentValidation(value);
+        break;
+      case "phone":
+        fieldError = phoneValidation(value);
+        break;
+      case "salary":
+        fieldError = salaryValidation(value);
+        break;
+      case "reportingManager":
+        fieldError = reportingManagerValidation(value);
+        break;
+      case "joiningDate":
+        fieldError = joiningDateValidation(value);
+        break;
+      case "age":
+        fieldError = ageValidation(value);
+        break;
+      case "employeeCode":
+        fieldError = employeeCodeValidation(value, isEdit);
+        break;
+    }
+
+    setForm((p) => ({ ...p, [field]: value }));
+    setErrors((p) => {
+      const next = { ...p };
+      fieldError ? (next[field] = fieldError) : delete next[field];
+      return next;
+    });
+  };
+
+  // Submit
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    // BASE fields allowed everywhere
     const payload = {
-      name: form.name?.trim(),
+      name: form.name.trim(),
       age: form.age ? parseInt(form.age, 10) : "",
-      department: form.department,
-      phone: form.phone?.trim(),
+      phone: form.phone.trim(),
       address: { ...form.address },
     };
 
+    // CREATE EMPLOYEE
     if (!isEdit) {
-        payload.email = form.email?.trim()?.toLowerCase();
-        payload.password = form.password;
-        payload.employeeCode = form.employeeCode?.trim();
+      payload.email = form.email.trim().toLowerCase();
+      payload.password = form.password;
+      payload.employeeCode = form.employeeCode.trim();
+      payload.department = form.department;
+      payload.salary = form.salary ? Number(form.salary) : "";
+      payload.reportingManager = form.reportingManager.trim();
+      payload.joiningDate = form.joiningDate;
     }
 
-    // Include sensitive fields only if allowed (admin view)
-    if (!hideCredentials) {
-      payload.salary = form.salary !== "" ? Number(form.salary) : "";
-      payload.reportingManager = form.reportingManager?.trim() || "";
-      payload.joiningDate = form.joiningDate?.trim() || "";
-      if (isEdit) {
-          // Note: On edit, email/password/employeeCode are usually ignored by backend, 
-          // but we can still send them if needed. However, service deletes them.
-      }
+    // ADMIN EDIT EMPLOYEE
+    if (isEdit && !profileEdit) {
+      payload.department = form.department;
+      payload.salary = form.salary ? Number(form.salary) : "";
+      payload.reportingManager = form.reportingManager.trim();
+      payload.joiningDate = form.joiningDate;
     }
 
-    //  ALL FIELDS VALIDATED TOGETHER
-    const validationErrors = {
-      ...validateEmployee(
-        { ...payload, confirmPassword: form.confirmPassword },
-        isEdit,
-      ),
-    };
+    const validationErrors = validateEmployee(
+      { ...payload, confirmPassword: form.confirmPassword },
+      isEdit,
+      hideCredentials,
+    );
 
-    if (Object.keys(validationErrors).length > 0) {
+    if (Object.keys(validationErrors).length) {
       setErrors(validationErrors);
       dispatch(showToast({ message: "Please fix the errors", type: "error" }));
       return;
@@ -196,177 +187,139 @@ const EmployeeForm = ({
 
     onSubmit(payload, setErrors);
   };
-  // endregion
 
   return (
     <form onSubmit={handleSubmit} className='card p-4 shadow-sm'>
-      {/* name */}
       <Input
         label='Name'
-        placeholder='Enter employee name'
-        value={form?.name || ""}
-        onChange={(e) => handleChange("name", e?.target?.value || "")}
-        error={errors?.name || ""}
+        value={form.name}
+        onChange={(e) => handleChange("name", e.target.value)}
+        error={errors.name}
       />
-      {/* email */}
+
       <Input
         label='Email'
         type='email'
-        placeholder='Enter employee email'
-        value={form?.email || ""}
-        onChange={(e) => handleChange("email", e?.target?.value || "")}
-        error={errors?.email || ""}
-        disabled={isEdit || hideCredentials}
+        value={form.email}
+        onChange={(e) => handleChange("email", e.target.value)}
+        error={errors.email}
+        disabled={isEdit}
       />
-      {/* employee code - hide for employee's own profile edit */}
+
       {!hideCredentials && (
         <Input
           label='Employee Code'
-          placeholder='Enter unique employee code (e.g., EMP001)'
-          value={form?.employeeCode || ""}
-          onChange={(e) => handleChange("employeeCode", e?.target?.value || "")}
-          error={errors?.employeeCode || ""}
+          value={form.employeeCode}
+          onChange={(e) => handleChange("employeeCode", e.target.value)}
+          error={errors.employeeCode}
           disabled={isEdit}
         />
       )}
-      {/* password show only when create */}
+
       {!isEdit && !hideCredentials && (
         <>
           <Input
             label='Password'
             type='password'
-            placeholder='Set login password'
-            value={form?.password || ""}
-            onChange={(e) => handleChange("password", e?.target?.value || "")}
-            error={errors?.password || ""}
+            value={form.password}
+            onChange={(e) => handleChange("password", e.target.value)}
+            error={errors.password}
           />
-          {/* password rules */}
-          <PasswordRules password={form?.password} />
-          {/* confirm password */}
+          <PasswordRules password={form.password} />
           <Input
             label='Confirm Password'
             type='password'
-            placeholder='Confirm password'
-            value={form?.confirmPassword || ""}
-            onChange={(e) =>
-              handleChange("confirmPassword", e?.target?.value || "")
-            }
-            error={errors?.confirmPassword || ""}
+            value={form.confirmPassword}
+            onChange={(e) => handleChange("confirmPassword", e.target.value)}
+            error={errors.confirmPassword}
           />
         </>
       )}
-      
-      {/* Age */}
-      {!hideCredentials && (
-        <Input
-          label='Age'
-          type='number'
-          placeholder='Enter age'
-          value={form?.age || ""}
-          onChange={(e) => handleChange("age", e?.target?.value || "")}
-          error={errors?.age || ""}
-        />
-      )}
 
-      {/* department */}
+      <Input
+        label='Age'
+        type='number'
+        value={form.age}
+        onChange={(e) => handleChange("age", e.target.value)}
+        error={errors.age}
+      />
       <Input
         label='Department'
         select
         options={[
           { value: "", label: "Select Department" },
-          ...VALID_DEPARTMENTS?.map((d) => ({ value: d, label: d })),
+          ...VALID_DEPARTMENTS.map((d) => ({ value: d, label: d })),
         ]}
-        value={form?.department || ""}
-        onChange={(e) => handleChange("department", e?.target?.value || "")}
-        error={errors?.department || ""}
+        value={form.department}
+        onChange={(e) => handleChange("department", e.target.value)}
+        error={errors.department}
+        disabled={profileEdit}
       />
-      {/* phone */}
       <Input
         label='Phone'
-        placeholder='Enter 10-digit phone number'
-        value={form?.phone || ""}
-        onChange={(e) => handleChange("phone", e?.target?.value || "")}
-        error={errors?.phone || ""}
+        value={form.phone}
+        onChange={(e) => handleChange("phone", e.target.value)}
+        error={errors.phone}
       />
-      {/* address line */}
+
       <Input
         label='Address Line 1'
-        placeholder='Street address'
-        value={form?.address?.line1 || ""}
-        onChange={(e) => handleChange("address.line1", e?.target?.value || "")}
+        value={form.address.line1}
+        onChange={(e) => handleChange("address.line1", e.target.value)}
         error={errors["address.line1"]}
       />
-
-      <Input
-        label='Address Line 2'
-        placeholder='Apartment, suite, etc.'
-        value={form?.address?.line2 || ""}
-        onChange={(e) => handleChange("address.line2", e?.target?.value || "")}
-      />
-      {/* city */}
       <Input
         label='City'
-        placeholder='City'
-        value={form?.address?.city || ""}
-        onChange={(e) => handleChange("address.city", e?.target?.value || "")}
+        value={form.address.city}
+        onChange={(e) => handleChange("address.city", e.target.value)}
         error={errors["address.city"]}
       />
-      {/* state */}
       <Input
-        label='State'
-        placeholder='State'
-        value={form?.address?.state || ""}
-        onChange={(e) => handleChange("address.state", e?.target?.value || "")}
-        error={errors["address.state"]}
-      />
-      {/* zip code */}
-      <Input
-        label='ZIP'
-        placeholder='ZIP / Postal code'
-        value={form?.address?.zipCode || ""}
-        onChange={(e) =>
-          handleChange("address.zipCode", e?.target?.value || "")
-        }
-        error={errors["address.zipCode"]}
-      />
+  label="State"
+  placeholder="State"
+  value={form.address.state}
+  onChange={(e) => handleChange("address.state", e.target.value)}
+  error={errors["address.state"]}
+/>
 
-      {/* Salary, Reporting Manager, Joining Date */}
+<Input
+  label="ZIP Code"
+  placeholder="ZIP / Postal code"
+  value={form.address.zipCode}
+  onChange={(e) => handleChange("address.zipCode", e.target.value)}
+  error={errors["address.zipCode"]}
+/>
+
       {!hideCredentials && (
         <>
-          {/* Salary */}
           <Input
             label='Salary'
             type='number'
-            placeholder='Enter salary'
-            value={form?.salary || ""}
-            onChange={(e) => handleChange("salary", e?.target?.value || "")}
-            error={errors?.salary || ""}
+            value={form.salary}
+            onChange={(e) => handleChange("salary", e.target.value)}
+            error={errors.salary}
+            disabled={profileEdit}
           />
-
-          {/* Reporting Manager */}
           <Input
-            label='Reporting Manager (Name + Code)'
-            placeholder='Example: Ramesh (EMP002)'
+            label='Reporting Manager'
             value={form.reportingManager}
             onChange={(e) => handleChange("reportingManager", e.target.value)}
             error={errors.reportingManager}
+            disabled={profileEdit}
           />
-
-          {/* Joining Date */}
           <Input
             label='Joining Date'
             type='date'
-            value={form?.joiningDate || ""}
-            onChange={(e) =>
-              handleChange("joiningDate", e?.target?.value || "")
-            }
-            error={errors?.joiningDate || ""}
+            value={form.joiningDate}
+            onChange={(e) => handleChange("joiningDate", e.target.value)}
+            error={errors.joiningDate}
+            disabled={profileEdit}
           />
         </>
       )}
 
       <button type='submit' className='btn btn-primary mt-3'>
-        {hideCredentials
+        {profileEdit
           ? "Update Profile"
           : isEdit
             ? "Update Employee"
@@ -375,8 +328,5 @@ const EmployeeForm = ({
     </form>
   );
 };
-// endregion
 
-// region exports
 export default EmployeeForm;
-// endregion

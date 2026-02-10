@@ -474,7 +474,11 @@ export const joiningDateValidation = (date = "") => {
 };
 // endregion
 // region full employee validation
-export const validateEmployee = (data = {}, isEdit = false) => {
+export const validateEmployee = (
+  data = {},
+  isEdit = false,
+  hideCredentials = false
+) => {
   const clean = {
     ...data,
     name: data.name?.trim(),
@@ -486,11 +490,29 @@ export const validateEmployee = (data = {}, isEdit = false) => {
 
   const errors = {};
 
-  // Basic
+  /*  BASIC INFO  */
+
   const nameErr = nameValidation(clean.name);
   if (nameErr) errors.name = nameErr;
 
-  if (!isEdit) {
+  const ageErr = ageValidation(clean.age);
+  if (ageErr) errors.age = ageErr;
+
+
+
+  const phoneErr = phoneValidation(clean.phone);
+  if (phoneErr) errors.phone = phoneErr;
+
+  const addrErrors = addressValidation(clean.address || {});
+  Object.keys(addrErrors).forEach((k) => {
+    errors[`address.${k}`] = addrErrors[k];
+  });
+
+  /*  CREDENTIALS (CREATE ONLY)  */
+
+  if (!isEdit && !hideCredentials) {
+      const deptErr = departmentValidation(clean.department);
+  if (deptErr) errors.department = deptErr;
     const emailErr = emailValidation(clean.email);
     if (emailErr) errors.email = emailErr;
 
@@ -504,72 +526,21 @@ export const validateEmployee = (data = {}, isEdit = false) => {
     if (empErr) errors.employeeCode = empErr;
   }
 
-  const deptErr = departmentValidation(clean.department);
-  if (deptErr) errors.department = deptErr;
+  /*  HR-ONLY FIELDS  */
 
-  const phoneErr = phoneValidation(clean.phone);
-  if (phoneErr) errors.phone = phoneErr;
+  // Only validate when visible to user
+  if (!hideCredentials) {
+    const rmErr = reportingManagerValidation(clean.reportingManager);
+    if (rmErr) errors.reportingManager = rmErr;
 
-  const rmErr = reportingManagerValidation(clean.reportingManager);
-  if (rmErr) errors.reportingManager = rmErr;
+    const salErr = salaryValidation(clean.salary);
+    if (salErr) errors.salary = salErr;
 
-  const salErr = salaryValidation(clean.salary);
-  if (salErr) errors.salary = salErr;
-
-  const joinErr = joiningDateValidation(clean.joiningDate);
-  if (joinErr) errors.joiningDate = joinErr;
-
-  const addrErrors = addressValidation(clean.address || {});
-  Object.keys(addrErrors).forEach(k => {
-    errors[`address.${k}`] = addrErrors[k];
-  });
-
-  // New validations
-  // Need to handle hideCredentials? 
-  // If isEdit is true, some fields might be editable only by Admin.
-  // Assuming frontend passes all current form values.
-
-  // Age
-  // But wait, Age is "new field" as per user request. 
-  // Should validate unless it's hidden/not provided? 
-  // User said "add the age field ... and add validation for everything".
-  // So validation should run.
-    const ageErr = ageValidation(data?.age);
-    if (ageErr) errors.age = ageErr;
-
-
-  // Employee Code (only for creation?)
-  // User said "employee code must be EMP001...".
-  // Employee Code is usually immutable on Edit.
-  // If user is editing, do we validate it?
-  // Only if provided. But my form logic DELETES it from payload on edit.
-  // Wait, `validateEmployee` is called BEFORE submission.
-  // If `isEdit` is true, typical flow is: don't change Employee Code.
-  // But usage in `EmployeeForm`:
-  /*
-    const errors = validateEmployee(form, isEdit);
-  */
-  // Form has `employeeCode` in state.
-  // If `isEdit`, `employeeCode` is disabled in UI.
-  // But we can still validate it exists.
-  // For Create (`!isEdit`), MUST validate format.
-  if (!isEdit) {
-      const codeErr = employeeCodeValidation(data?.employeeCode);
-      if (codeErr) errors.employeeCode = codeErr;
+    const joinErr = joiningDateValidation(clean.joiningDate);
+    if (joinErr) errors.joiningDate = joinErr;
   }
-
-  // Salary
-  const salaryErr = salaryValidation(data?.salary);
-  if (salaryErr) errors.salary = salaryErr;
-
-  // Reporting Manager
-  const managerErr = reportingManagerValidation(data?.reportingManager);
-  if (managerErr) errors.reportingManager = managerErr;
-
-  // Joining Date
-  const dateErr = joiningDateValidation(data?.joiningDate);
-  if (dateErr) errors.joiningDate = dateErr;
 
   return errors;
 };
+
 // endregion

@@ -33,9 +33,9 @@ const MyProfile = () => {
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h4 className="mb-0">My Profile</h4>
 
-        <Link to="/me/edit" className="btn btn-outline-primary btn-sm">
+        {/* <Link to="/me/edit" className="btn btn-outline-primary btn-sm">
           Edit Profile
-        </Link>
+        </Link> */}
       </div>
 
       {/* profile details */}

@@ -12,6 +12,7 @@ const createEmployee = async (userData = {}, adminId = null) => {
       Email = "",
       Password = "",
       Age = 0,
+      Employee_Code="",
       Department = "",
       Phone = "",
       Address = {},
@@ -32,8 +33,9 @@ const createEmployee = async (userData = {}, adminId = null) => {
     // Create Employee document
     const employee = new Employee({
       User_Id: user.User_Id,
-      Admin_Id: adminId, // Record who created this employee
+      Admin_Id: adminId, 
       Age: Age || 0,
+      Employee_Code:Employee_Code,
       Department: Department.trim() || "",
       Phone: Phone.trim() || "",
       Address: Address || {},
