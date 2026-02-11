@@ -40,7 +40,7 @@ const seedAdmins = async () => {
                 user = new User({
                     Name: admin.name,
                     Email: admin.email,
-                    Password: 'pass&135',
+                    Password: 'Pass&135',
                     Role: ROLE.ADMIN,
                 });
                 await user.save();
@@ -54,7 +54,7 @@ const seedAdmins = async () => {
 
         console.log(chalk.blue('--------------------------------'));
         console.log(chalk.blue('Admins Seeded Successfully!'));
-        console.log(chalk.blue('Default Password: Admin@123'));
+        console.log(chalk.blue('Default Password: Pass&135'));
         console.log(chalk.blue('--------------------------------'));
 
         process.exit(0);

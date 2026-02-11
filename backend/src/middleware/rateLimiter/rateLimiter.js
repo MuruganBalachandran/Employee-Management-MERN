@@ -7,39 +7,43 @@ import { RESPONSE_STATUS } from "../../utils/constants/constants.js";
 // region helper - build key
 const buildKey = (req) => {
   const ip = ipKeyGenerator(req);
-  const email = req.body?.Email?.toLowerCase() || "no-email";
-  return `${ip}|${email}`;
+  const email = req.body?.Email?.toLowerCase();
+
+  // If email exists, still attach IP so combos are tracked
+  return email ? `${ip}|${email}` : ip;
+};
+
+// endregion
+
+// region factory
+const rateLimiter = (type = "Login") => {
+  const config = {
+    Login: {
+      max: 5,
+      message: "Too many login attempts. Try again later.",
+    },
+    Register: {
+      max: 3,
+      message: "Too many register attempts. Try again later.",
+    },
+  };
+
+  const selected = config[type] || config.Login;
+
+  return rateLimit({
+    windowMs: 10 * 60 * 1000,
+    max: selected.max,
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: buildKey,
+    message: {
+      status: RESPONSE_STATUS?.FAILURE || "FAILURE",
+      message: selected.message,
+    },
+  });
 };
 // endregion
 
-// region LOGIN LIMITER
-const loginLimiter = rateLimit({
-  windowMs: 10 * 60 * 1000,
-  max: 5,
-  standardHeaders: true,
-  legacyHeaders: false,
-  keyGenerator: buildKey,
-  message: {
-    status: RESPONSE_STATUS?.FAILURE || "FAILURE",
-    message: "Too many login attempts. Try again later.",
-  },
-});
-// endregion
-
-// region SIGNUP LIMITER
-const signupLimiter = rateLimit({
-  windowMs: 10 * 60 * 1000, // 10 minutes
-  max: 3,
-  standardHeaders: true,
-  legacyHeaders: false,
-  keyGenerator: buildKey,
-  message: {
-    status: RESPONSE_STATUS?.FAILURE || "FAILURE",
-    message: "Too many signup attempts. Try again later.",
-  },
-});
-// endregion
-
 // region exports
-export { loginLimiter, signupLimiter };
+export default rateLimiter;
 // endregion

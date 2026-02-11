@@ -556,6 +556,75 @@ const validateObjectId = (value = "") => {
 };
 // endregion
 
+// region validate Salary
+const validateSalary = (value) => {
+  if (value === undefined || value === null || value === "") return null; // optional
+  if (typeof value !== "number" || value < 0) {
+    return "Salary must be a non-negative number";
+  }
+  return null;
+};
+// endregion
+
+// region validate Joining Date
+const validateJoiningDate = (value) => {
+  if (!value) return null; // optional
+
+  // Expecting YYYY-MM-DD format from <input type="date">
+  const [year, month, day] = value.split("-").map(Number);
+
+  if (!day || !month || !year) {
+    return "Joining date must be in YYYY-MM-DD format";
+  }
+
+  // Check ranges
+  if (year < 1900 || year > 2100) return "Joining year is invalid";
+  if (month < 1 || month > 12) return "Joining month is invalid";
+  if (day < 1 || day > 31) return "Joining day is invalid";
+
+  // Handle month-specific day limits (including leap years)
+  const monthDays = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  let maxDay = monthDays[month - 1];
+
+  // Leap year check for February
+  if (month === 2) {
+    if ((year % 4 === 0 && year % 100 !== 0) || year % 400 === 0) {
+      maxDay = 29;
+    }
+  }
+
+  if (day > maxDay) return "Joining day is invalid for the given month/year";
+
+  return null;
+};
+// endregion
+
+
+// region validate Reporting Manager
+const validateReportingManager = (value) => {
+  if (!value) return null;
+  if (typeof value !== "string") {
+    return "Reporting Manager must be a string";
+  }
+  if (value.length < 3 || value.length > 50) {
+    return "Reporting Manager must between 3 - 50 characters";
+  }
+
+  return null;
+};
+// endregion
+
+// region validate Employee Code
+const validateEmployeeCode = (value) => {
+  if (!value) return null; // optional
+  const EMP_CODE_REGEX = /^EMP\d{3,7}$/;
+  if (!EMP_CODE_REGEX.test(value)) {
+    return "Invalid Employee Code (format: EMP001, EMP1234)";
+  }
+  return null;
+};
+// endregion
+
 // region exports
 export {
   validateName,
@@ -568,5 +637,9 @@ export {
   validatePhone,
   validateAddress,
   validateEmailDomain,
+  validateSalary,
+  validateJoiningDate,
+  validateReportingManager,
+  validateEmployeeCode,
 };
 // endregion

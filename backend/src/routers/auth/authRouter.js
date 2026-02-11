@@ -7,7 +7,7 @@ import {
   logout,
 } from "../../controllers/auth/authController.js";
 // middleware imports
-import { auth, loginLimiter } from "../../middleware/index.js";
+import { auth, rateLimiter } from "../../middleware/index.js";
 // endregion
 
 // region router initialization
@@ -15,7 +15,7 @@ const router = express.Router();
 // endregion
 
 // region routes
-router.post("/login", loginLimiter, login);
+router.post("/login", rateLimiter("Login"), login);
 router.post("/logout", auth(), logout);
 // endregion
 

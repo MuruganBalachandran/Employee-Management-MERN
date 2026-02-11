@@ -15,9 +15,7 @@ const toastSlice = createSlice({
   name: "toast",
   initialState,
   reducers: {
-    // region showToast
     showToast: (state = {}, action = {}) => {
-      /* Display toast message */
       state.message = action?.payload?.message || "";
       state.type = action?.payload?.type || "info";
       state.visible = true;
@@ -26,7 +24,6 @@ const toastSlice = createSlice({
 
     // region hideToast
     hideToast: (state = {}) => {
-      /* Hide toast and reset message */
       state.visible = false;
       state.message = "";
     },

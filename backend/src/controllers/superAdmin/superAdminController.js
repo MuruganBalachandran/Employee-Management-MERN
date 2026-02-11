@@ -10,7 +10,6 @@ import {
   createAdmin,
   getAllAdmins,
   getAdminById,
-  updateAdmin,
   deleteAdmin,
 } from "../../queries/index.js";
 
@@ -20,6 +19,7 @@ import { validateObjectId } from "../../validations/helpers/typeValidations.js";
 // region list admins
 const listAdmins = async (req = {}, res = {}) => {
   try {
+    // quereis and filters
     const limit = Math.min(100, Number(req?.query?.limit) || 5);
     const skip = req?.query?.skip !== undefined
       ? Math.max(0, Number(req?.query?.skip) || 0)
@@ -27,6 +27,7 @@ const listAdmins = async (req = {}, res = {}) => {
 
     const search = req?.query?.search || "";
 
+    // perform get all admins
     const result = await getAllAdmins(limit, skip, search);
 
     return sendResponse(
@@ -58,8 +59,9 @@ const listAdmins = async (req = {}, res = {}) => {
 // region get admin details
 const getAdmin = async (req = {}, res = {}) => {
   try {
-    const { id = "" } = req?.params || {};
 
+    // validate id
+    const { id = "" } = req?.params || {};
     const idError = validateObjectId(id);
     if (idError) {
       return sendResponse(
@@ -70,8 +72,8 @@ const getAdmin = async (req = {}, res = {}) => {
       );
     }
 
+    // perform get admin by id
     const admin = await getAdminById(id);
-
     if (!admin) {
       return sendResponse(
         res,
@@ -103,6 +105,7 @@ const getAdmin = async (req = {}, res = {}) => {
 // region create admin
 const createNewAdmin = async (req = {}, res = {}) => {
   try {
+    // validate fields
     const validation = validateCreateAdmin(req?.body || {});
     if (!validation?.isValid) {
       return sendResponse(
@@ -113,12 +116,14 @@ const createNewAdmin = async (req = {}, res = {}) => {
       );
     }
 
+    // destrue payload data
     const {
       name = "",
       email = "",
       password = "",
     } = req?.body || {};
 
+    // perform create admin
     const admin = await createAdmin({
       Name: name?.trim() || "",
       Email: email?.trim()?.toLowerCase() || "",
@@ -157,8 +162,8 @@ const createNewAdmin = async (req = {}, res = {}) => {
 // region delete admin
 const removeAdmin = async (req = {}, res = {}) => {
   try {
+    // validate id
     const { id = "" } = req?.params || {};
-
     const idError = validateObjectId(id);
     if (idError) {
       return sendResponse(
@@ -168,9 +173,8 @@ const removeAdmin = async (req = {}, res = {}) => {
         idError,
       );
     }
-
+    // perform deklete admin
     const result = await deleteAdmin(id);
-
     if (!result) {
       return sendResponse(
         res,

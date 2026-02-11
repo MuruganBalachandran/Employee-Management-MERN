@@ -12,7 +12,6 @@ const EditProfile = () => {
   // region hooks
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  // const user = useSelector((state) => state?.auth?.user) || {};
   const user = useSelector(selectUser);
   // endregion
 
@@ -53,11 +52,13 @@ const EditProfile = () => {
   // region render
   return (
     <div className='container mt-4'>
+      {/* header */}
       <div className='d-flex align-items-center gap-3 mb-2'>
         <BackButton />
         <h3>{"Edit Profile" || ""}</h3>
       </div>
 
+      {/* form to edit profile */}
       <EmployeeForm
         initialData={user}
         onSubmit={handleSubmit}

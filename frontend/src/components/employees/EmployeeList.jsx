@@ -61,8 +61,14 @@ const EmployeeList = ({ onTotalUpdate = () => {} }) => {
 
   // region handlePageChange
   const handlePageChange = (newPage = 1) => {
-    if (newPage < 1 || newPage > totalPages) return;
-    dispatch(setPage(newPage));
+    try {
+      if (newPage < 1 || newPage > totalPages) {
+        return;
+      }
+      dispatch(setPage(newPage));
+    } catch (err) {
+      console.log(err);
+    }
   };
   // endregion
 
@@ -115,7 +121,6 @@ const EmployeeList = ({ onTotalUpdate = () => {} }) => {
   const isFiltered = filters?.search || filters?.department;
 
   // region conditional UI states
-  // Only show full-screen loader on initial fetch (no data)
   if (loading && !employees?.length && !isFiltered) {
     return <Loader fullScreen text='Loading employees...' />;
   }
@@ -125,15 +130,27 @@ const EmployeeList = ({ onTotalUpdate = () => {} }) => {
     // region container
     <div className='container mt-4'>
       {/* Global alert for list fetching errors */}
-      {error && !showModal && <div className='alert alert-danger d-flex align-items-center' role='alert'>
-        <BsExclamationCircle className="me-2" />
-        {error}
-      </div>}
+      {error && (
+        <div
+          className='alert alert-danger d-flex align-items-center'
+          role='alert'
+        >
+          <BsExclamationCircle className='me-2' />
+          {error}
+        </div>
+      )}
       {/* Heading with total employees and Add button */}
       {(employees?.length > 0 || isFiltered) && (
-        <div className="d-flex justify-content-between align-items-center mb-4">
-          {employees?.length > 0 ? <h3 className='mb-0 fw-bold'>Employee List (Total: {count})</h3> : <div></div>}
-          <button className="btn btn-primary d-flex align-items-center gap-2" onClick={handleOpenCreatePage}>
+        <div className='d-flex justify-content-between align-items-center mb-4'>
+          {employees?.length > 0 ? (
+            <h3 className='mb-0 fw-bold'>Employee List (Total: {count})</h3>
+          ) : (
+            <div></div>
+          )}
+          <button
+            className='btn btn-primary d-flex align-items-center gap-2'
+            onClick={handleOpenCreatePage}
+          >
             <FaPlus /> <span>Add Employee</span>
           </button>
         </div>
@@ -141,16 +158,19 @@ const EmployeeList = ({ onTotalUpdate = () => {} }) => {
 
       {!employees?.length ? (
         isFiltered ? (
-           <div className='d-flex flex-column align-items-center justify-content-center text-center mt-5 p-5'>
-             <BsExclamationCircle size={50} className='text-muted mb-3' />
-             <h4 className='text-muted'>No matching employees found</h4>
-           </div>
+          <div className='d-flex flex-column align-items-center justify-content-center text-center mt-5 p-5'>
+            <BsExclamationCircle size={50} className='text-muted mb-3' />
+            <h4 className='text-muted'>No matching employees found</h4>
+          </div>
         ) : (
           <div className='d-flex flex-column align-items-center justify-content-center text-center mt-5 p-5 border rounded bg-light'>
             <BsExclamationCircle size={50} className='text-muted mb-3' />
             <h4 className='text-muted'>No employees found</h4>
             <p className='text-muted'>Create an employee to get started.</p>
-            <button className="btn btn-primary mt-3 d-flex align-items-center gap-2" onClick={handleOpenCreatePage}>
+            <button
+              className='btn btn-primary mt-3 d-flex align-items-center gap-2'
+              onClick={handleOpenCreatePage}
+            >
               <FaPlus /> <span>Add Employee</span>
             </button>
           </div>
@@ -198,7 +218,9 @@ const EmployeeList = ({ onTotalUpdate = () => {} }) => {
                           className='d-flex align-items-center justify-content-center border rounded p-1'
                           style={{ width: 28, height: 28, cursor: "pointer" }}
                           title='View'
-                          onClick={() => navigate(`/employees/view/${emp?.Employee_Id}`)}
+                          onClick={() =>
+                            navigate(`/employees/view/${emp?.Employee_Id}`)
+                          }
                         >
                           <FaEye size={14} className='text-info' />
                         </div>
@@ -238,7 +260,6 @@ const EmployeeList = ({ onTotalUpdate = () => {} }) => {
           />
         </>
       )}
-
     </div>
     // endregion
   );

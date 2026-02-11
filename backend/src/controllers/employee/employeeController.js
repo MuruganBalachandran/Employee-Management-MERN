@@ -24,14 +24,16 @@ import { validateObjectId } from "../../validations/helpers/typeValidations.js";
 // region list employees
 const listEmployees = async (req = {}, res = {}) => {
   try {
+    // filters and quries
     const limit = Math.min(100, Number(req?.query?.limit) || 5);
-    const skip = req?.query?.skip !== undefined
-      ? Math.max(0, Number(req?.query?.skip) || 0)
-      : (Math.max(1, Number(req?.query?.page) || 1) - 1) * limit;
-
+    const skip =
+      req?.query?.skip !== undefined
+        ? Math.max(0, Number(req?.query?.skip) || 0)
+        : (Math.max(1, Number(req?.query?.page) || 1) - 1) * limit;
     const search = req?.query?.search || "";
     const department = req?.query?.department || "";
 
+    // perform get all quereis
     const result = await getAllEmployees(limit, skip, search, department);
 
     return sendResponse(
@@ -63,8 +65,8 @@ const listEmployees = async (req = {}, res = {}) => {
 // region get employee details
 const getEmployee = async (req = {}, res = {}) => {
   try {
+    // validate id
     const { id = "" } = req?.params || {};
-
     const idError = validateObjectId(id);
     if (idError) {
       return sendResponse(
@@ -75,8 +77,8 @@ const getEmployee = async (req = {}, res = {}) => {
       );
     }
 
+    // perform query for get an employee
     const employee = await getEmployeeById(id);
-
     if (!employee) {
       return sendResponse(
         res,
@@ -108,9 +110,9 @@ const getEmployee = async (req = {}, res = {}) => {
 // region create employee
 const createNewEmployee = async (req = {}, res = {}) => {
   try {
+    // validate fields
     const payload = req?.body || {};
     const validation = validateCreateEmployee(payload);
-
     if (!validation?.isValid) {
       return sendResponse(
         res,
@@ -120,6 +122,7 @@ const createNewEmployee = async (req = {}, res = {}) => {
       );
     }
 
+    // destructure payload data
     const {
       name = "",
       email = "",
@@ -134,7 +137,7 @@ const createNewEmployee = async (req = {}, res = {}) => {
       joiningDate = null,
     } = payload;
 
-    // Simplified address mapping
+    // map address obj
     const mappedAddress = {
       Line1: address?.line1 || "",
       Line2: address?.line2 || "",
@@ -143,21 +146,25 @@ const createNewEmployee = async (req = {}, res = {}) => {
       ZipCode: address?.zipCode || "",
     };
 
+    // generate foreign fields
     const adminId = req?.user?.User_Id || null;
-
-    const employee = await createEmployee({
-      Name: name?.trim() || "",
-      Email: email?.trim()?.toLowerCase() || "",
-      Password: password,
-      Employee_Code: employeeCode,
-      Age: age,
-      Department: department?.trim() || "",
-      Phone: phone?.trim() || "",
-      Address: mappedAddress,
-      Salary: salary,
-      Reporting_Manager: reportingManager,
-      Joining_date: joiningDate,
-    }, adminId);
+    // perform create employee , map the case
+    const employee = await createEmployee(
+      {
+        Name: name?.trim() || "",
+        Email: email?.trim()?.toLowerCase() || "",
+        Password: password,
+        Employee_Code: employeeCode,
+        Age: age,
+        Department: department?.trim() || "",
+        Phone: phone?.trim() || "",
+        Address: mappedAddress,
+        Salary: salary,
+        Reporting_Manager: reportingManager,
+        Joining_date: joiningDate,
+      },
+      adminId,
+    );
 
     return sendResponse(
       res,
@@ -169,6 +176,7 @@ const createNewEmployee = async (req = {}, res = {}) => {
   } catch (err) {
     console.error("Error creating employee:", err);
 
+    // check for unique
     if (err?.code === 11000) {
       const field = Object.keys(err.keyPattern || {})[0];
       const isCode = field?.toLowerCase()?.includes("code");
@@ -194,8 +202,8 @@ const createNewEmployee = async (req = {}, res = {}) => {
 // region update employee
 const updateEmployeeDetails = async (req = {}, res = {}) => {
   try {
+    // validate id
     const { id = "" } = req?.params || {};
-
     const idError = validateObjectId(id);
     if (idError) {
       return sendResponse(
@@ -206,9 +214,9 @@ const updateEmployeeDetails = async (req = {}, res = {}) => {
       );
     }
 
+    // validate fields
     const payload = req?.body || {};
     const validation = validateUpdateEmployee(payload);
-
     if (!validation?.isValid) {
       return sendResponse(
         res,
@@ -218,6 +226,7 @@ const updateEmployeeDetails = async (req = {}, res = {}) => {
       );
     }
 
+    // desture payload data
     const {
       name,
       age,
@@ -230,8 +239,8 @@ const updateEmployeeDetails = async (req = {}, res = {}) => {
       employeeCode,
     } = payload;
 
+    // update the datas , only idf given in payload
     const updatePayload = {};
-
     if (name !== undefined) {
       updatePayload.Name = name?.trim() || "";
     }
@@ -256,7 +265,6 @@ const updateEmployeeDetails = async (req = {}, res = {}) => {
     if (employeeCode !== undefined) {
       updatePayload.Employee_Code = employeeCode;
     }
-
     if (address !== undefined && typeof address === "object") {
       updatePayload.Address = {
         Line1: address?.line1?.trim() || "",
@@ -267,8 +275,8 @@ const updateEmployeeDetails = async (req = {}, res = {}) => {
       };
     }
 
+    // perform update
     const updated = await updateEmployee({ _id: id }, updatePayload);
-
     if (!updated) {
       return sendResponse(
         res,
@@ -288,6 +296,7 @@ const updateEmployeeDetails = async (req = {}, res = {}) => {
   } catch (err) {
     console.error("Error updating employee:", err);
 
+    // unique for employee code and email
     if (err?.code === 11000) {
       const field = Object.keys(err.keyPattern || {})[0];
       const isCode = field?.toLowerCase()?.includes("code");
@@ -313,8 +322,8 @@ const updateEmployeeDetails = async (req = {}, res = {}) => {
 // region delete employee
 const removeEmployee = async (req = {}, res = {}) => {
   try {
+    // validate id
     const { id = "" } = req?.params || {};
-
     const idError = validateObjectId(id);
     if (idError) {
       return sendResponse(
@@ -324,10 +333,9 @@ const removeEmployee = async (req = {}, res = {}) => {
         idError,
       );
     }
-    // Removed pre-fetch to save DB hit.
 
+    // perform soft delete
     const result = await deleteEmployee(id);
-
     if (!result) {
       return sendResponse(
         res,

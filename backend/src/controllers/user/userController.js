@@ -20,11 +20,10 @@ import { getEmployeeById } from "../../queries/index.js";
 // region get profile
 const getProfile = async (req = {}, res = {}) => {
   try {
+// get current user by role
     const user = req?.user;
-
     if (user?.Role === ROLE.EMPLOYEE) {
       const employee = await getEmployeeById(user?.User_Id);
-
       if (employee) {
         return sendResponse(
           res,
@@ -63,11 +62,12 @@ const getProfile = async (req = {}, res = {}) => {
 // region update profile
 const updateProfile = async (req = {}, res = {}) => {
   try {
+    // fetch user and employee data 
     const user = req?.user || {};
     const isEmployee = user.Role === ROLE.EMPLOYEE;
     const payload = req?.body || {};
 
-    // Validate using the unified employee validator (handles optional fields)
+    // Validate fields
     const validation = validateUpdateEmployee(payload);
     if (!validation?.isValid) {
       return sendResponse(
@@ -78,6 +78,7 @@ const updateProfile = async (req = {}, res = {}) => {
       );
     }
 
+    // destruture payload data
     const {
       name,
       password,
@@ -85,11 +86,11 @@ const updateProfile = async (req = {}, res = {}) => {
       department,
       phone,
       address,
-      personalEmail,
     } = payload;
 
-    const updatePayload = {};
 
+    // update fields
+    const updatePayload = {};
     // Common fields
     if (name !== undefined) {
       updatePayload.Name = name?.trim() || "";
@@ -109,7 +110,7 @@ const updateProfile = async (req = {}, res = {}) => {
       if (phone !== undefined) {
         updatePayload.Phone = phone?.trim() || "";
       }
-
+// map address
       if (address !== undefined && typeof address === "object") {
         updatePayload.Address = {
           Line1: address?.line1?.trim() || "",
@@ -121,6 +122,7 @@ const updateProfile = async (req = {}, res = {}) => {
       }
     }
 
+    // update profile based on role
     let updatedResult;
     if (isEmployee) {
       updatedResult = await updateEmployee({ User_Id: user.User_Id }, updatePayload);
@@ -169,6 +171,7 @@ const updateProfile = async (req = {}, res = {}) => {
 // region delete account
 const deleteAccount = async (req = {}, res = {}) => {
   try {
+    // perform soft delete
     const result = await deleteUserAccount(req?.user);
 
     if (!result) {

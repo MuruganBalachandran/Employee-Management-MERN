@@ -8,15 +8,14 @@ const Pagination = ({
   totalPages = 1,
   onPageChange = () => {},
 } = {}) => {
-  // region guard
-  /* Hide pagination if only one page exists */
+  // Hide pagination if only one page exists
   if ((totalPages || 1) <= 1) {
-    return null;}
-  // endregion
+    return null;
+  }
 
   // region getPages
   const getPages = () => {
-    /* Calculate page numbers around current page */
+    // Calculate page numbers around current page
     const pages = [];
     let start = Math.max(1, (page || 1) - 2);
     let end = Math.min(totalPages || 1, (page || 1) + 2);

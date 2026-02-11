@@ -13,7 +13,7 @@ const BackButton = ({ to = -1, text = "Back", className = "" }) => {
 
   return (
     <button
-      type="button"
+      type='button'
       className={`btn btn-outline-secondary ${className}`}
       onClick={handleClick}
     >

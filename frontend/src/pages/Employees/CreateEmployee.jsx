@@ -16,23 +16,32 @@ const CreateEmployee = () => {
 
   // region handleSubmit
   const handleSubmit = async (data = {}, setErrors = () => {}) => {
-    /* Create employee and handle backend validation errors */
     try {
+      //  dispatch add employee action
       await dispatch(addEmployee(data)).unwrap();
-      dispatch(showToast({ message: "Employee created successfully!", type: "success" }));
+      dispatch(
+        showToast({
+          message: "Employee created successfully!",
+          type: "success",
+        }),
+      );
       navigate("/employees");
     } catch (err) {
       // payload from rejectWithValue
       const fieldErrors = err?.fieldErrors || {};
-      const errorMessage = typeof err === "string" ? err : err?.message || "Failed to create employee";
+      const errorMessage =
+        typeof err === "string"
+          ? err
+          : err?.message || "Failed to create employee";
 
       setErrors(fieldErrors);
 
       dispatch(
         showToast({
-          message: Object.keys(fieldErrors).length > 0
-            ? "Please fix the validation errors"
-            : errorMessage,
+          message:
+            Object.keys(fieldErrors).length > 0
+              ? "Please fix the validation errors"
+              : errorMessage,
           type: "error",
         }),
       );
@@ -52,11 +61,10 @@ const CreateEmployee = () => {
       </div>
 
       {/* Form card */}
-      <div className='card shadow-sm border-0 bg-glass animate-fade-in'>
         <div className='card-body p-4'>
           <EmployeeForm onSubmit={handleSubmit} />
         </div>
-      </div>
+
     </div>
   );
 };

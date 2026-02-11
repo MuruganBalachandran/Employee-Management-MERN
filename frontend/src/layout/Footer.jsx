@@ -2,6 +2,7 @@
 import React from "react";
 // endregion
 
+// region component
 const Footer = () => {
   return (
     <footer className='bg-light text-center text-muted py-3 mt-auto border-top small'>
@@ -10,6 +11,7 @@ const Footer = () => {
     </footer>
   );
 };
+// endregion
 
 // region exports
 export default Footer;

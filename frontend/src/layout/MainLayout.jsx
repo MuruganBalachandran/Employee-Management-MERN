@@ -7,10 +7,9 @@ import Footer from "./Footer";
 
 const MainLayout = () => {
   return (
-    <div className="d-flex flex-column min-vh-100">
+    <div className='d-flex flex-column min-vh-100'>
       <Header />
-      <main className="flex-grow-1 container py-1">
-        {/* placeholder for child routes in React Router. */}
+      <main className='flex-grow-1 container py-1'>
         <Outlet />
       </main>
       <Footer />

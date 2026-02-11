@@ -6,16 +6,16 @@ import { ROLE } from '../utils/constants/constants.js';
 import chalk from 'chalk';
 
 const employeesData = [
-    { name: 'John Doe', email: 'john@spanemployee.com', code: 'EMP001' },
-    { name: 'Jane Smith', email: 'jane@spanemployee.com', code: 'EMP002' },
-    { name: 'Mike Johnson', email: 'mike@spanemployee.com', code: 'EMP003' },
-    { name: 'Sarah Williams', email: 'sarah@spanemployee.com', code: 'EMP004' },
-    { name: 'Chris Brown', email: 'chris@spanemployee.com', code: 'EMP005' },
-    { name: 'Emily Davis', email: 'emily@spanemployee.com', code: 'EMP006' },
-    { name: 'David Miller', email: 'david@spanemployee.com', code: 'EMP007' },
-    { name: 'Jessica Taylor', email: 'jessica@spanemployee.com', code: 'EMP008' },
-    { name: 'Robert Wilson', email: 'robert@spanemployee.com', code: 'EMP009' },
-    { name: 'Linda Moore', email: 'linda@spanemployee.com', code: 'EMP010' },
+    { name: 'kumar', email: 'kumar@spanemployee.com', code: 'EMP001' },
+    { name: 'raj', email: 'raj@spanemployee.com', code: 'EMP002' },
+    { name: 'mike', email: 'mike@spanemployee.com', code: 'EMP003' },
+    { name: 'rajesh', email: 'rajesh@spanemployee.com', code: 'EMP004' },
+    { name: 'vicky', email: 'vicky@spanemployee.com', code: 'EMP005' },
+    { name: 'sandy', email: 'sandy@spanemployee.com', code: 'EMP006' },
+    { name: 'David', email: 'david@spanemployee.com', code: 'EMP007' },
+    { name: 'Jessica', email: 'jessica@spanemployee.com', code: 'EMP008' },
+    { name: 'Robert', email: 'robert@spanemployee.com', code: 'EMP009' },
+    { name: 'john', email: 'john@spanemployee.com', code: 'EMP010' },
 ];
 
 const seedEmployees = async () => {
@@ -30,7 +30,6 @@ const seedEmployees = async () => {
 
         console.log(chalk.blue('Starting Employee Seeding...'));
 
-        // Find an admin to associate these employees with
         const admin = await Admin.findOne();
         if (!admin) {
             console.error(chalk.red('No Admin found. Please seed Admins first.'));
@@ -47,7 +46,7 @@ const seedEmployees = async () => {
                 user = new User({
                     Name: emp.name,
                     Email: emp.email,
-                    Password: 'Employee@123',
+                    Password: 'Pass&135',
                     Role: ROLE.EMPLOYEE,
                 });
                 await user.save();
@@ -56,10 +55,11 @@ const seedEmployees = async () => {
                     User_Id: user.User_Id,
                     Admin_Id: admin.Admin_Id,
                     Employee_Code: emp.code,
-                    Department: 'Engineering',
+                    Department: 'Full Stack Developer',
                     Age: 25 + Math.floor(Math.random() * 10),
                     Phone: '1234567890',
                     Salary: 50000 + Math.floor(Math.random() * 50000),
+                    Reporting_Manager:"Prabhu",
                     Joining_date: new Date(),
                     Address: {
                         Line1: '123 Main St',
@@ -74,7 +74,7 @@ const seedEmployees = async () => {
 
         console.log(chalk.blue('--------------------------------'));
         console.log(chalk.blue('Employees Seeded Successfully!'));
-        console.log(chalk.blue('Default Password: Employee@123'));
+        console.log(chalk.blue('Password: Pass&135'));
         console.log(chalk.blue('--------------------------------'));
 
         process.exit(0);

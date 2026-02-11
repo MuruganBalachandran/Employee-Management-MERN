@@ -1,6 +1,6 @@
 // region imports
 import express from "express";
-import { auth } from "../../middleware/index.js";
+import { auth, rateLimiter } from "../../middleware/index.js";
 import {
   listAdmins,
   getAdmin,
@@ -18,7 +18,7 @@ router.use(auth("SUPER_ADMIN"));
 
 router.get("/", listAdmins);
 router.get("/:id", getAdmin);
-router.post("/", createNewAdmin);
+router.post("/",rateLimiter("Register"), createNewAdmin);
 router.delete("/:id", removeAdmin);
 // endregion
 

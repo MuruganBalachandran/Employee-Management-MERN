@@ -57,8 +57,12 @@ const Login = () => {
     e.preventDefault();
 
     const validationErrors = {
-      email: !form.email ? "Email is required" : emailValidation(form.email, "login"),
-      password: !form.password ? "Password is required" : passwordValidation(form.password),
+      email: !form.email
+        ? "Email is required"
+        : emailValidation(form.email, "login"),
+      password: !form.password
+        ? "Password is required"
+        : passwordValidation(form.password),
     };
 
     // Filter out fields with no errors
@@ -98,25 +102,25 @@ const Login = () => {
         <h2 className='mb-4 text-center'>Login</h2>
         {/* email field */}
         <Input
-          label="Email"
-          type="email"
+          label='Email'
+          type='email'
           value={form.email}
           onChange={(e) => handleChange("email", e.target.value)}
           error={errors.email}
-          placeholder="Enter your email"
+          placeholder='Enter your email'
         />
         {/* password field */}
         <Input
-          label="Password"
-          type="password"
+          label='Password'
+          type='password'
           value={form.password}
           onChange={(e) => handleChange("password", e.target.value)}
           error={errors.password}
-          placeholder="Enter your password"
+          placeholder='Enter your password'
         />
 
         {/* login btn */}
-        <button type="submit" className="btn btn-primary w-100 mt-3">
+        <button type='submit' className='btn btn-primary w-100 mt-3'>
           Login
         </button>
       </form>

@@ -8,7 +8,8 @@ const api = axios.create({
 });
 // endregion
 
-// region request interceptor
+// region request interceptor - middleware for HTTP calls.
+// Requests - before they go to the server
 api.interceptors.request.use((config = {}) => {
   // Attach token from localStorage
   const token = localStorage.getItem("token") || "";
@@ -21,9 +22,10 @@ api.interceptors.request.use((config = {}) => {
 // endregion
 
 // region response interceptor
+// Responses - before .then() or await gets the data
 api.interceptors.response.use(
   (res) => {
-    // Return backend payload directly (checking for 'response' key)
+    // Return backend payload
     return res?.data?.response !== undefined ? res.data.response : res?.data;
   },
   (err) => {

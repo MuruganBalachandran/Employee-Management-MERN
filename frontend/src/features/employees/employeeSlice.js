@@ -37,8 +37,6 @@ const initialState = {
 };
 // endregion
 
-// region Async Thunks
-
 // region getEmployees
 export const getEmployees = createAsyncThunk(
   "employees/getEmployees",
@@ -78,7 +76,6 @@ export const getEmployees = createAsyncThunk(
 export const getEmployee = createAsyncThunk(
   "employees/getEmployee",
   async (id = null, { rejectWithValue } = {}) => {
-    /* Fetch single employee by ID */
     try {
       const res = await fetchEmployeeById(id || null);
       return res || null;
@@ -95,13 +92,13 @@ export const getEmployee = createAsyncThunk(
 export const addEmployee = createAsyncThunk(
   "employees/addEmployee",
   async (data = {}, { rejectWithValue, dispatch } = {}) => {
-    /* Add a new employee */
     try {
       const res = await createEmployee(data || {});
       return res || {};
     } catch (err) {
       const backend = err?.response?.data || {};
-      const message = backend?.message || err?.message || "Failed to add employee";
+      const message =
+        backend?.message || err?.message || "Failed to add employee";
 
       if (message && typeof message === "object") {
         return rejectWithValue({
@@ -120,13 +117,13 @@ export const addEmployee = createAsyncThunk(
 export const editEmployee = createAsyncThunk(
   "employees/editEmployee",
   async ({ id = null, data = {} } = {}, { rejectWithValue, dispatch }) => {
-    /* Update existing employee */
     try {
       const res = await updateEmployee(id || null, data || {});
       return res || null;
     } catch (err) {
       const backend = err?.response?.data || {};
-      const message = backend?.message || err?.message || "Failed to update employee";
+      const message =
+        backend?.message || err?.message || "Failed to update employee";
 
       if (message && typeof message === "object") {
         return rejectWithValue({
@@ -145,14 +142,19 @@ export const editEmployee = createAsyncThunk(
 export const removeEmployee = createAsyncThunk(
   "employees/removeEmployee",
   async (id = null, { rejectWithValue, dispatch }) => {
-    /* Delete employee */
     try {
       await deleteEmployee(id || null);
       return id || null;
     } catch (err) {
       const backend = err?.response?.data || {};
-      const message = backend?.message || err?.message || "Failed to delete employee";
-      dispatch(showToast({ message: typeof message === 'string' ? message : "Delete failed", type: "error" }));
+      const message =
+        backend?.message || err?.message || "Failed to delete employee";
+      dispatch(
+        showToast({
+          message: typeof message === "string" ? message : "Delete failed",
+          type: "error",
+        }),
+      );
       return rejectWithValue(message);
     }
   },
@@ -166,7 +168,6 @@ const employeeSlice = createSlice({
   reducers: {
     // region clearCurrentEmployee
     clearCurrentEmployee: (state = {}) => {
-      /* Reset current employee state */
       state.currentEmployee = null;
       state.currentEmployeeLoading = false;
       state.error = null;
@@ -175,7 +176,6 @@ const employeeSlice = createSlice({
 
     // region setFilters
     setFilters: (state = {}, action = {}) => {
-      /* Update filter state */
       state.filters = {
         ...state?.filters,
         ...action?.payload,
@@ -188,7 +188,7 @@ const employeeSlice = createSlice({
 
     // region setPage
     setPage: (state = {}, action = {}) => {
-      /* Update current page */
+      // Update current page
       const page = action?.payload || 1;
       state.pagination.currentPage = page;
       state.pagination.skip = (page - 1) * state?.pagination?.limit;
@@ -197,7 +197,6 @@ const employeeSlice = createSlice({
 
     // region clearError
     clearError: (state = {}) => {
-      /* Clear error state */
       state.error = null;
     },
     // endregion
@@ -205,9 +204,8 @@ const employeeSlice = createSlice({
   extraReducers: (builder) => {
     builder
 
-      // region getEmployees reducers
+      // region getEmployees cases
       .addCase(getEmployees?.pending, (state = {}) => {
-        /* Loading employees */
         state.loading = true;
         state.error = null;
       })
@@ -238,7 +236,7 @@ const employeeSlice = createSlice({
       })
       // endregion
 
-      // region getEmployee reducers
+      // region getEmployee cases
       .addCase(getEmployee?.pending, (state = {}) => {
         state.currentEmployeeLoading = true;
         state.error = null;
@@ -257,7 +255,7 @@ const employeeSlice = createSlice({
       })
       // endregion
 
-      // region addEmployee reducers
+      // region addEmployee cases
       .addCase(addEmployee?.pending, (state = {}) => {
         state.loading = true;
         state.error = null;
@@ -280,7 +278,7 @@ const employeeSlice = createSlice({
       })
       // endregion
 
-      // region editEmployee reducers
+      // region editEmployee cases
       .addCase(editEmployee?.pending, (state = {}) => {
         state.loading = true;
         state.error = null;
@@ -303,7 +301,7 @@ const employeeSlice = createSlice({
       })
       // endregion
 
-      // region removeEmployee reducers
+      // region removeEmployee cases
       .addCase(removeEmployee?.pending, (state = {}) => {
         state.loading = true;
         state.error = null;
@@ -324,7 +322,9 @@ const employeeSlice = createSlice({
       .addCase(removeEmployee?.rejected, (state = {}, action = {}) => {
         state.loading = false;
         const payload = action?.payload;
-        state.error = (typeof payload === "string" ? payload : payload?.message) || "Unknown error";
+        state.error =
+          (typeof payload === "string" ? payload : payload?.message) ||
+          "Unknown error";
       });
     // endregion
   },

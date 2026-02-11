@@ -33,11 +33,12 @@ const Toaster = ({ duration = 3000 }) => {
 
   // region guard
   if (!visible || !message) {
-    return null;}
+    return null;
+  }
   // endregion
 
   // region styles mapping
-  const getToastConfig = (toastType="") => {
+  const getToastConfig = (toastType = "") => {
     switch (toastType) {
       case "success":
         return { icon: <FiCheckCircle size={20} />, bgClass: "bg-success" };
@@ -51,33 +52,33 @@ const Toaster = ({ duration = 3000 }) => {
     }
   };
 
-  const { icon="", bgClass="" } = getToastConfig(type || "info");
+  const { icon = "", bgClass = "" } = getToastConfig(type || "info");
   // endregion
 
   // region render
   return (
     <div
-      className="toast-container position-fixed top-0 end-0 p-3"
+      className='toast-container position-fixed top-0 end-0 p-3'
       style={{ zIndex: 9999 }}
     >
       <div
         className={`toast show align-items-center text-white border-0 shadow-lg ${bgClass}`}
-        role="alert"
-        aria-live="assertive"
-        aria-atomic="true"
+        role='alert'
+        aria-live='assertive'
+        aria-atomic='true'
       >
-        <div className="d-flex">
+        <div className='d-flex'>
           {/* icon + message*/}
-          <div className="toast-body d-flex align-items-center gap-2">
+          <div className='toast-body d-flex align-items-center gap-2'>
             {icon}
-            <span className="fw-semibold">{message}</span>
+            <span className='fw-semibold'>{message}</span>
           </div>
           {/* button to hide */}
           <button
-            type="button"
-            className="btn-close btn-close-white me-2 m-auto"
+            type='button'
+            className='btn-close btn-close-white me-2 m-auto'
             onClick={() => dispatch(hideToast())}
-            aria-label="Close"
+            aria-label='Close'
           ></button>
         </div>
       </div>

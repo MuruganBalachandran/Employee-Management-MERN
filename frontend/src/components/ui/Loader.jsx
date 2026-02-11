@@ -13,8 +13,8 @@ const Loader = ({
     size === "small"
       ? "spinner-border-sm"
       : size === "large"
-      ? "spinner-border-lg"
-      : "";
+        ? "spinner-border-lg"
+        : "";
 
   // Fullscreen styles
   const fullScreenStyles = fullScreen
@@ -35,15 +35,16 @@ const Loader = ({
       style={fullScreenStyles}
     >
       {/* Spinner */}
-      <div className={`spinner-border text-primary ${spinnerSize}`} role="status">
-        <span className="visually-hidden">Loading...</span>
+      <div
+        className={`spinner-border text-primary ${spinnerSize}`}
+        role='status'
+      >
+        <span className='visually-hidden'>Loading...</span>
       </div>
 
       {/* Optional loading text */}
       {text && (
-        <p className="mt-3 text-muted fw-medium small text-center">
-          {text}
-        </p>
+        <p className='mt-3 text-muted fw-medium small text-center'>{text}</p>
       )}
     </div>
   );

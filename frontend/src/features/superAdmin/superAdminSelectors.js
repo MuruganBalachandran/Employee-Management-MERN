@@ -5,14 +5,16 @@ import { createSelector } from "reselect";
 // region base selector
 const selectSuperAdminState = (state) => state.superAdmin;
 // endregion
-// region super admin loading
+
+//  super admin loading
 export const selectSuperAdminLoading = createSelector(
   [selectSuperAdminState],
-  (state) => state?.loading || false
+  (state) => state?.loading || false,
 );
 
+// super admin error
 export const selectSuperAdminError = createSelector(
   [selectSuperAdminState],
-  (state) => state?.error || null
+  (state) => state?.error || null,
 );
 // endregion

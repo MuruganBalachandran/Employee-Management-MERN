@@ -7,6 +7,7 @@ import { getFormattedDateTime, ROLE } from "../../utils/index.js";
 
 // region create employee
 const createEmployee = async (payload = {}, adminId = null) => {
+  // destureture payload data
   const {
     Name = "",
     Email = "",
@@ -21,17 +22,16 @@ const createEmployee = async (payload = {}, adminId = null) => {
     Joining_date = null,
   } = payload;
 
-  // 1. Create User
-  const user = new User({
+  // Create User
+  const user = await new User({
     Name: Name.trim() || "",
     Email: Email.trim().toLowerCase() || "",
     Password: Password,
     Role: ROLE.EMPLOYEE,
-  });
-  await user.save();
+  }).save();
 
-  // 2. Create Employee
-  const employee = new Employee({
+  // Create Employee
+  const employee = await new Employee({
     User_Id: user.User_Id,
     Admin_Id: adminId,
     Age: Age || 0,
@@ -43,9 +43,8 @@ const createEmployee = async (payload = {}, adminId = null) => {
     Reporting_Manager: Reporting_Manager,
     Joining_date: Joining_date || new Date(),
     Is_Active: 1,
-  });
+  }).save();
 
-  await employee.save();
   return employee;
 };
 // endregion
@@ -57,60 +56,53 @@ const getAllEmployees = async (
   search = "",
   department = "",
 ) => {
-  const matchStage = { Is_Deleted: 0 };
+  const pipeline = [
+    { $match: { Is_Deleted: 0 } },
+    {
+      $lookup: {
+        from: "users",
+        localField: "User_Id",
+        foreignField: "User_Id",
+        as: "user",
+      },
+    },
+    { $unwind: "$user" },
 
-  if (search) {
-    // Limit search retrieval to top 1000 matching IDs to prevent massive $in arrays
-    const users = await User.find({
-      $or: [
-        { Name: { $regex: search, $options: "i" } },
-        { Email: { $regex: search, $options: "i" } },
-      ],
-      Role: ROLE.EMPLOYEE,
-      Is_Deleted: 0,
-    })
-      .select("User_Id")
-      .limit(1000)
-      .lean();
+    // Search filter
+    ...(search
+      ? [{
+          $match: {
+            // search by name or email
+            $or: [
+              { "user.Name": { $regex: search, $options: "i" } },
+              { "user.Email": { $regex: search, $options: "i" } },
+            ],
+          },
+        }]
+      : []),
 
-    matchStage.User_Id = { $in: users.map((u) => u.User_Id) };
-  }
+    // Department filter
+    ...(department ? [{ $match: { Department: department } }] : []),
 
-  if (department) {
-    matchStage.Department = department;
-  }
-
-  // Optimized aggregation: facet for pagination + localized lookups
-  const result = await Employee.aggregate([
-    { $match: matchStage },
     { $sort: { Created_At: -1 } },
+
     {
       $facet: {
         employees: [
           { $skip: skip },
           { $limit: limit },
-          {
-            $lookup: {
-              from: "users",
-              localField: "User_Id",
-              foreignField: "User_Id",
-              pipeline: [
-                { $project: { Name: 1, Email: 1 } },
-              ],
-              as: "user",
-            },
-          },
-          { $unwind: { path: "$user", preserveNullAndEmptyArrays: false } },
+
+          // Manager lookup
           {
             $lookup: {
               from: "employees",
               localField: "Reporting_Manager",
               foreignField: "Employee_Id",
-              pipeline: [{ $project: { Name: 1 } }],
               as: "manager",
             },
           },
           { $unwind: { path: "$manager", preserveNullAndEmptyArrays: true } },
+
           {
             $project: {
               _id: 1,
@@ -137,13 +129,16 @@ const getAllEmployees = async (
         totalCount: [{ $count: "count" }],
       },
     },
-  ]);
+  ];
+
+  const result = await Employee.aggregate(pipeline);
 
   return {
     employees: result[0]?.employees || [],
     total: result[0]?.totalCount?.[0]?.count || 0,
   };
 };
+
 // endregion
 
 // region get employee by id
@@ -153,7 +148,7 @@ const getEmployeeById = async (id = "") => {
       $match: {
         $or: [
           { Employee_Id: new mongoose.Types.ObjectId(id) },
-          { User_Id: new mongoose.Types.ObjectId(id) }
+          { User_Id: new mongoose.Types.ObjectId(id) },
         ],
         Is_Deleted: 0,
       },
@@ -163,8 +158,8 @@ const getEmployeeById = async (id = "") => {
         from: "employees",
         localField: "Reporting_Manager",
         foreignField: "Employee_Id",
-        as: "manager"
-      }
+        as: "manager",
+      },
     },
     { $unwind: { path: "$manager", preserveNullAndEmptyArrays: true } },
     {
@@ -205,69 +200,66 @@ const getEmployeeById = async (id = "") => {
 };
 // endregion
 
-// region update employee
+// region update quereis
 const updateEmployee = async (filter = {}, payload = {}) => {
-  const { Name, Password, ...employeePayload } = payload;
+  const {
+    Name,
+    Age,
+    Department,
+    Phone,
+    Address,
+    Salary,
+    Reporting_Manager,
+    Joining_date,
+    Employee_Code,
+  } = payload;
 
-  const employeeAllowedFields = [
-    "Age",
-    "Department",
-    "Phone",
-    "Address",
-    "Salary",
-    "Reporting_Manager",
-    "Joining_date",
-    "Employee_Code",
-  ];
+  const employeeUpdateSet = {};
 
-  const employeeUpdateSet = {
-    Updated_At: getFormattedDateTime(),
-  };
-
-  let hasEmployeeUpdates = false;
-
-  Object.keys(employeePayload).forEach((key) => {
-    if (employeeAllowedFields.includes(key)) {
-      employeeUpdateSet[key] = employeePayload[key];
-      hasEmployeeUpdates = true;
-    }
-  });
+  if (Age !== undefined) {
+    employeeUpdateSet.Age = Number(Age);
+  }
+  if (Department !== undefined) {
+    employeeUpdateSet.Department = Department.trim();
+  }
+  if (Phone !== undefined) {
+    employeeUpdateSet.Phone = Phone.trim();
+  }
+  if (Salary !== undefined) {
+    employeeUpdateSet.Salary = Number(Salary);
+  }
+  if (Reporting_Manager !== undefined) {
+    employeeUpdateSet.Reporting_Manager = Reporting_Manager;
+  }
+  if (Joining_date !== undefined) {
+    employeeUpdateSet.Joining_date = Joining_date;
+  }
+  if (Employee_Code !== undefined) {
+    employeeUpdateSet.Employee_Code = Employee_Code.trim();
+  }
+  if (Address !== undefined && typeof Address === "object") {
+    employeeUpdateSet.Address = Address;
+  }
 
   const query = { ...filter, Is_Deleted: 0 };
-
-  // Use Employee_Id specifically if _id is passed
   if (query._id) {
     query.Employee_Id = query._id;
     delete query._id;
   }
 
-  // 1. Update Employee
+  // Update Employee
   const doc = await Employee.findOneAndUpdate(
     query,
     { $set: employeeUpdateSet },
     { new: true },
   ).lean();
+  if (!doc) return null;
 
-  if (!doc) {
-    return null;
-  }
-
-  // 2. Update User in parallel if Name or Password is provided
-  const userUpdatePayload = {};
-  if (Name !== undefined) {
-    userUpdatePayload.Name = Name;
-  }
-  if (Password !== undefined) {
-    userUpdatePayload.Password = Password;
-  }
-
-  if (Object.keys(userUpdatePayload).length > 0 && doc.User_Id) {
+  // Update User Name
+  if (Name !== undefined && doc.User_Id) {
     await User.findOneAndUpdate(
       { User_Id: doc.User_Id },
-      {
-        ...userUpdatePayload,
-        Updated_At: getFormattedDateTime(),
-      },
+      { Name: Name.trim() },
     );
   }
 
@@ -279,22 +271,25 @@ const updateEmployee = async (filter = {}, payload = {}) => {
 const deleteEmployee = async (employeeId = "") => {
   const updateSet = {
     Is_Deleted: 1,
-    Updated_At: getFormattedDateTime()
-  }
+    Updated_At: getFormattedDateTime(),
+  };
 
   const doc = await Employee.findOneAndUpdate(
     { Employee_Id: employeeId },
     { $set: updateSet },
-    { new: true }
+    { new: true },
   );
 
   if (!doc) return null;
 
   if (doc.User_Id) {
-    await User.findOneAndUpdate({ User_Id: doc.User_Id }, {
-      Is_Deleted: 1,
-      Updated_At: getFormattedDateTime()
-    });
+    await User.findOneAndUpdate(
+      { User_Id: doc.User_Id },
+      {
+        Is_Deleted: 1,
+        Updated_At: getFormattedDateTime(),
+      },
+    );
   }
 
   return doc;
@@ -315,6 +310,7 @@ const isEmployeeCodeTaken = async (code, excludeId = null) => {
 };
 // endregion
 
+// region exports
 export {
   createEmployee,
   getAllEmployees,
@@ -323,3 +319,4 @@ export {
   deleteEmployee,
   isEmployeeCodeTaken,
 };
+// endregion

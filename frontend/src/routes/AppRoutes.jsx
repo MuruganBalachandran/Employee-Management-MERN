@@ -14,8 +14,6 @@ import {
 import {
   Login,
   Home,
-//   CreateEmployee,
-//   EditEmployee,
   EmployeeView,
   MyProfile,
   EditProfile,
@@ -39,7 +37,7 @@ const ProtectedRoute = () => {
 const AdminRoute = () => {
   const isAdmin = useSelector(selectIsAdmin) || false;
   const isSuperAdmin = useSelector(selectIsSuperAdmin) || false;
-  return (isAdmin || isSuperAdmin) ? <Outlet /> : <Navigate to='/me' replace />;
+  return isAdmin || isSuperAdmin ? <Outlet /> : <Navigate to='/me' replace />;
 };
 // endregion
 
@@ -86,7 +84,7 @@ const AppRoutes = () => {
           <Route element={<AdminRoute />}>
             <Route path='/employees' element={<ViewEmployees />} />
             <Route path='/employees/create' element={<CreateEmployee />} />
-            <Route path='/employees/edit/:id' element={<EditEmployee/>} />
+            <Route path='/employees/edit/:id' element={<EditEmployee />} />
             <Route path='/employees/view/:id' element={<EmployeeView />} />
           </Route>
 

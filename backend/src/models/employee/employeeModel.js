@@ -22,7 +22,6 @@ const EmployeeSchema = new mongoose.Schema(
         Employee_Code: {
             type: String,
             unique: true,
-            sparse: true,
         },
 
         Age: {

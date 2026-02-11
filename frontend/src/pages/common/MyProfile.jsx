@@ -18,25 +18,26 @@ const MyProfile = () => {
     dispatch(fetchCurrentUser());
   }, [dispatch]);
 
+  // loading state
   if (loading) {
     return (
-      <div className="container mt-4 text-center">
-        <div className="spinner-border" role="status">
-          <span className="visually-hidden">Loading...</span>
+      <div className='container mt-4 text-center'>
+        <div className='spinner-border' role='status'>
+          <span className='visually-hidden'>Loading...</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mt-4">
+    <div className='container mt-4'>
       {/* header row */}
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h4 className="mb-0 fw-bold">My Profile</h4>
+      <div className='d-flex justify-content-between align-items-center mb-4'>
+        <h4 className='mb-0 fw-bold'>My Profile</h4>
 
-        <Link 
-          to="/me/edit" 
-          className="btn btn-primary d-flex align-items-center gap-2 px-3"
+        <Link
+          to='/me/edit'
+          className='btn btn-primary d-flex align-items-center gap-2 px-3'
         >
           <FaEdit />
           <span>Edit Profile</span>

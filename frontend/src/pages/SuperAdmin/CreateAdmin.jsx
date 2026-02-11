@@ -90,12 +90,13 @@ const CreateAdmin = () => {
     }
 
     try {
+      // disoatch teh create admin
       await dispatch(
         createNewAdmin({
           name: form.name.trim(),
           email: form.email.trim(),
           password: form.password,
-        })
+        }),
       ).unwrap();
 
       setSuccess("Admin created successfully");
@@ -107,7 +108,7 @@ const CreateAdmin = () => {
         confirmPassword: "",
       });
       setFormErrors({});
-
+      // nav back
       navigate(-1);
     } catch (err) {
       setError(err || "Failed to create admin");
@@ -117,58 +118,58 @@ const CreateAdmin = () => {
 
   // region render
   return (
-    <div className="auth-page d-flex justify-content-center align-items-center min-vh-100 p-3">
-      {loading && <Loader fullScreen text="Creating Admin..." />}
+    <div className='auth-page d-flex justify-content-center align-items-center min-vh-100 p-3'>
+      {loading && <Loader fullScreen text='Creating Admin...' />}
 
       <form
-        className="auth-form card p-4 shadow-sm w-100"
+        className='auth-form card p-4 shadow-sm w-100'
         style={{ maxWidth: "500px" }}
         onSubmit={handleSubmit}
         noValidate
       >
-        <h2 className="mb-4 text-center">Create New Admin</h2>
+        <h2 className='mb-4 text-center'>Create New Admin</h2>
 
-        {error && <div className="alert alert-danger">{error}</div>}
-        {success && <div className="alert alert-success">{success}</div>}
+        {error && <div className='alert alert-danger'>{error}</div>}
+        {success && <div className='alert alert-success'>{success}</div>}
 
         <Input
-          label="Name"
+          label='Name'
           value={form.name}
           onChange={handleChange("name")}
           error={formErrors.name}
-          placeholder="Admin Name"
+          placeholder='Admin Name'
         />
 
         <Input
-          label="Email (@spanadmin.com)"
-          type="email"
+          label='Email (@spanadmin.com)'
+          type='email'
           value={form.email}
           onChange={handleChange("email")}
           error={formErrors.email}
-          placeholder="admin@spanadmin.com"
+          placeholder='admin@spanadmin.com'
         />
 
         <Input
-          label="Password"
-          type="password"
+          label='Password'
+          type='password'
           value={form.password}
           onChange={handleChange("password")}
           error={formErrors.password}
-          placeholder="Enter a strong password"
+          placeholder='Enter a strong password'
         />
 
         <PasswordRules password={form.password} />
 
         <Input
-          label="Confirm Password"
-          type="password"
+          label='Confirm Password'
+          type='password'
           value={form.confirmPassword}
           onChange={handleChange("confirmPassword")}
           error={formErrors.confirmPassword}
-          placeholder="Confirm password"
+          placeholder='Confirm password'
         />
 
-        <button type="submit" className="btn btn-primary w-100 mt-3">
+        <button type='submit' className='btn btn-primary w-100 mt-3'>
           Create Admin
         </button>
       </form>

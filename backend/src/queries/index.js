@@ -17,7 +17,6 @@ export {
     createAdmin,
     getAllAdmins,
     getAdminById,
-    updateAdmin,
     deleteAdmin,
 } from './superAdmin/superAdminQueries.js';
 // endregion

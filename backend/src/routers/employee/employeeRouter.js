@@ -3,7 +3,7 @@
 import express from "express";
 
 // middleware imports
-import { auth } from "../../middleware/index.js";
+import { auth, rateLimiter } from "../../middleware/index.js";
 
 // controller imports
 import {
@@ -24,7 +24,7 @@ router.use(auth("ADMIN", "SUPER_ADMIN"));
 
 router.get("/", listEmployees);
 router.get("/:id", getEmployee);
-router.post("/", createNewEmployee);
+router.post("/", rateLimiter("Register"), createNewEmployee);
 router.patch("/:id", updateEmployeeDetails);
 router.delete("/:id", removeEmployee);
 // endregion

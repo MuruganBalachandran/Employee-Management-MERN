@@ -8,7 +8,6 @@ const seedSuperAdmin = async () => {
   try {
     await connectDB();
 
-    // 1. Find or Create User
     let superAdmin = await User.findOne({ Role: ROLE.SUPER_ADMIN });
 
     if (superAdmin) {
@@ -21,13 +20,12 @@ const seedSuperAdmin = async () => {
       superAdmin = new User({
         Name: 'Super Admin',
         Email: 'superadmin@spanadmin.com',
-        Password: 'SuperAdmin@123',
+        Password: 'Pass&135',
         Role: ROLE.SUPER_ADMIN,
       });
       await superAdmin.save();
     }
 
-    // 2. Ensure Admin Collection Entry
     const adminEntry = await Admin.findOne({ User_Id: superAdmin.User_Id });
     if (!adminEntry) {
         console.log(chalk.green('Creating entry in Admin collection...'));
@@ -40,7 +38,7 @@ const seedSuperAdmin = async () => {
     console.log(chalk.blue('--------------------------------'));
     console.log(chalk.blue('Super Admin Seeded Successfully!'));
     console.log(chalk.blue('Email: superadmin@spanadmin.com'));
-    console.log(chalk.blue('Password: SuperAdmin@123'));
+    console.log(chalk.blue('Password: Pass&135'));
     console.log(chalk.blue('--------------------------------'));
     
     process.exit(0);

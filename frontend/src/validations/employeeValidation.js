@@ -1,138 +1,15 @@
-// region regex constants
-
-// Regex for validating names (letters, diacritics, numbers, spaces, hyphens, apostrophes)
-export const NAME_REGEX = /^(?=.*[\p{L}\p{M}])[\p{L}\p{M}\d\s'-]+$/u;
-
-// Regex for validating city/state names (only letters and spaces)
-export const CITY_STATE_REGEX = /^[A-Za-z ]{2,50}$/;
-
-// Regex for phone numbers (supports various international formats)
-export const PHONE_REGEX = /^[+]?[0-9]{10,15}$/;
-
-
-// Regex for ZIP code (5 or 6 digits)
-export const ZIP_REGEX = /^\d{5,6}$/;
-
-// Regex for general email validation
-export const EMAIL_REGEX =
-  /^[A-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[A-Z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[A-Z0-9](?:[A-Z0-9-]*[A-Z0-9])?\.)+[A-Z0-9](?:[A-Z0-9-]*[A-Z0-9])?$/i;
-
-
-  export const EMPLOYEE_CODE_REGEX = /^EMP\d{3,6}$/;
-  export const REPORTING_MANAGER_REGEX =
-  /^[\p{L}\p{M}\s'-]{3,50}\s\((EMP\d{3,6})\)$/u;
-
-
-
-// Regex for employee code (EMP followed by numbers)
-export const EMP_CODE_REGEX = /^EMP\d+$/;
-
-// Reserved names not allowed for users
-export const RESERVED_NAMES = [
-  "admin",
-  "root",
-  "system",
-  "null",
-  "undefined",
-  "administrator",
-  "superuser",
-  "moderator",
-  "owner",
-  "support",
-  "help",
-  "service",
-  "bot",
-  "api",
-  "test",
-  "demo",
-  "guest",
-  "anonymous",
-  "user",
-  "default",
-  "public",
-  "private",
-  "internal",
-  "external",
-];
-
-// Disposable email domains not allowed
-export const DISPOSABLE_DOMAINS = [
-  "tempmail.com",
-  "guerrillamail.com",
-  "10minutemail.com",
-  "throwaway.email",
-  "mailinator.com",
-  "trashmail.com",
-  "temp-mail.org",
-  "fakeinbox.com",
-  "sharklasers.com",
-];
-
-// Common typos in email domains to suggest corrections
-export const COMMON_DOMAIN_TYPOS = {
-  "gmial.com": "gmail.com",
-  "gmai.com": "gmail.com",
-  "gmil.com": "gmail.com",
-  "yahooo.com": "yahoo.com",
-  "yaho.com": "yahoo.com",
-  "hotmial.com": "hotmail.com",
-  "hotmil.com": "hotmail.com",
-  "outlok.com": "outlook.com",
-};
-
-// Common passwords to reject
-export const COMMON_PASSWORDS = [
-  "password",
-  "password123",
-  "12345678",
-  "qwerty",
-  "abc123",
-  "monkey",
-  "letmein",
-  "trustno1",
-  "dragon",
-  "baseball",
-  "iloveyou",
-  "master",
-  "sunshine",
-  "ashley",
-  "bailey",
-  "passw0rd",
-  "shadow",
-  "superman",
-  "qazwsx",
-  "michael",
-  "football",
-  "welcome",
-  "jesus",
-  "ninja",
-  "mustang",
-  "password1",
-  "admin",
-  "admin123",
-  "root",
-  "toor",
-];
-
-// Valid departments
-export const VALID_DEPARTMENTS = [
-  "HR",
-  "Sales",
-  "Marketing",
-  "Tester",
-  "Frontend Developer",
-  "Backend Developer",
-  "Full Stack Developer",
-  "Machine Learning",
-  "Deep Learning",
-  "Network",
-  "Cyber Security",
-  "DevOps",
-  "Administration"
-];
-
-// endregion
-
+import {
+  NAME_REGEX,
+  CITY_STATE_REGEX,
+  PHONE_REGEX,
+  ZIP_REGEX,
+  EMAIL_REGEX,
+  EMPLOYEE_CODE_REGEX,
+  REPORTING_MANAGER_REGEX,
+  RESERVED_NAMES,
+  COMMON_PASSWORDS,
+  VALID_DEPARTMENTS,
+} from "../utils/constants";
 // region name validation
 export const nameValidation = (name = "") => {
   // Check type
@@ -194,20 +71,10 @@ export const emailValidation = (email = "", type = "employee") => {
   }
 
   if (!EMAIL_REGEX?.test(trimmed)) {
-    return "Invalid email format";
+    return "Invalid email format (eg:john@spanemployee.com)";
   }
 
   const domain = trimmed?.split("@")?.[1] ?? "";
-
-  // Disposable domains
-  if (DISPOSABLE_DOMAINS?.includes(domain)) {
-    return "Disposable email addresses are not allowed";
-  }
-
-  // Domain typo suggestion
-  if (COMMON_DOMAIN_TYPOS?.[domain]) {
-    return `Did you mean ${trimmed?.split("@")?.[0]}@${COMMON_DOMAIN_TYPOS[domain]}?`;
-  }
 
   // Employee domain check
   if (type === "employee") {
@@ -260,10 +127,9 @@ export const passwordValidation = (password = "") => {
   }
 
   // Repeated chars
-if (/(.)\1{3,}/.test(passwordLower)) {
-  return "Password cannot contain excessive repeated characters";
-}
-
+  if (/(.)\1{3,}/.test(passwordLower)) {
+    return "Password cannot contain excessive repeated characters";
+  }
 
   // Sequential chars
   const sequences = [
@@ -319,7 +185,7 @@ export const phoneValidation = (phone = "") => {
   }
 
   if (!PHONE_REGEX?.test(trimmed)) {
-    return "Invalid phone format";
+    return "Invalid phone format (10-15 digits)";
   }
 
   return "";
@@ -333,14 +199,13 @@ export const addressValidation = (address = {}) => {
   }
 
   const errors = {};
-const {
-  line1 = "",
-  line2 = "",
-  city = "",
-  state = "",
-  zipCode = "",
-} = address ?? {};
-
+  const {
+    line1 = "",
+    line2 = "",
+    city = "",
+    state = "",
+    zipCode = "",
+  } = address ?? {};
 
   // Line1
   if (!line1?.trim()) {
@@ -392,7 +257,7 @@ const {
 // region age validation
 export const ageValidation = (age) => {
   if (age === "" || age === null || age === undefined) return "Age is required";
-    
+
   const num = parseInt(age, 10);
 
   if (isNaN(num)) {
@@ -408,30 +273,38 @@ export const ageValidation = (age) => {
   }
 
   return "";
-}
+};
 // endregion
 
 // region employee code validation
 export const employeeCodeValidation = (code = "") => {
-  if (!code || !code.trim()) return "Employee code is required";
-  if (!EMPLOYEE_CODE_REGEX.test(code.trim()))
-    return "Employee code must be like EMP001";
+  const value = code.trim();
+
+  if (!value) return "Employee code is required";
+
+  if (!EMPLOYEE_CODE_REGEX.test(value))
+    return "Employee code must be like EMP123 (3–7 digits)";
+
   return "";
 };
+
 // endregion
 
 // region reporting manager validation (REQUIRED)
 export const reportingManagerValidation = (value = "") => {
   const val = value?.trim() ?? "";
 
-  if (!val) return "Reporting Manager is required";
+  if (!val) {
+    return "Reporting Manager name is required";
+  }
 
   if (!REPORTING_MANAGER_REGEX.test(val)) {
-    return "Format must be: Name (EMP001)";
+    return "Name must be 3–50 characters and contain only letters";
   }
 
   return "";
 };
+
 // endregion
 
 // region salary validation (REQUIRED)
@@ -445,9 +318,9 @@ export const salaryValidation = (value = "") => {
   if (Number(val) <= 0) return "Salary must be greater than 0";
 
   if (Number(val) >= 100000000) {
-      return "Salary must be less than 100,000,000";
+    return "Salary must be less than 100,000,000";
   }
-  
+
   return "";
 };
 // endregion
@@ -477,7 +350,7 @@ export const joiningDateValidation = (date = "") => {
 export const validateEmployee = (
   data = {},
   isEdit = false,
-  hideCredentials = false
+  hideCredentials = false,
 ) => {
   const clean = {
     ...data,
@@ -498,8 +371,6 @@ export const validateEmployee = (
   const ageErr = ageValidation(clean.age);
   if (ageErr) errors.age = ageErr;
 
-
-
   const phoneErr = phoneValidation(clean.phone);
   if (phoneErr) errors.phone = phoneErr;
 
@@ -511,8 +382,8 @@ export const validateEmployee = (
   /*  CREDENTIALS (CREATE ONLY)  */
 
   if (!isEdit && !hideCredentials) {
-      const deptErr = departmentValidation(clean.department);
-  if (deptErr) errors.department = deptErr;
+    const deptErr = departmentValidation(clean.department);
+    if (deptErr) errors.department = deptErr;
     const emailErr = emailValidation(clean.email);
     if (emailErr) errors.email = emailErr;
 

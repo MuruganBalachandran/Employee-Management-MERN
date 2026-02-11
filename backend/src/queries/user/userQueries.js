@@ -5,38 +5,26 @@ import Employee from "../../models/employee/employeeModel.js";
 import { getFormattedDateTime, ROLE } from "../../utils/index.js";
 // endregion
 
-// region update user profile
 const updateUserProfile = async (user = {}, payload = {}) => {
-  const allowedFields = ["Name", "Password"];
-  const updateSet = {
-    Updated_At: getFormattedDateTime()
-  };
-
-  let isChanged = false;
-
-  for (const field of allowedFields) {
-    if (payload[field] !== undefined && payload[field] !== user[field]) {
-      updateSet[field] = payload[field];
-      isChanged = true;
-    }
-  }
-
-  if (!isChanged) {
+  if (payload.Name === undefined || payload.Name === user.Name) {
     return null;
   }
 
-  const updatedUser = await User.findOneAndUpdate(
+  return User.findOneAndUpdate(
     { User_Id: user.User_Id, Is_Deleted: 0 },
-    { $set: updateSet },
-    { new: true }
+    {
+      $set: {
+        Name: payload.Name.trim(),
+        Updated_At: getFormattedDateTime(),
+      },
+    },
+    { new: true },
   );
-
-  return updatedUser;
 };
-// endregion
 
 // region delete user account
 const deleteUserAccount = async (target = {}) => {
+  // user and role
   let userId = target;
   let role = null;
 
@@ -45,28 +33,30 @@ const deleteUserAccount = async (target = {}) => {
     role = target.Role;
   }
 
-  // Use parallel updates for consistency and performance
+  // update based on the role
   const [user] = await Promise.all([
     User.findOneAndUpdate(
       { User_Id: userId, Role: { $ne: ROLE.SUPER_ADMIN }, Is_Deleted: 0 },
       {
         $set: {
           Is_Deleted: 1,
-          Updated_At: getFormattedDateTime()
-        }
+          Updated_At: getFormattedDateTime(),
+        },
       },
-      { new: true }
+      { new: true },
     ),
-    role === ROLE.EMPLOYEE ? Employee.findOneAndUpdate(
-      { User_Id: userId, Is_Deleted: 0 },
-      {
-        $set: {
-          Is_Deleted: 1,
-          Updated_At: getFormattedDateTime()
-        }
-      },
-      { new: true }
-    ) : Promise.resolve(null)
+    role === ROLE.EMPLOYEE
+      ? Employee.findOneAndUpdate(
+          { User_Id: userId, Is_Deleted: 0 },
+          {
+            $set: {
+              Is_Deleted: 1,
+              Updated_At: getFormattedDateTime(),
+            },
+          },
+          { new: true },
+        )
+      : Promise.resolve(null),
   ]);
 
   return user;
@@ -78,14 +68,9 @@ const findUserById = async (id = "") => {
   return await User.findOne({
     User_Id: new mongoose.Types.ObjectId(id),
     Is_Deleted: 0,
-  })
-    .lean();
+  }).lean();
 };
 
 // region exports
-export {
-  updateUserProfile,
-  deleteUserAccount,
-  findUserById,
-};
+export { updateUserProfile, deleteUserAccount, findUserById };
 // endregion

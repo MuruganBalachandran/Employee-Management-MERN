@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { selectEmployeeFilters, setFilters } from "../../features";
-import { VALID_DEPARTMENTS } from "../../validations/employeeValidation";
+import { VALID_DEPARTMENTS } from "../../utils/constants";
 // endregion
 
 // region EmployeeFilters component
@@ -21,44 +21,57 @@ const EmployeeFilters = ({ onFilter = () => {} }) => {
   }, [onFilter]);
 
   // handle input changes
-  const handleSearchChange = (value) => setLocalSearch(value);
-  const handleDepartmentChange = (value) => setLocalDepartment(value);
+  const handleSearchChange = (value = "") => setLocalSearch(value);
+  const handleDepartmentChange = (value = "") => setLocalDepartment(value);
 
   // Apply filters
   const handleApply = () => {
-    dispatch(setFilters({ search: localSearch, department: localDepartment }));
-    onFilterRef.current?.({ search: localSearch, department: localDepartment });
+    try {
+      dispatch(
+        setFilters({ search: localSearch, department: localDepartment }),
+      );
+      onFilterRef.current?.({
+        search: localSearch,
+        department: localDepartment,
+      });
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   // Clear filters
   const handleClear = () => {
-    setLocalSearch("");
-    setLocalDepartment("");
-    dispatch(setFilters({ search: "", department: "" }));
-    onFilterRef.current?.({ search: "", department: "" });
+    try {
+      setLocalSearch("");
+      setLocalDepartment("");
+      dispatch(setFilters({ search: "", department: "" }));
+      onFilterRef.current?.({ search: "", department: "" });
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   // show buttons only if any filter is set
   const hasFilter = localSearch !== "" || localDepartment !== "";
 
   return (
-    <div className="d-flex gap-2 align-items-center mb-3 flex-wrap">
+    <div className='d-flex gap-2 align-items-center mb-3 flex-wrap'>
       {/* search input */}
       <input
-        type="text"
-        className="form-control"
-        placeholder="Search by name..."
+        type='text'
+        className='form-control'
+        placeholder='Search by name...'
         value={localSearch}
         onChange={(e) => handleSearchChange(e?.target?.value || "")}
       />
 
       {/* department select */}
       <select
-        className="form-select"
+        className='form-select'
         value={localDepartment}
         onChange={(e) => handleDepartmentChange(e?.target?.value || "")}
       >
-        <option value="">All Departments</option>
+        <option value=''>All Departments</option>
         {VALID_DEPARTMENTS?.map?.((dept) => (
           <option key={dept} value={dept}>
             {dept}
@@ -66,16 +79,15 @@ const EmployeeFilters = ({ onFilter = () => {} }) => {
         ))}
       </select>
 
-
       <button
-        className="btn btn-primary"
+        className='btn btn-primary'
         onClick={handleApply}
         disabled={!hasFilter}
       >
         Apply
       </button>
       <button
-        className="btn btn-secondary"
+        className='btn btn-secondary'
         onClick={handleClear}
         disabled={!hasFilter}
       >

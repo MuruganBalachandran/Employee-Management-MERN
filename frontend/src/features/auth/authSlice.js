@@ -3,7 +3,6 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import {
   loginUser,
   logoutUser,
-  // registerUser,
   getCurrentUser,
   editCurrentUser,
 } from "../../services/";
@@ -21,7 +20,6 @@ const loadUserFromStorage = () => {
     return null;
   }
 };
-
 const userFromStorage = loadUserFromStorage();
 
 // inittaks data
@@ -34,12 +32,10 @@ const initialState = {
 };
 // endregion
 
-// region async thunks
-// region login
+// region login async thunk
 export const login = createAsyncThunk(
   "auth/login",
   async (credentials = {}, { dispatch, rejectWithValue }) => {
-    /* Attempt user login and store token */
     try {
       const res = await loginUser(credentials || {});
       const token = res?.token || "";
@@ -67,7 +63,6 @@ export const login = createAsyncThunk(
 export const logout = createAsyncThunk(
   "auth/logout",
   async (_ = null, { dispatch, rejectWithValue }) => {
-    /* Logout user and clear token */
     try {
       await logoutUser();
       localStorage.removeItem("token");
@@ -88,7 +83,6 @@ export const logout = createAsyncThunk(
 export const fetchCurrentUser = createAsyncThunk(
   "auth/fetchCurrentUser",
   async (_ = null, { rejectWithValue }) => {
-    /* Fetch logged-in user from backend */
     try {
       const res = await getCurrentUser();
       return res || null;
@@ -101,6 +95,7 @@ export const fetchCurrentUser = createAsyncThunk(
 );
 // endregion
 
+// region update profile
 export const updateMyProfile = createAsyncThunk(
   "auth/updateMyProfile",
   async (data = {}, { rejectWithValue }) => {
@@ -123,7 +118,6 @@ export const updateMyProfile = createAsyncThunk(
     }
   },
 );
-
 // endregion
 
 // region slice
@@ -131,70 +125,54 @@ const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    // region clearAuthError
     clearAuthError: (state = {}) => {
-      /* Clear authentication error */
       state.error = null;
     },
-    // endregion
-
-    // region setAuthChecked
     setAuthChecked: (state = {}) => {
-      /* Mark auth check as completed */
       state.authChecked = true;
     },
-    // endregion
   },
   extraReducers: (builder) => {
     builder
-
-      // region login reducers
+      // region login cases
       .addCase(login?.pending, (state = {}) => {
-        /* Login loading start */
         state.loading = true;
         state.error = null;
       })
       .addCase(login?.fulfilled, (state = {}, action = {}) => {
-        /* Login success */
         state.loading = false;
         state.user = action?.payload || null;
         state.isAuthenticated = !!action?.payload;
       })
       .addCase(login?.rejected, (state = {}, action = {}) => {
-        /* Login failed */
         state.loading = false;
         state.error = action?.payload || "Unknown error";
         state.isAuthenticated = false;
       })
       // endregion
 
-      // region logout reducers
+      // region logout cases
       .addCase(logout?.pending, (state = {}) => {
-        /* Logout loading start */
         state.loading = true;
         state.error = null;
       })
       .addCase(logout?.fulfilled, (state = {}) => {
-        /* Logout success */
         state.loading = false;
         state.user = null;
         state.isAuthenticated = false;
       })
       .addCase(logout?.rejected, (state = {}, action = {}) => {
-        /* Logout failed */
         state.loading = false;
         state.error = action?.payload || "Unknown error";
       })
       // endregion
 
-      // region fetchCurrentUser reducers
+      // region fetch current user
       .addCase(fetchCurrentUser?.pending, (state = {}) => {
-        /* Fetch user loading */
         state.loading = true;
         state.error = null;
       })
       .addCase(fetchCurrentUser?.fulfilled, (state = {}, action = {}) => {
-        /* Fetch user success */
         state.loading = false;
         state.user = action?.payload || null;
         state.isAuthenticated = !!action?.payload;
@@ -204,16 +182,16 @@ const authSlice = createSlice({
         }
       })
       .addCase(fetchCurrentUser?.rejected, (state = {}, action = {}) => {
-        /* Fetch user failed */
         state.loading = false;
         state.user = null;
         state.isAuthenticated = false;
         state.error = action?.payload || "Unknown error";
         state.authChecked = true;
-        localStorage.removeItem("user"); // Clear stale user data if fetch fails
+        localStorage.removeItem("user");
       })
       // endregion
 
+      // region update profile cases
       .addCase(updateMyProfile.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -227,6 +205,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       });
+    // endregion
   },
 });
 // endregion

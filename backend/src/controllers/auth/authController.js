@@ -13,6 +13,7 @@ import { verifyPassword, generateToken } from "../../utils/index.js";
 // region login
 const login = async (req = {}, res = {}) => {
   try {
+    // validate fields
     const validation = validateLogin(req?.body || {});
     if (!validation?.isValid) {
       return sendResponse(
@@ -27,8 +28,10 @@ const login = async (req = {}, res = {}) => {
 
     const user = await findUserByEmail(email?.trim()?.toLowerCase() || "");
 
-    const isPasswordValid = user && await verifyPassword(password, user?.Password || "");
+    const isPasswordValid =
+      user && (await verifyPassword(password, user?.Password || ""));
 
+    // if not valid user or wrong password
     if (!user || !isPasswordValid) {
       return sendResponse(
         res,
