@@ -25,7 +25,7 @@ api.interceptors.request.use((config = {}) => {
 // Responses - before .then() or await gets the data
 api.interceptors.response.use(
   (res) => {
-    // Return backend payload
+    // Return backend payload directly (checking for 'response' key)
     return res?.data?.response !== undefined ? res.data.response : res?.data;
   },
   (err) => {
@@ -42,5 +42,5 @@ api.interceptors.response.use(
 // endregion
 
 // region exports
-export default api;
+export { api as axios };
 // endregion

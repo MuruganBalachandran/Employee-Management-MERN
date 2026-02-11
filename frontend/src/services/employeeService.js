@@ -1,36 +1,77 @@
 // region imports
-import api from "./api";
+import { axios } from "./api";
 // endregion
 
-// region employee services
-export const fetchEmployees = ({
+// region fetchEmployees
+export const fetchEmployees = async ({
   page = 1,
   limit = 5,
   search = "",
   department = "",
   ignoreFilters = false,
 } = {}) => {
-  const params = { page, limit };
-  if (!ignoreFilters) {
-    if (search) {
-      params.search = search;
+  try {
+    const params = { page, limit };
+    if (!ignoreFilters) {
+      if (search) params.search = search;
+      if (department) params.department = department;
     }
-    if (department) {
-      params.department = department;
-    }
+    const response = await axios.get("/employees", { params });
+    return response ?? [];
+  } catch (err) {
+    console.error("Error in fetchEmployees:", err?.response?.data ?? err);
+    return []; // default empty array
   }
-  return api.get("/employees", { params });
 };
+// endregion
 
-export const fetchEmployeeById = (id = "") => api.get(`/employees/${id}`);
-
-export const createEmployee = (data = {}) => api.post("/employees", data);
-
-export const updateEmployee = (id = "", data = {}) => {
-  const payload = { ...data };
-  delete payload.email;
-  delete payload.password;
-  return api.patch(`/employees/${id}`, payload);
+// region fetchEmployeeById
+export const fetchEmployeeById = async (id = "") => {
+  try {
+    const response = await axios.get(`/employees/${id}`);
+    return response ?? null;
+  } catch (err) {
+    console.error("Error in fetchEmployeeById:", err?.response?.data ?? err);
+    return null; // default null
+  }
 };
-export const deleteEmployee = (id = "") => api.delete(`/employees/${id}`);
+// endregion
+
+// region createEmployee
+export const createEmployee = async (data = {}) => {
+  try {
+    const response = await axios.post("/employees", data ?? {});
+    return response ?? null;
+  } catch (err) {
+    console.error("Error in createEmployee:", err?.response?.data ?? err);
+    return null;
+  }
+};
+// endregion
+
+// region updateEmployee
+export const updateEmployee = async (id = "", data = {}) => {
+  try {
+    const payload = { ...data };
+    delete payload.email; // prevent email updates
+    delete payload.password; // prevent password updates
+    const response = await axios.patch(`/employees/${id}`, payload);
+    return response ?? null;
+  } catch (err) {
+    console.error("Error in updateEmployee:", err?.response?.data ?? err);
+    return null;
+  }
+};
+// endregion
+
+// region deleteEmployee
+export const deleteEmployee = async (id = "") => {
+  try {
+    const response = await axios.delete(`/employees/${id}`);
+    return response ?? null;
+  } catch (err) {
+    console.error("Error in deleteEmployee:", err?.response?.data ?? err);
+    return null;
+  }
+};
 // endregion

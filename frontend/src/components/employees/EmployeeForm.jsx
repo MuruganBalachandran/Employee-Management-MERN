@@ -37,23 +37,23 @@ const EmployeeForm = ({
 
   // form state
   const [form, setForm] = useState({
-    name: "ram",
-    email: "ram@spanemployee.com",
-    password: "Pass&135",
-    confirmPassword: "Pass&135",
-    employeeCode: "EMP001",
-    age: "20",
-    department: "Full Stack Developer",
-    phone: "9834567869",
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    employeeCode: "",
+    age: "",
+    department: "",
+    phone: "",
     address: {
-      line1: "ss street",
+      line1: "",
       line2: "",
-      city: "cbe",
-      state: "t n",
-      zipCode: "456775",
+      city: "",
+      state: "",
+      zipCode: "",
     },
-    salary: "560000",
-    reportingManager: "kumar",
+    salary: "",
+    reportingManager: "",
     joiningDate: "",
   });
 

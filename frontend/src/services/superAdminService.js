@@ -1,8 +1,27 @@
 // region imports
-import api from "./api";
+import { axios } from "./api";
 // endregion
 
-// region super admin services
-export const createAdmin = (data = {}) => api.post("/super-admin", data);
-export const deleteAdmin = (id = "") => api.delete(`/super-admin/${id}`);
+// region createAdmin
+export const createAdmin = async (data = {}) => {
+  try {
+    const response = await axios.post("/super-admin", data ?? {});
+    return response ?? null;
+  } catch (err) {
+    console.error("Error in createAdmin:", err?.response?.data ?? err);
+    return null;
+  }
+};
+// endregion
+
+// region deleteAdmin
+export const deleteAdmin = async (id = "") => {
+  try {
+    const response = await axios.delete(`/super-admin/${id}`);
+    return response ?? null;
+  } catch (err) {
+    console.error("Error in deleteAdmin:", err?.response?.data ?? err);
+    return null;
+  }
+};
 // endregion

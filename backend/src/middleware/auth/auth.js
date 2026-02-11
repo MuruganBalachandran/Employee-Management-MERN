@@ -12,17 +12,10 @@ import { User } from "../../models/index.js";
 const auth = (...allowedRoles) => {
   return async (req, res, next) => {
     try {
-      // Authentication - verify token
-      const authHeader = req?.headers?.authorization;
+      // Authentication - verify token from cookie
+      const token = req?.cookies?.token; // <-- read JWT from cookie
 
-      // extract token from header
-      const token = authHeader?.startsWith("Bearer ")
-        ? authHeader.replace("Bearer ", "")
-        : null;
-
-      const decoded = token && verifyToken(token);
-
-      if (!token || !decoded?.User_Id) {
+      if (!token) {
         return sendResponse(
           res,
           STATUS_CODE?.UNAUTHORIZED || 401,
@@ -31,7 +24,21 @@ const auth = (...allowedRoles) => {
         );
       }
 
-      const user = await User.findOne({ User_Id: decoded.User_Id, Is_Deleted: 0 });
+      const decoded = verifyToken(token);
+
+      if (!decoded?.User_Id) {
+        return sendResponse(
+          res,
+          STATUS_CODE?.UNAUTHORIZED || 401,
+          RESPONSE_STATUS?.FAILURE || "FAILURE",
+          "Unauthorized access",
+        );
+      }
+
+      const user = await User.findOne({
+        User_Id: decoded.User_Id,
+        Is_Deleted: 0,
+      });
 
       if (!user) {
         return sendResponse(
@@ -45,18 +52,14 @@ const auth = (...allowedRoles) => {
       // Attach user to request
       req.user = user;
 
-      //Authorization - check role if roles are specified
-      if (allowedRoles?.length > 0) {
-        const userRole = user?.Role;
-
-        if (!allowedRoles?.includes(userRole)) {
-          return sendResponse(
-            res,
-            STATUS_CODE?.UNAUTHORIZED || 401,
-            RESPONSE_STATUS?.FAILURE || "FAILURE",
-            "Unauthorized access",
-          );
-        }
+      // Authorization - check role if roles are specified
+      if (allowedRoles?.length > 0 && !allowedRoles.includes(user?.Role)) {
+        return sendResponse(
+          res,
+          STATUS_CODE?.UNAUTHORIZED || 401,
+          RESPONSE_STATUS?.FAILURE || "FAILURE",
+          "Unauthorized access",
+        );
       }
 
       // User is authenticated (and authorized if roles were checked)
@@ -71,6 +74,8 @@ const auth = (...allowedRoles) => {
     }
   };
 };
+// endregion
 
-// exports
+// region exports
 export { auth };
+// endregion

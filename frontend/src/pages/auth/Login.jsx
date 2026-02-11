@@ -57,12 +57,12 @@ const Login = () => {
     e.preventDefault();
 
     const validationErrors = {
-      email: !form.email
+      email: !form?.email
         ? "Email is required"
-        : emailValidation(form.email, "login"),
-      password: !form.password
+        : emailValidation(form?.email, "login"),
+      password: !form?.password
         ? "Password is required"
-        : passwordValidation(form.password),
+        : passwordValidation(form?.password),
     };
 
     // Filter out fields with no errors
@@ -88,7 +88,7 @@ const Login = () => {
   };
   // endregion
 
-  // region render
+  // region ui
   return (
     <div className='auth-page d-flex justify-content-center align-items-center min-vh-100 p-3'>
       {loading && <Loader fullScreen text='Logging in...' />}
@@ -104,18 +104,18 @@ const Login = () => {
         <Input
           label='Email'
           type='email'
-          value={form.email}
-          onChange={(e) => handleChange("email", e.target.value)}
-          error={errors.email}
+          value={form?.email}
+          onChange={(e) => handleChange("email", e?.target?.value)}
+          error={errors?.email}
           placeholder='Enter your email'
         />
         {/* password field */}
         <Input
           label='Password'
           type='password'
-          value={form.password}
+          value={form?.password}
           onChange={(e) => handleChange("password", e.target.value)}
-          error={errors.password}
+          error={errors?.password}
           placeholder='Enter your password'
         />
 
@@ -126,6 +126,7 @@ const Login = () => {
       </form>
     </div>
   );
+  // endregion
 };
 // endregion
 

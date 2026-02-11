@@ -2,7 +2,7 @@
 // package imports
 import express from "express";
 import cors from "cors";
-
+import cookieParser from "cookie-parser";
 //  config imports
 import { corsConfig } from "./config/index.js";
 
@@ -42,6 +42,9 @@ app.use(jsonValidator);
 // apply CORS rules globally
 app.use(cors(corsConfig));
 // endregion
+
+// apply cookie parser
+app.use(cookieParser());
 
 // region API routes
 app.use("/api/health", healthRouter);

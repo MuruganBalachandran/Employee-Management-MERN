@@ -7,6 +7,8 @@ import { getFormattedDateTime, ROLE } from "../../utils/index.js";
 
 // region create employee
 const createEmployee = async (payload = {}, adminId = null) => {
+  try {
+  
   // destureture payload data
   const {
     Name = "",
@@ -46,6 +48,9 @@ const createEmployee = async (payload = {}, adminId = null) => {
   }).save();
 
   return employee;
+    } catch (err) {
+    throw new Error("Error creating employee:",err);
+  }
 };
 // endregion
 
@@ -56,6 +61,9 @@ const getAllEmployees = async (
   search = "",
   department = "",
 ) => {
+  try {
+    
+
   const pipeline = [
     { $match: { Is_Deleted: 0 } },
     {
@@ -137,12 +145,19 @@ const getAllEmployees = async (
     employees: result[0]?.employees || [],
     total: result[0]?.totalCount?.[0]?.count || 0,
   };
+    } catch (err) {
+    throw new Error("Error while getAll employees " , err);
+  }
+  
 };
 
 // endregion
 
 // region get employee by id
 const getEmployeeById = async (id = "") => {
+  try {
+    
+
   const employees = await Employee.aggregate([
     {
       $match: {
@@ -197,11 +212,17 @@ const getEmployeeById = async (id = "") => {
   ]);
 
   return employees.length > 0 ? employees[0] : null;
+    } catch (err) {
+    throw new Error("Error get employee by id", err);
+  }
 };
 // endregion
 
 // region update quereis
 const updateEmployee = async (filter = {}, payload = {}) => {
+  try {
+    
+
   const {
     Name,
     Age,
@@ -264,11 +285,17 @@ const updateEmployee = async (filter = {}, payload = {}) => {
   }
 
   return doc;
+    } catch (err) {
+    throw new Error("Error while perform update employee",err);
+  }
 };
 // endregion
 
 // region delete employee
 const deleteEmployee = async (employeeId = "") => {
+  try {
+    
+
   const updateSet = {
     Is_Deleted: 1,
     Updated_At: getFormattedDateTime(),
@@ -293,11 +320,17 @@ const deleteEmployee = async (employeeId = "") => {
   }
 
   return doc;
+    } catch (err) {
+    console.log("Error while perform delete employee",err)
+  }
 };
 // endregion
 
 // region check employee code uniqueness
 const isEmployeeCodeTaken = async (code, excludeId = null) => {
+  try {
+    
+
   const query = { Employee_Code: code };
 
   // while editing, ignore same employee
@@ -307,6 +340,9 @@ const isEmployeeCodeTaken = async (code, excludeId = null) => {
 
   const existing = await Employee.findOne(query).lean();
   return !!existing;
+    } catch (err) {
+    throw new Error("Error while perform check code token")
+  }
 };
 // endregion
 

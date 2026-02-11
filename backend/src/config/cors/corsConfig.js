@@ -1,10 +1,8 @@
-
 // region imports
-import { STATUS_CODE } from '../../utils/index.js';
 import { env } from "../env/envConfig.js";
 // endregion
 
-// normalize CORS_ORIGIN
+// region normalize CORS_ORIGIN
 const allowedOrigins = Array.isArray(env?.CORS_ORIGIN)
   ? env?.CORS_ORIGIN
   : [env?.CORS_ORIGIN || ''].filter(Boolean);
@@ -12,37 +10,19 @@ const allowedOrigins = Array.isArray(env?.CORS_ORIGIN)
 
 // region CORS Options
 const corsConfig = {
-  // use function because multiple frontend origins may exist
-  origin: (origin = '', callback = () => { }) => {
-    if (!origin) {
-      return callback?.(null, true);
-    }
+  origin: (origin = '', callback = () => {}) => {
+    // allow requests with no origin (e.g., Postman)
+    if (!origin) return callback?.(null, true);
 
-    // allow request if origin matches allowed list
-    if (allowedOrigins?.includes?.(origin)) {
-      return callback?.(null, true);
-    }
+    // allow if origin is in allowedOrigins
+    if (allowedOrigins?.includes(origin)) return callback?.(null, true);
 
-    // block request if origin is not whitelisted
+    // block otherwise
     return callback?.(new Error('Not allowed by CORS'));
   },
 
-  // allow cookies and authorization headers in requests
-  credentials: true,
-
-  // support legacy browsers that fail on 204
-  optionsSuccessStatus: STATUS_CODE?.OK || 200,
-
-  // define which HTTP methods backend accepts
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-
-  // define headers client is allowed to send
-  allowedHeaders: [
-    'Content-Type',
-    'Authorization',
-    'X-Requested-With',
-    'Accept',
-  ],
+  // allow cookies to be sent in requests
+  credentials: true, 
 };
 // endregion
 

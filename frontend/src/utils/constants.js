@@ -54,7 +54,7 @@ export const RESERVED_NAMES = [
 // Common passwords to reject
 export const COMMON_PASSWORDS = [
   "password",
-  "password123",
+  "Password@123",
   "12345678",
   "qwerty",
   "abc123",

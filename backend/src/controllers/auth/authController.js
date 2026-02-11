@@ -31,7 +31,6 @@ const login = async (req = {}, res = {}) => {
     const isPasswordValid =
       user && (await verifyPassword(password, user?.Password || ""));
 
-    // if not valid user or wrong password
     if (!user || !isPasswordValid) {
       return sendResponse(
         res,
@@ -41,10 +40,19 @@ const login = async (req = {}, res = {}) => {
       );
     }
 
+    // generate JWT token
     const token = generateToken({
       User_Id: user?.User_Id,
       email: user?.Email,
       role: user?.Role,
+    });
+
+    // store token in HTTP-only cookie
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // only send over HTTPS in prod
+      sameSite: "Strict", // CSRF protection
+      maxAge: 1000 * 60 * 60 * 24, // 1 day
     });
 
     return sendResponse(
@@ -53,7 +61,6 @@ const login = async (req = {}, res = {}) => {
       RESPONSE_STATUS?.SUCCESS || "SUCCESS",
       "Login successful",
       {
-        token,
         user: {
           User_Id: user?.User_Id,
           Name: user?.Name,
@@ -77,6 +84,13 @@ const login = async (req = {}, res = {}) => {
 // region logout
 const logout = async (req = {}, res = {}) => {
   try {
+    // clear the token cookie
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Strict",
+    });
+
     return sendResponse(
       res,
       STATUS_CODE?.OK || 200,

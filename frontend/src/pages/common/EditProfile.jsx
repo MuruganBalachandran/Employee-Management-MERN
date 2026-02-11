@@ -21,7 +21,7 @@ const EditProfile = () => {
       // prepare payload
       const cleanData = {
         name: data?.name?.trim(),
-        age: data?.age ? Number(data.age) : undefined,
+        age: data?.age ? Number(data?.age) : undefined,
         phone: data?.phone?.trim(),
         address: data?.address,
       };
@@ -29,7 +29,7 @@ const EditProfile = () => {
       // update profile
       await dispatch(updateMyProfile(cleanData)).unwrap();
 
-      // success toast + redirect
+      // success toast & redirect
       dispatch(
         showToast({ message: "Profile updated" || "", type: "success" }),
       );
