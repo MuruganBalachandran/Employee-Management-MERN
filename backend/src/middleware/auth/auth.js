@@ -4,17 +4,16 @@ import {
   sendResponse,
   STATUS_CODE,
   RESPONSE_STATUS,
+  ROLE,
 } from "../../utils/index.js";
-import { User } from "../../models/index.js";
 // endregion
 
 // region auth middleware
 const auth = (...allowedRoles) => {
-  return async (req, res, next) => {
+  return (req = {}, res = {}, next) => {
     try {
-      // Authentication - verify token from cookie
-      const token = req?.cookies?.token; // <-- read JWT from cookie
-
+      //get token
+      const token = req?.cookies?.token || "";
       if (!token) {
         return sendResponse(
           res,
@@ -24,8 +23,8 @@ const auth = (...allowedRoles) => {
         );
       }
 
+      //verify token
       const decoded = verifyToken(token);
-
       if (!decoded?.User_Id) {
         return sendResponse(
           res,
@@ -35,41 +34,36 @@ const auth = (...allowedRoles) => {
         );
       }
 
-      const user = await User.findOne({
-        User_Id: decoded.User_Id,
-        Is_Deleted: 0,
-      });
+      //attach user to request
+      req.user = decoded || {};
 
-      if (!user) {
+      //role authorization
+      if (allowedRoles?.length > 0 && !allowedRoles.includes(decoded?.role)) {
         return sendResponse(
           res,
-          STATUS_CODE?.UNAUTHORIZED || 401,
+          STATUS_CODE?.FORBIDDEN || 403,
           RESPONSE_STATUS?.FAILURE || "FAILURE",
-          "Unauthorized access",
+          "Access denied.",
         );
       }
 
-      // Attach user to request
-      req.user = user;
-
-      // Authorization - check role if roles are specified
-      if (allowedRoles?.length > 0 && !allowedRoles.includes(user?.Role)) {
+      //admin permission check
+      if (decoded?.role === ROLE?.ADMIN && decoded?.permission !== "GRANTED") {
         return sendResponse(
           res,
-          STATUS_CODE?.UNAUTHORIZED || 401,
+          STATUS_CODE?.FORBIDDEN || 403,
           RESPONSE_STATUS?.FAILURE || "FAILURE",
-          "Unauthorized access",
+          "Permission revoked by Super Admin",
         );
       }
 
-      // User is authenticated (and authorized if roles were checked)
       next();
     } catch (err) {
       return sendResponse(
         res,
         STATUS_CODE?.UNAUTHORIZED || 401,
         RESPONSE_STATUS?.FAILURE || "FAILURE",
-        "Unauthorized access",
+        "Invalid or expired token",
       );
     }
   };

@@ -1,60 +1,27 @@
-// region imports
-import { createSelector } from "reselect";
+// region base selector
+export const selectAuth = (state) => state.auth;
 // endregion
 
-// base selector
-const selectAuthState = (state) => state?.auth;
+// region basic selectors
+export const selectUser = (state) => state.auth.user;
 
-// region memoized selectors
-//logged-in user object.
-export const selectUser = createSelector(
-  [selectAuthState],
-  (auth) => auth?.user || null,
-);
+export const selectIsAuthenticated = (state) =>
+  state.auth.isAuthenticated;
 
-// Extracts the role.
-export const selectUserRole = createSelector(
-  [selectUser],
-  (user) => user?.Role || null,
-);
+export const selectAuthLoading = (state) =>
+  state.auth.loading;
 
-// Check if user is authenticated
-export const selectIsAuthenticated = createSelector(
-  [selectAuthState],
-  (auth) => auth?.isAuthenticated || false,
-);
+export const selectAuthError = (state) =>
+  state.auth.error;
+// endregion
 
-// checks : Have we verified auth with backend yet
-export const selectAuthChecked = createSelector(
-  [selectAuthState],
-  (auth) => auth?.authChecked || false,
-);
+// region role selectors
+export const selectUserRole = (state) =>
+  state.auth.user?.Role || null;
 
-// Select loading state
-export const selectAuthLoading = createSelector(
-  [selectAuthState],
-  (auth) => auth?.loading || false,
-);
+export const selectIsSuperAdmin = (state) =>
+  state.auth.user?.Role === "SUPER_ADMIN";
 
-// Select auth error
-export const selectAuthError = createSelector(
-  [selectAuthState],
-  (auth) => auth?.error || null,
-);
-
-// Check if user is super admin
-export const selectIsSuperAdmin = createSelector(
-  [selectUserRole],
-  (role) => role === "SUPER_ADMIN",
-);
-
-// Check if user is admin
-export const selectIsAdmin = createSelector(
-  [selectUserRole],
-  (role) => role === "ADMIN" || role === "SUPER_ADMIN",
-);
-
-// Select all auth state - returns the entire auth slice object
-export const selectAuth = createSelector([selectAuthState], (auth) => auth);
-
+export const selectIsAdmin = (state) =>
+  state.auth.user?.Role === "ADMIN";
 // endregion

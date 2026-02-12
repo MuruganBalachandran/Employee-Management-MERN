@@ -100,11 +100,34 @@ const VALIDATION_MESSAGES = {
 };
 // endregion
 
+// region name rules
+
+// Valid departments
+ const VALID_DEPARTMENTS = [
+  "HR",
+  "Sales",
+  "Marketing",
+  "Tester",
+  "Frontend Developer",
+  "Backend Developer",
+  "Full Stack Developer",
+  "Machine Learning",
+  "Deep Learning",
+  "Network",
+  "Cyber Security",
+  "DevOps",
+  "Administration",
+];
+// endregion
+
 // region exports
 export {
     STATUS_CODE,
     RESPONSE_STATUS,
     ROLE,
     VALIDATION_MESSAGES,
+    VALID_DEPARTMENTS,
 };
 // endregion
+
+

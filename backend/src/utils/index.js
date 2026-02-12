@@ -14,5 +14,6 @@ export {
     RESPONSE_STATUS,
     ROLE,
     VALIDATION_MESSAGES,
+    VALID_DEPARTMENTS
 } from './constants/constants.js';
 // endregion

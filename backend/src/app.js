@@ -15,13 +15,7 @@ import {
 } from "./middleware/index.js";
 
 //  router imports
-import {
-  healthRouter,
-  userRouter,
-  superAdminRouter,
-  authRouter,
-  employeeRouter,
-} from "./routers/index.js";
+import routers from "./routers/index.js";
 // endregion
 
 //  server initialization
@@ -29,9 +23,6 @@ const app = express();
 // endregion
 
 // region  middleware
-
-// log all requests (moved to top for better observability)
-app.use(logger);
 
 // parse JSON body
 app.use(express.json());
@@ -46,12 +37,11 @@ app.use(cors(corsConfig));
 // apply cookie parser
 app.use(cookieParser());
 
+// log all requests (moved to top for better observability)
+app.use(logger);
+
 // region API routes
-app.use("/api/health", healthRouter);
-app.use("/api/users", userRouter); // /me routes
-app.use("/api/auth", authRouter); // login, signup
-app.use("/api/employees", employeeRouter); // admin crud employees
-app.use("/api/super-admin", superAdminRouter);
+app.use("/api", routers);
 // endregion
 
 //  404 handler

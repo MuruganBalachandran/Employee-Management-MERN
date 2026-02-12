@@ -6,6 +6,7 @@ import {
   authReducer,
   superAdminReducer,
   toastReducer,
+  activityLogReducer,
 } from "../features";
 // endregion
 
@@ -16,6 +17,7 @@ const store = configureStore({
     auth: authReducer,
     superAdmin: superAdminReducer,
     toast: toastReducer,
+    activityLog:activityLogReducer
   },
 });
 // endregion

@@ -6,159 +6,92 @@ import {
   createEmployee,
   updateEmployee,
   deleteEmployee,
-} from "../../services/";
-import { showToast } from "../../features";
+} from "../../services";
 // endregion
 
-// region initialState
-const initialState = {
-  // Normalized state: id => employee object
-  byId: {},
-  // List of employee IDs in order
-  allIds: [],
-  // Single employee being viewed
-  currentEmployee: null,
-  // Pagination info
-  pagination: {
-    skip: 0,
-    limit: 5,
-    total: 0,
-    currentPage: 1,
-  },
-  // Filters for current list
-  filters: {
-    search: "",
-    department: "",
-  },
-  // UI state
-  loading: false,
-  currentEmployeeLoading: false,
-  error: null,
-};
-// endregion
+// region async thunks
 
-// region getEmployees
+// fetch employees (list)
 export const getEmployees = createAsyncThunk(
   "employees/getEmployees",
-  async (
-    {
-      page = 1,
-      limit = 5,
-      search = "",
-      department = "",
-      ignoreFilters = false,
-    } = {},
-    { rejectWithValue } = {},
-  ) => {
+  async (params = {}, { rejectWithValue }) => {
     try {
-      const res = await fetchEmployees({
-        page,
-        limit,
-        search,
-        department,
-        ignoreFilters,
-      });
-      return {
-        items: res?.employees || [],
-        count: res?.total || 0,
-      };
+      return await fetchEmployees(params);
     } catch (err) {
       return rejectWithValue(
-        err?.response?.data?.message || "Failed to fetch employees",
+        err?.response?.data?.message || "Failed to fetch employees"
       );
     }
-  },
+  }
 );
 
-// endregion
-
-// region getEmployee
+// fetch single employee
 export const getEmployee = createAsyncThunk(
   "employees/getEmployee",
-  async (id = null, { rejectWithValue } = {}) => {
+  async (id, { rejectWithValue }) => {
     try {
-      const res = await fetchEmployeeById(id || null);
-      return res || null;
+      return await fetchEmployeeById(id);
     } catch (err) {
       return rejectWithValue(
-        err?.response?.data?.message || "Failed to fetch employee",
+        err?.response?.data?.message || "Failed to fetch employee"
       );
     }
-  },
+  }
 );
-// endregion
 
-// region addEmployee
+// create employee
 export const addEmployee = createAsyncThunk(
   "employees/addEmployee",
-  async (data = {}, { rejectWithValue, dispatch } = {}) => {
+  async (data, { rejectWithValue }) => {
     try {
-      const res = await createEmployee(data || {});
-      return res || {};
+      return await createEmployee(data);
     } catch (err) {
-      const backend = err?.response?.data || {};
-      const message =
-        backend?.message || err?.message || "Failed to add employee";
-
-      if (message && typeof message === "object") {
-        return rejectWithValue({
-          fieldErrors: message,
-          message: "Validation failed",
-        });
-      }
-
-      return rejectWithValue(message);
+      return rejectWithValue(
+        err?.response?.data?.message || "Failed to create employee"
+      );
     }
-  },
+  }
 );
-// endregion
 
-// region editEmployee
+// update employee
 export const editEmployee = createAsyncThunk(
   "employees/editEmployee",
-  async ({ id = null, data = {} } = {}, { rejectWithValue, dispatch }) => {
+  async ({ id, data }, { rejectWithValue }) => {
     try {
-      const res = await updateEmployee(id || null, data || {});
-      return res || null;
+      return await updateEmployee(id, data);
     } catch (err) {
-      const backend = err?.response?.data || {};
-      const message =
-        backend?.message || err?.message || "Failed to update employee";
-
-      if (message && typeof message === "object") {
-        return rejectWithValue({
-          fieldErrors: message,
-          message: "Validation failed",
-        });
-      }
-
-      return rejectWithValue(message);
+      return rejectWithValue(
+        err?.response?.data?.message || "Failed to update employee"
+      );
     }
-  },
+  }
 );
-// endregion
 
-// region removeEmployee
+// delete employee
 export const removeEmployee = createAsyncThunk(
   "employees/removeEmployee",
-  async (id = null, { rejectWithValue, dispatch }) => {
+  async (id, { rejectWithValue }) => {
     try {
-      await deleteEmployee(id || null);
-      return id || null;
+      await deleteEmployee(id);
+      return id;
     } catch (err) {
-      const backend = err?.response?.data || {};
-      const message =
-        backend?.message || err?.message || "Failed to delete employee";
-      dispatch(
-        showToast({
-          message: typeof message === "string" ? message : "Delete failed",
-          type: "error",
-        }),
+      return rejectWithValue(
+        err?.response?.data?.message || "Failed to delete employee"
       );
-      return rejectWithValue(message);
     }
-  },
+  }
 );
+
+// endregion
+
+// region initial state
+const initialState = {
+  list: [],
+  selected: null,
+  total: 0,
+  loading: false,
+  error: null,
+};
 // endregion
 
 // region slice
@@ -166,173 +99,75 @@ const employeeSlice = createSlice({
   name: "employees",
   initialState,
   reducers: {
-    // region clearCurrentEmployee
-    clearCurrentEmployee: (state = {}) => {
-      state.currentEmployee = null;
-      state.currentEmployeeLoading = false;
+    clearSelectedEmployee: (state) => {
+      state.selected = null;
+    },
+    clearEmployeeError: (state) => {
       state.error = null;
     },
-    // endregion
-
-    // region setFilters
-    setFilters: (state = {}, action = {}) => {
-      state.filters = {
-        ...state?.filters,
-        ...action?.payload,
-      };
-      // Reset to first page when filters change
-      state.pagination.skip = 0;
-      state.pagination.currentPage = 1;
-    },
-    // endregion
-
-    // region setPage
-    setPage: (state = {}, action = {}) => {
-      // Update current page
-      const page = action?.payload || 1;
-      state.pagination.currentPage = page;
-      state.pagination.skip = (page - 1) * state?.pagination?.limit;
-    },
-    // endregion
-
-    // region clearError
-    clearError: (state = {}) => {
-      state.error = null;
-    },
-    // endregion
   },
   extraReducers: (builder) => {
     builder
 
-      // region getEmployees cases
-      .addCase(getEmployees?.pending, (state = {}) => {
+      // list employees
+      .addCase(getEmployees.pending, (state) => {
         state.loading = true;
-        state.error = null;
       })
-      .addCase(getEmployees?.fulfilled, (state = {}, action = {}) => {
-        /* Employees fetched - normalize data */
+      .addCase(getEmployees.fulfilled, (state, action) => {
+        state.list = action.payload?.employees || [];
+        state.total = action.payload?.total || 0;
         state.loading = false;
-        const items = action?.payload?.items || [];
-        const total = action?.payload?.count || 0;
-
-        // Build normalized state
-        state.byId = {};
-        state.allIds = [];
-
-        items.forEach((emp) => {
-          if (emp?.Employee_Id) {
-            state.byId[emp.Employee_Id] = emp;
-            state.allIds.push(emp?.Employee_Id);
-          }
-        });
-
-        // Update pagination
-        state.pagination.total = total;
       })
-      .addCase(getEmployees?.rejected, (state = {}, action = {}) => {
-        /* Employees fetch failed */
+      .addCase(getEmployees.rejected, (state, action) => {
         state.loading = false;
-        state.error = action?.payload || "Unknown error";
+        state.error = action.payload;
       })
-      // endregion
 
-      // region getEmployee cases
-      .addCase(getEmployee?.pending, (state = {}) => {
-        state.currentEmployeeLoading = true;
-        state.error = null;
+      // get employee
+      .addCase(getEmployee.pending, (state) => {
+        state.loading = true;
       })
-      .addCase(getEmployee?.fulfilled, (state = {}, action = {}) => {
-        state.currentEmployeeLoading = false;
-        state.currentEmployee = action?.payload || null;
-        // Also add to normalized state
-        if (action?.payload?.Employee_Id) {
-          state.byId[action.payload.Employee_Id] = action?.payload;
+      .addCase(getEmployee.fulfilled, (state, action) => {
+        state.selected = action.payload;
+        state.loading = false;
+      })
+      .addCase(getEmployee.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // create employee
+      .addCase(addEmployee.fulfilled, (state, action) => {
+        state.list.unshift(action.payload);
+        state.total += 1;
+      })
+
+      // update employee
+      .addCase(editEmployee.fulfilled, (state, action) => {
+        state.list = state.list.map((emp) =>
+          emp._id === action.payload?._id ? action.payload : emp
+        );
+        if (state.selected?._id === action.payload?._id) {
+          state.selected = action.payload;
         }
       })
-      .addCase(getEmployee?.rejected, (state = {}, action = {}) => {
-        state.currentEmployeeLoading = false;
-        state.error = action?.payload || "Unknown error";
-      })
-      // endregion
 
-      // region addEmployee cases
-      .addCase(addEmployee?.pending, (state = {}) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(addEmployee?.fulfilled, (state = {}, action = {}) => {
-        state.loading = false;
-        const employee = action?.payload || {};
-
-        // Add to normalized state
-        if (employee?.Employee_Id) {
-          state.byId[employee.Employee_Id] = employee;
-          // Add to front of list if not already present
-          if (!state.allIds.includes(employee?.Employee_Id)) {
-            state.allIds.unshift(employee?.Employee_Id);
-          }
-        }
-      })
-      .addCase(addEmployee?.rejected, (state = {}, action = {}) => {
-        state.loading = false;
-      })
-      // endregion
-
-      // region editEmployee cases
-      .addCase(editEmployee?.pending, (state = {}) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(editEmployee?.fulfilled, (state = {}, action = {}) => {
-        state.loading = false;
-        const updatedEmp = action?.payload?.employee || action?.payload || null;
-
-        if (updatedEmp?.Employee_Id) {
-          // Update normalized state
-          state.byId[updatedEmp.Employee_Id] = updatedEmp;
-          // Update current employee if it's the same one
-          if (state.currentEmployee?.Employee_Id === updatedEmp?.Employee_Id) {
-            state.currentEmployee = updatedEmp;
-          }
-        }
-      })
-      .addCase(editEmployee?.rejected, (state = {}, action = {}) => {
-        state.loading = false;
-      })
-      // endregion
-
-      // region removeEmployee cases
-      .addCase(removeEmployee?.pending, (state = {}) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(removeEmployee?.fulfilled, (state = {}, action = {}) => {
-        state.loading = false;
-        const employeeId = action?.payload;
-
-        // Remove from normalized state
-        delete state.byId[employeeId];
-        state.allIds = state?.allIds?.filter((id) => id !== employeeId);
-
-        // Clear current employee if deleted
-        if (state.currentEmployee?.Employee_Id === employeeId) {
-          state.currentEmployee = null;
-        }
-      })
-      .addCase(removeEmployee?.rejected, (state = {}, action = {}) => {
-        state.loading = false;
-        const payload = action?.payload;
-        state.error =
-          (typeof payload === "string" ? payload : payload?.message) ||
-          "Unknown error";
+      // delete employee
+      .addCase(removeEmployee.fulfilled, (state, action) => {
+        state.list = state.list.filter(
+          (emp) => emp._id !== action.payload
+        );
+        state.total -= 1;
       });
-    // endregion
   },
 });
 // endregion
 
 // region exports
-export const { clearCurrentEmployee, setFilters, setPage, clearError } =
-  employeeSlice?.actions || {};
-export default employeeSlice?.reducer;
+export const {
+  clearSelectedEmployee,
+  clearEmployeeError,
+} = employeeSlice.actions;
+
+export default employeeSlice.reducer;
 // endregion

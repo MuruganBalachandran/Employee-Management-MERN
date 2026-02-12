@@ -101,5 +101,4 @@ export const VALID_DEPARTMENTS = [
   "DevOps",
   "Administration",
 ];
-
 // endregion

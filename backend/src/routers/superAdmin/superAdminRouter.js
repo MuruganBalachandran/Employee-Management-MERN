@@ -6,6 +6,8 @@ import {
   getAdmin,
   createNewAdmin,
   removeAdmin,
+  updateAdmin,
+  changePermission,
 } from "../../controllers/superAdmin/superAdminController.js";
 // endregion
 
@@ -18,7 +20,9 @@ router.use(auth("SUPER_ADMIN"));
 
 router.get("/", listAdmins);
 router.get("/:id", getAdmin);
-router.post("/",rateLimiter("Register"), createNewAdmin);
+router.post("/", rateLimiter("Register"), createNewAdmin);
+router.put("/:id", updateAdmin);                
+router.patch("/:id/permission", changePermission); 
 router.delete("/:id", removeAdmin);
 // endregion
 

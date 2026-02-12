@@ -17,22 +17,23 @@ export const fetchEmployees = async ({
       if (department) params.department = department;
     }
     const response = await axios.get("/employees", { params });
-    return response ?? [];
+    return response ?? { employees: [], total: 0 };
   } catch (err) {
     console.error("Error in fetchEmployees:", err?.response?.data ?? err);
-    return []; // default empty array
+    return { employees: [], total: 0 }; // default empty response
   }
 };
 // endregion
 
 // region fetchEmployeeById
-export const fetchEmployeeById = async (id = "") => {
+export const fetchEmployeeById = async (id) => {
+  if (!id) throw new Error("Employee ID is required");
   try {
     const response = await axios.get(`/employees/${id}`);
     return response ?? null;
   } catch (err) {
     console.error("Error in fetchEmployeeById:", err?.response?.data ?? err);
-    return null; // default null
+    return null;
   }
 };
 // endregion
@@ -40,7 +41,7 @@ export const fetchEmployeeById = async (id = "") => {
 // region createEmployee
 export const createEmployee = async (data = {}) => {
   try {
-    const response = await axios.post("/employees", data ?? {});
+    const response = await axios.post("/employees", data);
     return response ?? null;
   } catch (err) {
     console.error("Error in createEmployee:", err?.response?.data ?? err);
@@ -50,10 +51,11 @@ export const createEmployee = async (data = {}) => {
 // endregion
 
 // region updateEmployee
-export const updateEmployee = async (id = "", data = {}) => {
+export const updateEmployee = async (id, data = {}) => {
+  if (!id) throw new Error("Employee ID is required");
   try {
     const payload = { ...data };
-    delete payload.email; // prevent email updates
+    delete payload.email;    // prevent email updates
     delete payload.password; // prevent password updates
     const response = await axios.patch(`/employees/${id}`, payload);
     return response ?? null;
@@ -65,7 +67,8 @@ export const updateEmployee = async (id = "", data = {}) => {
 // endregion
 
 // region deleteEmployee
-export const deleteEmployee = async (id = "") => {
+export const deleteEmployee = async (id) => {
+  if (!id) throw new Error("Employee ID is required");
   try {
     const response = await axios.delete(`/employees/${id}`);
     return response ?? null;

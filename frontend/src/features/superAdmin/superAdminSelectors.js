@@ -1,20 +1,17 @@
-// region imports
-import { createSelector } from "reselect";
-// endregion
+// base selector
+export const selectSuperAdminState = (state) =>
+  state.superAdmin;
 
-// region base selector
-const selectSuperAdminState = (state) => state.superAdmin;
-// endregion
+// list selectors
+export const selectAdmins = (state) =>
+  state.superAdmin.list;
 
-//  super admin loading
-export const selectSuperAdminLoading = createSelector(
-  [selectSuperAdminState],
-  (state) => state?.loading || false,
-);
+export const selectAdminsTotal = (state) =>
+  state.superAdmin.total;
 
-// super admin error
-export const selectSuperAdminError = createSelector(
-  [selectSuperAdminState],
-  (state) => state?.error || null,
-);
-// endregion
+// ui state
+export const selectAdminsLoading = (state) =>
+  state.superAdmin.loading;
+
+export const selectAdminsError = (state) =>
+  state.superAdmin.error;

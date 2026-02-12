@@ -1,117 +1,43 @@
 // region imports
 import { mongoose, isValidObjectId } from "mongoose";
-import { VALIDATION_MESSAGES, ROLE } from "../../utils/index.js";
+import {
+  VALIDATION_MESSAGES,
+  ROLE,
+  VALID_DEPARTMENTS,
+} from "../../utils/index.js";
 // endregion
 
-// region general validation utilities
-const isEmpty = (value) => {
-  if (value === undefined || value === null) return true;
-  if (value === "") return true;
-  if (
-    typeof value === "object" &&
-    !Array.isArray(value) &&
-    Object.keys(value).length === 0
-  )
+// region helpers
+const isFalshy = (value = "") => {
+  // null or undefined
+  if (value === null || value === undefined) {
     return true;
-  if (Array.isArray(value) && value.length === 0) return true;
-  return false;
-};
-
-const isFalsyOrInvalid = (value) => {
-  // Explicit falsy checks
-  if (value === undefined || value === null) return true;
-  if (value === "" || value === false) return true;
-  if (typeof value === "number" && (value === 0 || isNaN(value))) return true;
-
-  // Empty object check
-  if (typeof value === "object" && !Array.isArray(value)) {
-    return Object.keys(value).length === 0;
   }
 
-  // Empty array check
-  if (Array.isArray(value)) {
-    return value.length === 0;
+  // not a string
+  if (typeof value !== "string") {
+    return true;
+  }
+
+  // empty after trim
+  if (value.trim().length === 0) {
+    return true;
   }
 
   return false;
 };
-
-const validateRequired = (
-  value,
-  fieldName = "Field",
-  expectedType = "string",
-) => {
-  // Check for falsy/invalid values
-  if (isFalsyOrInvalid(value)) {
-    return `${fieldName} is required`;
-  }
-
-  // Type check
-  const actualType = Array.isArray(value) ? "array" : typeof value;
-  if (actualType !== expectedType) {
-    return `${fieldName} must be a ${expectedType}`;
-  }
-
-  return null;
-};
 // endregion
 
-// region name rules
-const NAME_REGEX = /^(?=.*[\p{L}\p{M}])[\p{L}\p{M}\d\s'-]+$/u; // Support Unicode letters & numbers, but at least one letter required
-const RESERVED_NAMES = [
-  "admin",
-  "root",
-  "system",
-  "null",
-  "undefined",
-  "administrator",
-  "superuser",
-  "moderator",
-  "owner",
-  "support",
-  "help",
-  "service",
-  "bot",
-  "api",
-  "test",
-  "demo",
-  "guest",
-  "anonymous",
-  "user",
-  "default",
-  "public",
-  "private",
-  "internal",
-  "external",
-];
-// endregion
-
-// region validate Name
+// region validate name
 const validateName = (value = "") => {
-  // Use general validation utility for falsy check
-  if (isFalsyOrInvalid(value)) {
+  //required check
+  if (isFalshy(value)) {
     return VALIDATION_MESSAGES?.NAME_REQUIRED || "Name is required";
   }
 
-  // STRICT TYPE CHECK - prevent type coercion
-  if (typeof value !== "string") {
-    return VALIDATION_MESSAGES?.NAME_STRING || "Name must be a string";
-  }
+  const name = value.trim();
 
-  // NORMALIZE AFTER TYPE IS CONFIRMED
-  const name = value?.trim?.() || "";
-
-  // EMPTY STRING CHECK after trimming
-  if (name?.length === 0) {
-    return VALIDATION_MESSAGES?.NAME_EMPTY || "Name cannot be empty";
-  }
-
-  // RESERVED WORD CHECK (business rule)
-  if (RESERVED_NAMES?.includes?.(name?.toLowerCase?.())) {
-    return VALIDATION_MESSAGES?.NAME_RESERVED || "This name is reserved";
-  }
-
-  // EXCESSIVE SPACES CHECK
+  //multiple spaces
   if (/\s{2,}/.test(name)) {
     return (
       VALIDATION_MESSAGES?.NAME_SPACES ||
@@ -119,7 +45,7 @@ const validateName = (value = "") => {
     );
   }
 
-  // LEADING/TRAILING SPECIAL CHARS CHECK
+  //leading or trailing special chars
   if (/^[-']|[-']$/.test(name)) {
     return (
       VALIDATION_MESSAGES?.NAME_SPECIAL_START ||
@@ -127,24 +53,25 @@ const validateName = (value = "") => {
     );
   }
 
-  // PATTERN CHECK - allow international characters
+  //pattern check
+  const NAME_REGEX = /^(?=.*[\p{L}\p{M}])[\p{L}\p{M}\d\s'-]+$/u;
   if (!NAME_REGEX.test(name)) {
     return (
       VALIDATION_MESSAGES?.NAME_PATTERN || "Name contains invalid characters"
     );
   }
 
-  // MINIMUM WORD LENGTH CHECK
-  const words = name?.split?.(/\s+/) || [];
-  if (words?.some?.((w) => (w?.length || 0) < 1)) {
+  //word length check
+  const words = name.split(/\s+/);
+  if (words.some((w) => w.length < 2)) {
     return (
       VALIDATION_MESSAGES?.NAME_WORD_LENGTH ||
       "Each part of the name must be at least 2 characters"
     );
   }
 
-  // LENGTH CHECK (last)
-  if (name?.length < 3 || name?.length > 50) {
+  //total length
+  if (name.length < 3 || name.length > 50) {
     return (
       VALIDATION_MESSAGES?.NAME_LENGTH_INVALID || "Name must be 3–50 characters"
     );
@@ -154,178 +81,77 @@ const validateName = (value = "") => {
 };
 // endregion
 
-// region email rules
-const DISPOSABLE_DOMAINS = [
-  "tempmail.com",
-  "guerrillamail.com",
-  "10minutemail.com",
-  "throwaway.email",
-  "mailinator.com",
-  "trashmail.com",
-  "temp-mail.org",
-  "fakeinbox.com",
-  "sharklasers.com",
-];
-
-const COMMON_DOMAIN_TYPOS = {
-  "gmial.com": "gmail.com",
-  "gmai.com": "gmail.com",
-  "gmil.com": "gmail.com",
-  "yahooo.com": "yahoo.com",
-  "yaho.com": "yahoo.com",
-  "hotmial.com": "hotmail.com",
-  "hotmil.com": "hotmail.com",
-  "outlok.com": "outlook.com",
-};
-// endregion
-
-// region validate Email
-const validateEmail = (value = "") => {
-  // Use general validation utility for falsy check
-  if (isFalsyOrInvalid(value)) {
+// region validate email
+const validateEmail = (value = "", role = "employee") => {
+  //required check
+  if (isFalshy(value)) {
     return VALIDATION_MESSAGES?.EMAIL_REQUIRED || "Email is required";
   }
 
-  // STRICT TYPE CHECK - prevent type coercion
-  if (typeof value !== "string") {
-    return VALIDATION_MESSAGES?.EMAIL_STRING || "Email must be a string";
-  }
+  const email = value.trim().toLowerCase();
 
-  // NORMALIZE
-  const email = value?.trim?.()?.toLowerCase?.() || "";
-
-  // EMPTY STRING CHECK after trimming
-  if (email?.length === 0) {
-    return VALIDATION_MESSAGES?.EMAIL_EMPTY || "Email cannot be empty";
-  }
-
-  // MAX LENGTH CHECK (RFC 5321)
-  if (email?.length > 254) {
+  //max length
+  if (email.length > 254) {
     return VALIDATION_MESSAGES?.EMAIL_LONG || "Email is too long";
   }
 
-  // FORMAT CHECK - more comprehensive regex
+  //format check
   const emailRegex =
-    /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
+    /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@[a-z0-9-]+(?:\.[a-z0-9-]+)*\.[a-z]{2,}$/;
+
   if (!emailRegex.test(email)) {
-    return VALIDATION_MESSAGES?.EMAIL_FORMAT || "Invalid email format";
+    if (role === "admin") {
+      return "Invalid email (e.g., admin@spanadmin.com)";
+    }
+
+    if (role === "employee") {
+      return "Invalid email (e.g., employee@spanemployee.com)";
+    }
+
+    return "Invalid email (e.g., xx@span[role].com)";
   }
 
-  // EXTRACT DOMAIN
-  const domain = email?.split?.("@")?.[1] ?? "";
+  const domain = email.split("@")[1] || "";
 
-  // DISPOSABLE EMAIL CHECK
-  if (DISPOSABLE_DOMAINS?.includes?.(domain)) {
-    return (
-      VALIDATION_MESSAGES?.EMAIL_DISPOSABLE ||
-      "Disposable email addresses are not allowed"
-    );
+  if (
+    [ROLE?.SUPER_ADMIN, ROLE?.ADMIN].includes(role) &&
+    domain !== "spanadmin.com"
+  ) {
+    return "Admins must use @spanadmin.com email addresses";
   }
 
-  // COMMON TYPO CHECK
-  if (COMMON_DOMAIN_TYPOS?.[domain]) {
-    const suggestedEmail = `${email?.split?.("@")?.[0] || ""}@${COMMON_DOMAIN_TYPOS[domain]}`;
-    return (
-      (
-        VALIDATION_MESSAGES?.EMAIL_TYPO_SUGGESTION || "Did you mean {email}?"
-      )?.replace?.("{email}", suggestedEmail) || "Check for domain typos"
-    );
+  if (role === ROLE?.EMPLOYEE && domain !== "spanemployee.com") {
+    return "Employees must use @spanemployee.com email addresses";
   }
 
   return null;
 };
 // endregion
 
-// endregion
-
-// region validate Email Domain
-const validateEmailDomain = ({ email = "", role = "employee" }) => {
-  if (!email) return null; // content presence checked elsewhere
-
-  const domain = email.split("@")[1]?.toLowerCase();
-
-  if (role === ROLE.SUPER_ADMIN || role === ROLE.ADMIN) {
-    if (domain !== "spanadmin.com") {
-      return `Admins must use @spanadmin.com email addresses`;
-    }
-  } else if (role === ROLE.EMPLOYEE) {
-    if (domain !== "spanemployee.com") {
-      return `Employees must use @spanemployee.com email addresses`;
-    }
-  }
-
-  return null;
-};
-// endregion
-
-// region password rules
-const COMMON_PASSWORDS = [
-  "password",
-  "password123",
-  "12345678",
-  "qwerty",
-  "abc123",
-  "monkey",
-  "letmein",
-  "trustno1",
-  "dragon",
-  "baseball",
-  "iloveyou",
-  "master",
-  "sunshine",
-  "ashley",
-  "bailey",
-  "passw0rd",
-  "shadow",
-  "superman",
-  "qazwsx",
-  "michael",
-  "football",
-  "welcome",
-  "jesus",
-  "ninja",
-  "mustang",
-  "password1",
-  "admin",
-  "admin123",
-  "root",
-  "toor",
-];
-// endregion
-
-// region validate Password
+// region validate password
 const validatePassword = (value = "", context = {}) => {
-  // Use general validation utility for falsy check
-  if (isFalsyOrInvalid(value)) {
+  //required check
+  if (isFalshy(value)) {
     return VALIDATION_MESSAGES?.PASSWORD_REQUIRED || "Password is required";
   }
 
-  // STRICT TYPE CHECK - prevent type coercion
   if (typeof value !== "string") {
     return VALIDATION_MESSAGES?.PASSWORD_STRING || "Password must be a string";
   }
 
-  // DO NOT TRIM PASSWORD - preserve intentional spaces
   const password = value || "";
 
-  // EMPTY STRING CHECK
-  if (password?.length === 0) {
-    return VALIDATION_MESSAGES?.PASSWORD_EMPTY || "Password cannot be empty";
-  }
-
-  // LENGTH CHECKS
-  if (password?.length < 8) {
+  if (password.length < 8) {
     return (
       VALIDATION_MESSAGES?.PASSWORD_MIN_LENGTH ||
       "Password must be at least 8 characters"
     );
   }
 
-  if (password?.length > 128) {
+  if (password.length > 128) {
     return VALIDATION_MESSAGES?.PASSWORD_MAX_LENGTH || "Password is too long";
   }
 
-  // COMPLEXITY RULES - require all character types
   if (!/[a-z]/.test(password)) {
     return (
       VALIDATION_MESSAGES?.PASSWORD_LOWERCASE ||
@@ -346,24 +172,13 @@ const validatePassword = (value = "", context = {}) => {
     );
   }
 
-  if (!/[@$!%*?&#^()_+=\-\[\]{}|\\:;"'<>,.\/]/.test(password)) {
+  if (!/[@$!%*?&#^()_+=\-[\]{}|\\:;"'<>,./]/.test(password)) {
     return (
       VALIDATION_MESSAGES?.PASSWORD_SPECIAL ||
       "Password must contain a special character"
     );
   }
 
-  // COMMON PASSWORD CHECK
-  const passwordLower = password?.toLowerCase?.() || "";
-  for (const common of COMMON_PASSWORDS) {
-    if (passwordLower?.includes?.(common)) {
-      return (
-        VALIDATION_MESSAGES?.PASSWORD_COMMON || "This password is too common"
-      );
-    }
-  }
-
-  // REPEATED CHARACTERS CHECK
   if (/(.)\1{2,}/.test(password)) {
     return (
       VALIDATION_MESSAGES?.PASSWORD_REPEAT ||
@@ -371,81 +186,38 @@ const validatePassword = (value = "", context = {}) => {
     );
   }
 
-  // CONTEXT CHECKS (SAFE) - prevent password containing user info
-  const nameSafe =
-    typeof context?.Name === "string"
-      ? context?.Name?.toLowerCase?.()?.trim?.() || ""
-      : null;
-  const emailSafe =
-    typeof context?.Email === "string"
-      ? context?.Email?.toLowerCase?.()?.split?.("@")?.[0] || ""
-      : null;
-
-  if (
-    nameSafe &&
-    nameSafe?.length >= 3 &&
-    passwordLower?.includes?.(nameSafe)
-  ) {
-    return (
-      VALIDATION_MESSAGES?.PASSWORD_NAME_CONTAIN ||
-      "Password cannot contain your name"
-    );
-  }
-
-  if (
-    emailSafe &&
-    emailSafe?.length >= 3 &&
-    passwordLower?.includes?.(emailSafe)
-  ) {
-    return (
-      VALIDATION_MESSAGES?.PASSWORD_EMAIL_CONTAIN ||
-      "Password cannot contain your email username"
-    );
-  }
-
   return null;
 };
 // endregion
 
-// region validate Age
-const validateAge = (value) => {
-  // FALSY VALUE CHECK - but allow 0 as valid age (though unrealistic)
-  if (
-    value === undefined ||
-    value === null ||
-    value === "" ||
-    value === false
-  ) {
+// region validate age
+const validateAge = (value = "") => {
+  if (isFalshy(value)) {
     return VALIDATION_MESSAGES?.AGE_REQUIRED || "Age is required";
   }
 
-  // STRICT TYPE CHECK - prevent type coercion from strings
-  if (typeof value !== "number") {
-    return VALIDATION_MESSAGES?.AGE_STRING || "Age must be a number";
+  let age = value;
+  if (typeof value === "string") {
+    age = Number(value.trim());
   }
 
-  // NaN CHECK
-  if (Number?.isNaN?.(value)) {
+  if (typeof age !== "number" || Number.isNaN(age)) {
     return VALIDATION_MESSAGES?.AGE_VALID || "Age must be a valid number";
   }
 
-  // INFINITY CHECK
-  if (!Number?.isFinite?.(value)) {
+  if (!Number.isFinite(age)) {
     return VALIDATION_MESSAGES?.AGE_FINITE || "Age must be a finite number";
   }
 
-  // INTEGER CHECK
-  if (!Number?.isInteger?.(value)) {
+  if (!Number.isInteger(age)) {
     return VALIDATION_MESSAGES?.AGE_WHOLE || "Age must be a whole number";
   }
 
-  // MINIMUM AGE CHECK
-  if (value < 18) {
+  if (age < 18) {
     return VALIDATION_MESSAGES?.AGE_MIN || "You must be at least 18 years old";
   }
 
-  // MAXIMUM AGE CHECK (realistic limit)
-  if (value > 65) {
+  if (age > 65) {
     return (
       VALIDATION_MESSAGES?.AGE_MAX || "Please enter a valid age (within 65)"
     );
@@ -455,172 +227,312 @@ const validateAge = (value) => {
 };
 // endregion
 
-// region validate Role
+// region validate role
 const validateRole = (value = "employee") => {
-  //  REQUIRED
-  if (value === undefined || value === null) {
+  if (isFalshy(value)) {
     return VALIDATION_MESSAGES?.ROLE_REQUIRED || "Role is required";
   }
 
-  //  TYPE CHECK
   if (typeof value !== "string") {
     return VALIDATION_MESSAGES?.ROLE_STRING || "Role must be a string";
   }
 
-  //  ALLOWED VALUES
-  const allowed = [ROLE.SUPER_ADMIN, ROLE.ADMIN, ROLE.EMPLOYEE];
-  if (!allowed?.includes?.(value)) {
+  const allowedRoles = [ROLE?.SUPER_ADMIN, ROLE?.ADMIN, ROLE?.EMPLOYEE];
+  if (!allowedRoles.includes(value)) {
     return VALIDATION_MESSAGES?.ROLE_INVALID || "Invalid role";
   }
 
   return null;
 };
+// endregion
 
-/**
- * Validates Department name.
- */
+// region validate department
 const validateDepartment = (value = "") => {
-  if (!value || value?.trim?.()?.length === 0) {
+  if (isFalshy(value)) {
     return VALIDATION_MESSAGES?.DEPARTMENT_REQUIRED || "Department is required";
   }
+
   if (typeof value !== "string") {
     return (
       VALIDATION_MESSAGES?.DEPARTMENT_STRING || "Department must be a string"
     );
   }
+
+  const department = value.trim();
+
+  if (!VALID_DEPARTMENTS?.includes(department)) {
+    return (
+      VALIDATION_MESSAGES?.DEPARTMENT_INVALID ||
+      "Please select a valid department"
+    );
+  }
+
   return null;
 };
+// endregion
 
-/**
- * Validates Phone number. (Basic format check)
- */
+// region validate phone
 const validatePhone = (value = "") => {
-  if (!value || value?.trim?.()?.length === 0) {
+  if (isFalshy(value)) {
     return VALIDATION_MESSAGES?.PHONE_REQUIRED || "Phone number is required";
   }
+
   if (typeof value !== "string") {
     return VALIDATION_MESSAGES?.PHONE_STRING || "Phone number must be a string";
   }
-  // Basic regex for phone (digits, spaces, plus, hyphens)
-  const phoneRegex = /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/;
-  if (!phoneRegex.test(value.trim())) {
+
+  const phone = value.trim();
+
+  if (phone.length < 7 || phone.length > 15) {
+    return VALIDATION_MESSAGES?.PHONE_LENGTH || "Invalid phone number length";
+  }
+
+  const phoneRegex = /^\+?[0-9\s-]{7,15}$/;
+  if (!phoneRegex.test(phone)) {
     return VALIDATION_MESSAGES?.PHONE_FORMAT || "Invalid phone format";
-  }
-  return null;
-};
-
-/**
- * Validates Address object.
- * Expects camelCase fields from API: line1, city, state, zipCode
- */
-const validateAddress = (value = {}) => {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return VALIDATION_MESSAGES?.ADDRESS_REQUIRED || "Address is required";
-  }
-
-  const { line1, city, state, zipCode } = value;
-
-  if (!line1 || line1?.trim?.()?.length === 0) {
-    return (
-      VALIDATION_MESSAGES?.ADDRESS_LINE1_REQUIRED ||
-      "Address line 1 is required"
-    );
-  }
-  if (!city || city?.trim?.()?.length === 0) {
-    return VALIDATION_MESSAGES?.CITY_REQUIRED || "City is required";
-  }
-  if (!state || state?.trim?.()?.length === 0) {
-    return VALIDATION_MESSAGES?.STATE_REQUIRED || "State is required";
-  }
-  if (!zipCode || zipCode?.trim?.()?.length === 0) {
-    return VALIDATION_MESSAGES?.ZIPCODE_REQUIRED || "Zip code is required";
   }
 
   return null;
 };
 // endregion
 
-// region validate ObjectId
-/**
- * Validates MongoDB ObjectId strings.
- */
+// region validate address
+const validateAddress = (value = {}) => {
+  const errors = {};
+
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {
+      address: VALIDATION_MESSAGES?.ADDRESS_REQUIRED || "Address is required",
+    };
+  }
+
+  const { line1 = "", city = "", state = "", zipCode = "" } = value || {};
+
+  if (isFalshy(line1)) {
+    errors.line1 =
+      VALIDATION_MESSAGES?.ADDRESS_LINE1_REQUIRED ||
+      "Address line 1 is required";
+  }
+
+  if (isFalshy(city)) {
+    errors.city = VALIDATION_MESSAGES?.CITY_REQUIRED || "City is required";
+  }
+
+  if (isFalshy(state)) {
+    errors.state = VALIDATION_MESSAGES?.STATE_REQUIRED || "State is required";
+  }
+
+  if (isFalshy(zipCode)) {
+    errors.zipCode =
+      VALIDATION_MESSAGES?.ZIPCODE_REQUIRED || "Zip code is required";
+  } else {
+    const zip = zipCode.trim();
+    if (!/^[0-9]{4,10}$/.test(zip)) {
+      errors.zipCode =
+        VALIDATION_MESSAGES?.ZIPCODE_FORMAT || "Invalid zip code";
+    }
+  }
+
+  return Object.keys(errors).length ? errors : null;
+};
+// endregion
+
+// region validate object id
 const validateObjectId = (value = "") => {
-  // Use general validation utility for falsy check
-  if (isFalsyOrInvalid(value)) {
+  if (isFalshy(value)) {
     return "ID is required";
   }
+
   if (!isValidObjectId(value)) {
     return "Invalid object id";
   }
+
   return null;
 };
 // endregion
 
-// region validate Salary
-const validateSalary = (value) => {
-  if (value === undefined || value === null || value === "") return null; // optional
-  if (typeof value !== "number" || value < 0) {
-    return "Salary must be a non-negative number";
+// region validate salary
+const validateSalary = (value = "") => {
+  if (isFalshy(value)) {
+    return "Salary is required";
   }
+
+  if (typeof value !== "string") {
+    return VALIDATION_MESSAGES?.SALARY_STRING || "Salary must be a string";
+  }
+
+  const salary = value.trim();
+
+  if (salary.length === 0) {
+    return null;
+  }
+
+  if (!/^\d+(\.\d+)?$/.test(salary)) {
+    return (
+      VALIDATION_MESSAGES?.SALARY_FORMAT ||
+      "Salary must be a valid non-negative number"
+    );
+  }
+
+  const num = Number(salary);
+
+  if (Number.isNaN(num)) {
+    return VALIDATION_MESSAGES?.SALARY_VALID || "Salary must be a valid number";
+  }
+
+  if (!Number.isFinite(num)) {
+    return (
+      VALIDATION_MESSAGES?.SALARY_FINITE || "Salary must be a finite number"
+    );
+  }
+
+  if (num < 0) {
+    return (
+      VALIDATION_MESSAGES?.SALARY_MIN || "Salary must be a non-negative number"
+    );
+  }
+
   return null;
 };
 // endregion
 
-// region validate Joining Date
-const validateJoiningDate = (value) => {
-  if (!value) return null; // optional
-
-  // Expecting YYYY-MM-DD format from <input type="date">
-  const [year, month, day] = value.split("-").map(Number);
-
-  if (!day || !month || !year) {
-    return "Joining date must be in YYYY-MM-DD format";
+// region validate joining date
+const validateJoiningDate = (value = "") => {
+  if (isFalshy(value)) {
+    return "Joining date is required";
   }
 
-  // Check ranges
-  if (year < 1900 || year > 2100) return "Joining year is invalid";
-  if (month < 1 || month > 12) return "Joining month is invalid";
-  if (day < 1 || day > 31) return "Joining day is invalid";
+  if (typeof value !== "string") {
+    return (
+      VALIDATION_MESSAGES?.JOINING_DATE_STRING ||
+      "Joining date must be a string"
+    );
+  }
 
-  // Handle month-specific day limits (including leap years)
+  const dateStr = value.trim();
+
+  if (dateStr.length === 0) {
+    return null;
+  }
+
+  if (!/^\d{2}-\d{2}-\d{4}$/.test(dateStr)) {
+    return (
+      VALIDATION_MESSAGES?.JOINING_DATE_FORMAT ||
+      "Joining date must be in DD-MM-YYYY format"
+    );
+  }
+
+  const [day, month, year] = dateStr.split("-").map(Number);
+
+  if (year < 1900 || year > 2100) {
+    return VALIDATION_MESSAGES?.JOINING_DATE_YEAR || "Joining year is invalid";
+  }
+
+  if (month < 1 || month > 12) {
+    return (
+      VALIDATION_MESSAGES?.JOINING_DATE_MONTH || "Joining month is invalid"
+    );
+  }
+
   const monthDays = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
   let maxDay = monthDays[month - 1];
 
-  // Leap year check for February
   if (month === 2) {
     if ((year % 4 === 0 && year % 100 !== 0) || year % 400 === 0) {
       maxDay = 29;
     }
   }
 
-  if (day > maxDay) return "Joining day is invalid for the given month/year";
+  if (day < 1 || day > maxDay) {
+    return (
+      VALIDATION_MESSAGES?.JOINING_DATE_INVALID ||
+      "Joining day is invalid for the given month/year"
+    );
+  }
 
   return null;
 };
 // endregion
 
+// region validate reporting manager
+const validateReportingManager = (value = "") => {
+  if (isFalshy(value)) {
+    return "Reporting manager is required";
+  }
 
-// region validate Reporting Manager
-const validateReportingManager = (value) => {
-  if (!value) return null;
   if (typeof value !== "string") {
-    return "Reporting Manager must be a string";
+    return (
+      VALIDATION_MESSAGES?.REPORTING_MANAGER_STRING ||
+      "Reporting Manager must be a string"
+    );
   }
-  if (value.length < 3 || value.length > 50) {
-    return "Reporting Manager must between 3 - 50 characters";
+
+  const name = value.trim();
+
+  if (name.length === 0) {
+    return null;
+  }
+
+  if (name.length < 3 || name.length > 50) {
+    return (
+      VALIDATION_MESSAGES?.REPORTING_MANAGER_LENGTH ||
+      "Reporting Manager must be between 3 - 50 characters"
+    );
   }
 
   return null;
 };
 // endregion
 
-// region validate Employee Code
-const validateEmployeeCode = (value) => {
-  if (!value) return null; // optional
-  const EMP_CODE_REGEX = /^EMP\d{3,7}$/;
-  if (!EMP_CODE_REGEX.test(value)) {
-    return "Invalid Employee Code (format: EMP001, EMP1234)";
+// region validate employee code
+const validateEmployeeCode = (value = "") => {
+  if (isFalshy(value)) {
+    return "Employee code is required";
   }
+
+  if (typeof value !== "string") {
+    return (
+      VALIDATION_MESSAGES?.EMPLOYEE_CODE_STRING ||
+      "Employee Code must be a string"
+    );
+  }
+
+  const code = value.trim().toUpperCase();
+  const EMP_CODE_REGEX = /^EMP\d{3,7}$/;
+
+  if (!EMP_CODE_REGEX.test(code)) {
+    return (
+      VALIDATION_MESSAGES?.EMPLOYEE_CODE_FORMAT ||
+      "Invalid Employee Code (format: EMP001, EMP1234)"
+    );
+  }
+
+  return null;
+};
+// endregion
+
+// region validate admin code
+const validateAdminCode = (value = "") => {
+  if (isFalshy(value)) {
+    return "Admin code is required";
+  }
+
+  if (typeof value !== "string") {
+    return (
+      VALIDATION_MESSAGES?.ADMIN_CODE_STRING || "Admin Code must be a string"
+    );
+  }
+
+  const code = value.trim().toUpperCase();
+  const ADMIN_CODE_REGEX = /^ADMIN\d{2,6}$/;
+
+  if (!ADMIN_CODE_REGEX.test(code)) {
+    return (
+      VALIDATION_MESSAGES?.ADMIN_CODE_FORMAT ||
+      "Invalid Admin Code (format: ADMIN23, ADMIN001, ADMIN9999)"
+    );
+  }
+
   return null;
 };
 // endregion
@@ -636,10 +548,10 @@ export {
   validateDepartment,
   validatePhone,
   validateAddress,
-  validateEmailDomain,
   validateSalary,
   validateJoiningDate,
   validateReportingManager,
   validateEmployeeCode,
+  validateAdminCode,
 };
 // endregion

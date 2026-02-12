@@ -1,67 +1,115 @@
-import { connectDB } from '../config/index.js';
-import User from '../models/user/userModel.js';
-import Admin from '../models/admin/adminModel.js';
-import { ROLE } from '../utils/constants/constants.js';
-import chalk from 'chalk';
+// region imports
+//  config
+import { connectDB } from "../config/index.js";
 
+//  models
+import User from "../models/user/userModel.js";
+import Admin from "../models/admin/adminModel.js";
+
+//  utils
+import { ROLE } from "../utils/constants/constants.js";
+
+//  libs
+import chalk from "chalk";
+// endregion
+
+
+// region seed data
 const adminsData = [
-    { name: 'Admin One', email: 'admin1@spanadmin.com' },
-    { name: 'Admin Two', email: 'admin2@spanadmin.com' },
-    { name: 'Admin Three', email: 'admin3@spanadmin.com' },
-    { name: 'Admin Four', email: 'admin4@spanadmin.com' },
-    { name: 'Admin Five', email: 'admin5@spanadmin.com' },
-    { name: 'Admin Six', email: 'admin6@spanadmin.com' },
-    { name: 'Admin Seven', email: 'admin7@spanadmin.com' },
-    { name: 'Admin Eight', email: 'admin8@spanadmin.com' },
-    { name: 'Admin Nine', email: 'admin9@spanadmin.com' },
-    { name: 'Admin Ten', email: 'admin10@spanadmin.com' },
+  { name: "Admin One", email: "admin1@spanadmin.com" },
+  { name: "Admin Two", email: "admin2@spanadmin.com" },
+  { name: "Admin Three", email: "admin3@spanadmin.com" },
+  { name: "Admin Four", email: "admin4@spanadmin.com" },
+  { name: "Admin Five", email: "admin5@spanadmin.com" },
+  { name: "Admin Six", email: "admin6@spanadmin.com" },
+  { name: "Admin Seven", email: "admin7@spanadmin.com" },
+  { name: "Admin Eight", email: "admin8@spanadmin.com" },
+  { name: "Admin Nine", email: "admin9@spanadmin.com" },
+  { name: "Admin Ten", email: "admin10@spanadmin.com" },
 ];
+// endregion
 
+
+// region seed admins
 const seedAdmins = async () => {
-    try {
-        await connectDB();
+  try {
+    //connect database
+    await connectDB();
 
-        console.log(chalk.blue('Cleaning up existing Admins...'));
-        const existingAdmins = await User.find({ Role: ROLE.ADMIN });
-        const userIds = existingAdmins.map(u => u.User_Id);
+    console.log(chalk.blue("Cleaning up existing Admins..."));
 
-        await Admin.deleteMany({ User_Id: { $in: userIds } });
-        await User.deleteMany({ User_Id: { $in: userIds } });
+    //fetch existing admins
+    const existingAdmins =
+      (await User.find({ Role: ROLE?.ADMIN || "ADMIN" })) || [];
 
-        console.log(chalk.blue('Starting Admin Seeding...'));
+    const userIds =
+      existingAdmins?.map((u) => u?.User_Id || null) || [];
 
-        for (const admin of adminsData) {
-            let user = await User.findOne({ Email: admin.email });
+    //delete existing admin profiles
+    await Admin.deleteMany({
+      User_Id: { $in: userIds || [] },
+    });
 
-            if (user) {
-                console.log(chalk.yellow(`Admin ${admin.name} already exists. Skipping...`));
-            } else {
-                console.log(chalk.green(`Creating Admin: ${admin.name}...`));
-                user = new User({
-                    Name: admin.name,
-                    Email: admin.email,
-                    Password: 'Pass&135',
-                    Role: ROLE.ADMIN,
-                });
-                await user.save();
+    //delete existing users
+    await User.deleteMany({
+      User_Id: { $in: userIds || [] },
+    });
 
-                const adminEntry = new Admin({
-                    User_Id: user.User_Id,
-                });
-                await adminEntry.save();
-            }
-        }
+    console.log(chalk.blue("Starting Admin Seeding..."));
 
-        console.log(chalk.blue('--------------------------------'));
-        console.log(chalk.blue('Admins Seeded Successfully!'));
-        console.log(chalk.blue('Default Password: Pass&135'));
-        console.log(chalk.blue('--------------------------------'));
+    //loop seed data
+    for (const admin of adminsData || []) {
+      //check existing user
+      let user =
+        (await User.findOne({ Email: admin?.email || "" })) || null;
 
-        process.exit(0);
-    } catch (error) {
-        console.error(chalk.red('Error seeding Admins:'), error);
-        process.exit(1);
+      if (user) {
+        console.log(
+          chalk.yellow(
+            `Admin ${admin?.name || ""} already exists. Skipping...`
+          )
+        );
+      } else {
+        console.log(
+          chalk.green(`Creating Admin: ${admin?.name || ""}...`)
+        );
+
+        //create user
+        user = new User({
+          Name: admin?.name || "",
+          Email: admin?.email || "",
+          Password: "Pass&135",
+          Role: ROLE?.ADMIN || "ADMIN",
+        });
+
+        await user.save();
+
+        //create admin profile
+        const adminEntry = new Admin({
+          User_Id: user?.User_Id || null,
+        });
+
+        await adminEntry.save();
+      }
     }
-};
 
+    console.log(chalk.blue("--------------------------------"));
+    console.log(chalk.blue("Admins Seeded Successfully!"));
+    console.log(chalk.blue("Default Password: Pass&135"));
+    console.log(chalk.blue("--------------------------------"));
+
+    process.exit(0);
+  } catch (error) {
+    console.error(
+      chalk.red("Error seeding Admins:"),
+      error || ""
+    );
+    process.exit(1);
+  }
+};
+// endregion
+
+
+// region execute
 seedAdmins();
+// endregion

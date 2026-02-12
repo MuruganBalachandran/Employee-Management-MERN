@@ -1,50 +1,103 @@
 // region imports
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { createAdmin, deleteAdmin } from "../../services/";
-import { showToast } from "../../features";
+import {
+  fetchAdmins,
+  createAdmin,
+  updateAdmin,
+  deleteAdmin,
+  changeAdminPermission,
+} from "../../services";
 // endregion
 
 // region async thunks
-export const createNewAdmin = createAsyncThunk(
-  "superAdmin/createAdmin",
-  async (data = {}, { dispatch, rejectWithValue }) => {
+
+// fetch admins
+export const getAdmins = createAsyncThunk(
+  "superAdmin/getAdmins",
+  async (params = {}, { rejectWithValue }) => {
     try {
-      const res = await createAdmin(data || {});
-      dispatch(showToast({ message: "Admin created successfully!", type: "success" }));
-      return res || null;
+      return await fetchAdmins(params);
     } catch (err) {
-      const message = err?.response?.data?.message || "Failed to create admin";
-      dispatch(showToast({ message, type: "error" }));
-      return rejectWithValue(message);
+      return rejectWithValue(
+        err?.response?.data?.message || "Failed to fetch admins"
+      );
     }
   }
 );
 
-// region remove admin
-export const removeAdmin = createAsyncThunk(
-  "superAdmin/removeAdmin",
-  async (id = "", { dispatch, rejectWithValue }) => {
+// create admin
+export const addAdmin = createAsyncThunk(
+  "superAdmin/addAdmin",
+  async (data, { rejectWithValue }) => {
     try {
-      await deleteAdmin(id || "");
-      dispatch(showToast({ message: "Admin removed successfully", type: "success" }));
-      return id;
+      return await createAdmin(data);
     } catch (err) {
-      const message = err?.response?.data?.message || "Failed to delete admin";
-      dispatch(showToast({ message, type: "error" }));
-      return rejectWithValue(message);
+      return rejectWithValue(
+        err?.response?.data?.message || "Failed to create admin"
+      );
     }
   }
 );
+
+// update admin
+export const editAdmin = createAsyncThunk(
+  "superAdmin/editAdmin",
+  async ({ id, data }, { rejectWithValue }) => {
+    try {
+      return await updateAdmin(id, data);
+    } catch (err) {
+      return rejectWithValue(
+        err?.response?.data?.message || "Failed to update admin"
+      );
+    }
+  }
+);
+
+// delete admin
+export const removeAdmin = createAsyncThunk(
+  "superAdmin/removeAdmin",
+  async (id, { rejectWithValue }) => {
+    try {
+      await deleteAdmin(id);
+      return id;
+    } catch (err) {
+      return rejectWithValue(
+        err?.response?.data?.message || "Failed to delete admin"
+      );
+    }
+  }
+);
+
+// change admin permission
+export const updateAdminPermission = createAsyncThunk(
+  "superAdmin/updateAdminPermission",
+  async ({ id, permission }, { rejectWithValue }) => {
+    try {
+      return await changeAdminPermission(id, permission);
+    } catch (err) {
+      return rejectWithValue(
+        err?.response?.data?.message ||
+          "Failed to update admin permission"
+      );
+    }
+  }
+);
+
+// endregion
+
+// region initial state
+const initialState = {
+  list: [],
+  total: 0,
+  loading: false,
+  error: null,
+};
 // endregion
 
 // region slice
 const superAdminSlice = createSlice({
   name: "superAdmin",
-  initialState: {
-    loading: false,
-    error: null,
-
-  },
+  initialState,
   reducers: {
     clearSuperAdminError: (state) => {
       state.error = null;
@@ -52,38 +105,59 @@ const superAdminSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // region createAdmin cases
-      .addCase(createNewAdmin.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(createNewAdmin.fulfilled, (state) => {
-        state.loading = false;
-      })
-      .addCase(createNewAdmin.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload || "Unknown error";
-      })
-      // endregion
 
-      // region removeAdmin cases
-      .addCase(removeAdmin.pending, (state) => {
+      // fetch admins
+      .addCase(getAdmins.pending, (state) => {
         state.loading = true;
-        state.error = null;
       })
-      .addCase(removeAdmin.fulfilled, (state) => {
+      .addCase(getAdmins.fulfilled, (state, action) => {
+        state.list = action.payload?.admins || [];
+        state.total = action.payload?.total || 0;
         state.loading = false;
       })
-      .addCase(removeAdmin.rejected, (state, action) => {
+      .addCase(getAdmins.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || "Unknown error";
+        state.error = action.payload;
+      })
+
+      // create admin
+      .addCase(addAdmin.fulfilled, (state, action) => {
+        state.list.unshift(action.payload);
+        state.total += 1;
+      })
+
+      // update admin
+      .addCase(editAdmin.fulfilled, (state, action) => {
+        state.list = state.list.map((admin) =>
+          admin._id === action.payload?._id
+            ? action.payload
+            : admin
+        );
+      })
+
+      // delete admin
+      .addCase(removeAdmin.fulfilled, (state, action) => {
+        state.list = state.list.filter(
+          (admin) => admin._id !== action.payload
+        );
+        state.total -= 1;
+      })
+
+      // change permission
+      .addCase(updateAdminPermission.fulfilled, (state, action) => {
+        state.list = state.list.map((admin) =>
+          admin._id === action.payload?._id
+            ? action.payload
+            : admin
+        );
       });
-      // endregion
   },
 });
 // endregion
 
 // region exports
-export const { clearSuperAdminError } = superAdminSlice.actions || {};
+export const { clearSuperAdminError } =
+  superAdminSlice.actions;
+
 export default superAdminSlice.reducer;
 // endregion

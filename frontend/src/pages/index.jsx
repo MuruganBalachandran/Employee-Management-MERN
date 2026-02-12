@@ -5,8 +5,6 @@ export {default as CreateEmployee} from "./Employees/CreateEmployee"
 export {default as EmployeeView} from "./Employees/EmployeeView"
 export {default as ViewEmployees} from "./Employees/ViewEmployees"
 export {default as Home} from "./common/Home"
-export {default as MyProfile} from "./common/MyProfile"
-export {default as EditProfile} from "./common/EditProfile"
 export {default as NotFound} from "./common/NotFound"
 export {default as CreateAdmin} from "./SuperAdmin/CreateAdmin"
 // endregion
