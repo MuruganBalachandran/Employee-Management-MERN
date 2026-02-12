@@ -9,6 +9,7 @@ const Input = ({
   name = "",
   value = "",
   onChange = () => {},
+  onBlur = () => {},
   type = "text",
   placeholder = "",
   error = "",
@@ -52,6 +53,7 @@ const Input = ({
             name={name}
             value={value ?? ""}
             onChange={onChange}
+            onBlur={onBlur}
             placeholder={placeholder}
             rows={rows}
             disabled={disabled}
@@ -63,6 +65,7 @@ const Input = ({
             name={name}
             value={value ?? ""}
             onChange={onChange}
+            onBlur={onBlur}
             disabled={disabled}
             className={inputClass}
           >
@@ -82,6 +85,7 @@ const Input = ({
             type={inputType}
             value={value ?? ""}
             onChange={onChange}
+            onBlur={onBlur}
             placeholder={placeholder}
             disabled={disabled}
             className={inputClass}

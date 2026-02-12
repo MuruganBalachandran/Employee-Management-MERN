@@ -1,19 +1,19 @@
 // base selector
-export const selectActivityLogsState = (state) => state.activityLogs;
+export const selectActivityLogsState = (state) => state.activityLog || {};
 
 // data selectors
-export const selectActivityLogs = (state) => state.activityLogs.list;
+export const selectActivityLogs = (state) => state.activityLog?.list || [];
 
-export const selectActivityLogsTotal = (state) => state.activityLogs.total;
+export const selectActivityLogsTotal = (state) => state.activityLog?.total || 0;
 
 // pagination selectors
 export const selectActivityLogsPagination = (state) => ({
-  page: state.activityLogs.currentPage,
-  limit: state.activityLogs.limit,
-  totalPages: state.activityLogs.totalPages,
+  page: state.activityLog?.currentPage || 1,
+  limit: state.activityLog?.limit || 20,
+  totalPages: state.activityLog?.totalPages || 1,
 });
 
 // ui selectors
-export const selectActivityLogsLoading = (state) => state.activityLogs.loading;
+export const selectActivityLogsLoading = (state) => state.activityLog?.loading || false;
 
-export const selectActivityLogsError = (state) => state.activityLogs.error;
+export const selectActivityLogsError = (state) => state.activityLog?.error || null;

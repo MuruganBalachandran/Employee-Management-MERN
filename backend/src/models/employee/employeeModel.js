@@ -89,9 +89,15 @@ const EmployeeSchema = new mongoose.Schema(
 
 // region indexes
 EmployeeSchema.index({ Employee_Id: 1 }, { unique: true });
-EmployeeSchema.index({ User_Id: 1 });
-EmployeeSchema.index({ Is_Deleted: 1 });
-EmployeeSchema.index({ Created_At: -1 });
+EmployeeSchema.index(
+  { Employee_Code: 1 },
+  { unique: true, partialFilterExpression: { Is_Deleted: 0 } },
+);
+EmployeeSchema.index({ User_Id: 1, Is_Deleted: 1 });
+EmployeeSchema.index({ Admin_Id: 1, Is_Deleted: 1 });
+EmployeeSchema.index({ Department: 1, Is_Deleted: 1 });
+EmployeeSchema.index({ Created_At: -1, Is_Deleted: 1 });
+EmployeeSchema.index({ Is_Active: 1, Is_Deleted: 1 });
 // endregion
 
 

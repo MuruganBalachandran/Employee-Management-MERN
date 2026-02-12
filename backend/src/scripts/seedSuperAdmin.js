@@ -57,14 +57,24 @@ const seedSuperAdmin = async () => {
     if (!adminEntry) {
       console.log(chalk.green("Creating entry in Admin collection..."));
 
-      //create admin entry
+      //create admin entry with GRANTED permissions (super admin always has permissions)
       const newAdmin = new Admin({
         User_Id: superAdmin?.User_Id || null,
+        Permissions: "GRANTED",
       });
 
       await newAdmin.save();
+
+      console.log(chalk.cyan("  → Permissions: GRANTED"));
     } else {
       console.log(chalk.yellow("Admin collection entry already exists."));
+
+      // Ensure super admin always has GRANTED permissions
+      if (adminEntry.Permissions !== "GRANTED") {
+        adminEntry.Permissions = "GRANTED";
+        await adminEntry.save();
+        console.log(chalk.cyan("  → Updated Permissions to: GRANTED"));
+      }
     }
 
     console.log(chalk.blue("--------------------------------"));

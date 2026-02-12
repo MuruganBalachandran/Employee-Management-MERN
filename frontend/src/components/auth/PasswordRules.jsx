@@ -5,7 +5,7 @@ import { passwordRules } from "../../validations/authValidation";
 
 // region PasswordRules component
 const PasswordRules = ({ password = "" }) => {
-  // derive rules
+  // region derive rules
   const rules = passwordRules(password || "") || {
     length: false,
     lowercase: false,
@@ -15,34 +15,37 @@ const PasswordRules = ({ password = "" }) => {
   };
   // endregion
 
-  // region Rule item sub-component
-  const Rule = ({ valid = false, label = "" }) => {
-    return (
-      <div className='d-flex align-items-center mb-1'>
-        {/* icon */}
-        <span className='me-2' style={{ color: valid ? "#28a745" : "#dc3545" }}>
-          {valid ? <FaCheck /> : <FaTimes />}
-        </span>
-        {/* text */}
-        <span style={{ color: valid ? "#28a745" : "#dc3545" }}>
-          {label || ""}
-        </span>
-      </div>
-    );
-  };
+  // region Rule item configuration
+  const ruleItems = [
+    { key: "length", label: "At least 8 characters" },
+    { key: "lowercase", label: "At least 1 lowercase" },
+    { key: "uppercase", label: "At least 1 uppercase" },
+    { key: "number", label: "At least 1 number" },
+    { key: "special", label: "At least 1 special character" },
+  ];
   // endregion
 
-  // region render
+  // region Rule item component
+  const Rule = ({ valid = false, label = "" }) => (
+    <div className='d-flex align-items-center mb-1'>
+      <span className='me-2' style={{ color: valid ? "#28a745" : "#dc3545" }}>
+        {valid ? <FaCheck /> : <FaTimes />}
+      </span>
+      <span style={{ color: valid ? "#28a745" : "#dc3545" }}>{label}</span>
+    </div>
+  );
+  // endregion
+
+  // region ui
   return (
     <div className='mt-2 small'>
-      <Rule valid={rules?.length || false} label='At least 8 characters' />
-      <Rule valid={rules?.lowercase || false} label='At least 1 lowercase' />
-      <Rule valid={rules?.uppercase || false} label='At least 1 uppercase' />
-      <Rule valid={rules?.number || false} label='At least 1 number' />
-      <Rule
-        valid={rules?.special || false}
-        label='At least 1 special character'
-      />
+      {ruleItems.map((item) => (
+        <Rule
+          key={item.key}
+          valid={rules?.[item.key] || false}
+          label={item.label}
+        />
+      ))}
     </div>
   );
   // endregion

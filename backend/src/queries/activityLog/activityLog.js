@@ -1,43 +1,45 @@
 // region imports
 import { ActivityLog } from "../../models/index.js";
+import { toObjectId, getFormattedDateTime } from "../../utils/index.js";
 // endregion
 
 // region createActivity logs
 
-const createActivityLog = async (payload = {})=>{
+const createActivityLog = async (payload = {}) => {
   try {
     const {
-      User_Id="",
-        Email="",
-        Action="",
-        URL="",
-        Status="",
-        IP="",
-        Duration="",
-        Created_At="",
-        Activity=""
-    }= payload || {};
+      User_Id = null,
+      Email = "",
+      Action = "",
+      URL = "",
+      Status = 0,
+      IP = "",
+      Duration = "",
+      Created_At = "",
+      Activity = "",
+    } = payload || {};
 
-    const activity =  await ActivityLog.create({
-        User_Id,
-        Email,
-        Action,
-        URL,
-        Status,
-        IP,
-        Duration,
-        Created_At,
-        Activity,
-      }).save();
+    const activity = await ActivityLog.create({
+      User_Id,
+      Email,
+      Action,
+      URL,
+      Status,
+      IP,
+      Duration,
+      Created_At,
+      Activity,
+    });
 
-      return activity;
-
+    return activity || null;
   } catch (err) {
-    throw new Error("Error while performing create activity log", (err?.message || ""));
+    throw new Error(
+      "Error while performing create activity log: " + (err?.message || ""),
+    );
   }
-}
+};
 // region fetch activity logs
-const getActivityLogs = async (limit = 20, skip = 0, search = "") => {
+const getActivityLogs = async (limit = 10, skip = 0, search = "") => {
   try {
     //build match
     const match = { Is_Deleted: 0 };
@@ -71,7 +73,7 @@ const getActivityLogs = async (limit = 20, skip = 0, search = "") => {
       },
       {
         $facet: {
-          logs: [{ $skip: skip || 0 }, { $limit: limit || 20 }],
+          logs: [{ $skip: skip || 0 }, { $limit: limit || 10 }],
           totalCount: [{ $count: "count" }],
         },
       },
@@ -86,9 +88,9 @@ const getActivityLogs = async (limit = 20, skip = 0, search = "") => {
       logs,
       total,
       skip: skip || 0,
-      limit: limit || 20,
-      currentPage: Math.floor((skip || 0) / (limit || 20)) + 1,
-      totalPages: Math.ceil(total / (limit || 20)),
+      limit: limit || 10,
+      currentPage: Math.floor((skip || 0) / (limit || 10)) + 1,
+      totalPages: Math.ceil(total / (limit || 10)),
     };
   } catch (err) {
     throw new Error("Error fetching activity logs: " + (err?.message || ""));
@@ -104,7 +106,7 @@ const deleteActivityLog = async (logId = "") => {
       return null;
     }
 
-    const objectId = new mongoose.Types.ObjectId(logId);
+    const objectId = toObjectId(logId);
 
     const deleted = await ActivityLog.findOneAndUpdate(
       { Log_Id: objectId, Is_Deleted: 0 },
@@ -126,7 +128,7 @@ const deleteActivityLog = async (logId = "") => {
 };
 // endregion
 // region exports
-export{
+export {
   createActivityLog,
   getActivityLogs,
   deleteActivityLog

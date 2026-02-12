@@ -11,74 +11,72 @@ import {
 
 // region async thunks
 
-// fetch admins
+// get admins
 export const getAdmins = createAsyncThunk(
   "superAdmin/getAdmins",
   async (params = {}, { rejectWithValue }) => {
     try {
-      return await fetchAdmins(params);
+      const response = await fetchAdmins(params || {});
+      return response || { admins: [], total: 0 };
     } catch (err) {
-      return rejectWithValue(
-        err?.response?.data?.message || "Failed to fetch admins"
-      );
+      // return error
+      return rejectWithValue(err?.response?.data?.message || "Failed to fetch admins");
     }
   }
 );
 
-// create admin
+// add admin
 export const addAdmin = createAsyncThunk(
   "superAdmin/addAdmin",
-  async (data, { rejectWithValue }) => {
+  async (data = {}, { rejectWithValue }) => {
     try {
-      return await createAdmin(data);
+      const response = await createAdmin(data || {});
+      return response || null;
     } catch (err) {
-      return rejectWithValue(
-        err?.response?.data?.message || "Failed to create admin"
-      );
+      // return error
+      return rejectWithValue(err?.response?.data?.message || "Failed to create admin");
     }
   }
 );
 
-// update admin
+// edit admin
 export const editAdmin = createAsyncThunk(
   "superAdmin/editAdmin",
-  async ({ id, data }, { rejectWithValue }) => {
+  async ({ id = "", data = {} }, { rejectWithValue }) => {
     try {
-      return await updateAdmin(id, data);
+      const response = await updateAdmin(id || "", data || {});
+      return response || null;
     } catch (err) {
-      return rejectWithValue(
-        err?.response?.data?.message || "Failed to update admin"
-      );
+      // return error
+      return rejectWithValue(err?.response?.data?.message || "Failed to update admin");
     }
   }
 );
 
-// delete admin
+// remove admin
 export const removeAdmin = createAsyncThunk(
   "superAdmin/removeAdmin",
-  async (id, { rejectWithValue }) => {
+  async (id = "", { rejectWithValue }) => {
     try {
-      await deleteAdmin(id);
-      return id;
+      await deleteAdmin(id || "");
+      return id || "";
     } catch (err) {
-      return rejectWithValue(
-        err?.response?.data?.message || "Failed to delete admin"
-      );
+      // return error
+      return rejectWithValue(err?.response?.data?.message || "Failed to delete admin");
     }
   }
 );
 
-// change admin permission
+// update permission
 export const updateAdminPermission = createAsyncThunk(
   "superAdmin/updateAdminPermission",
-  async ({ id, permission }, { rejectWithValue }) => {
+  async ({ id = "", permission = "" }, { rejectWithValue }) => {
     try {
-      return await changeAdminPermission(id, permission);
+      const response = await changeAdminPermission(id || "", permission || "");
+      return response || null;
     } catch (err) {
-      return rejectWithValue(
-        err?.response?.data?.message ||
-          "Failed to update admin permission"
-      );
+      // return error
+      return rejectWithValue(err?.response?.data?.message || "Failed to update admin permission");
     }
   }
 );
@@ -100,13 +98,13 @@ const superAdminSlice = createSlice({
   initialState,
   reducers: {
     clearSuperAdminError: (state) => {
+      // clear error
       state.error = null;
     },
   },
   extraReducers: (builder) => {
     builder
-
-      // fetch admins
+      // get admins
       .addCase(getAdmins.pending, (state) => {
         state.loading = true;
       })
@@ -117,38 +115,38 @@ const superAdminSlice = createSlice({
       })
       .addCase(getAdmins.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload || "";
       })
 
-      // create admin
+      // add admin
       .addCase(addAdmin.fulfilled, (state, action) => {
-        state.list.unshift(action.payload);
-        state.total += 1;
+        if (action.payload) {
+          state.list.unshift(action.payload);
+          state.total += 1;
+        }
       })
 
-      // update admin
+      // edit admin
       .addCase(editAdmin.fulfilled, (state, action) => {
+        const updated = action.payload || {};
         state.list = state.list.map((admin) =>
-          admin._id === action.payload?._id
-            ? action.payload
-            : admin
+          admin.Admin_Id === updated.Admin_Id ? updated : admin
         );
       })
 
-      // delete admin
+      // remove admin
       .addCase(removeAdmin.fulfilled, (state, action) => {
         state.list = state.list.filter(
-          (admin) => admin._id !== action.payload
+          (admin) => admin.Admin_Id !== action.payload
         );
         state.total -= 1;
       })
 
-      // change permission
+      // update permission
       .addCase(updateAdminPermission.fulfilled, (state, action) => {
+        const updated = action.payload || {};
         state.list = state.list.map((admin) =>
-          admin._id === action.payload?._id
-            ? action.payload
-            : admin
+          admin.Admin_Id === updated.Admin_Id ? updated : admin
         );
       });
   },
@@ -156,8 +154,6 @@ const superAdminSlice = createSlice({
 // endregion
 
 // region exports
-export const { clearSuperAdminError } =
-  superAdminSlice.actions;
-
+export const { clearSuperAdminError } = superAdminSlice.actions;
 export default superAdminSlice.reducer;
 // endregion

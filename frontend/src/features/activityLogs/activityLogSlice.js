@@ -8,33 +8,30 @@ import {
 
 // region async thunks
 
-// fetch activity logs
+// get activity logs
 export const getActivityLogs = createAsyncThunk(
   "activityLogs/getActivityLogs",
   async (params = {}, { rejectWithValue }) => {
     try {
-      return await fetchActivityLogs(params);
+      const response = await fetchActivityLogs(params || {});
+      return response || { logs: [], total: 0 };
     } catch (err) {
-      return rejectWithValue(
-        err?.response?.data?.message ||
-          "Failed to fetch activity logs"
-      );
+      // return error
+      return rejectWithValue(err?.response?.data?.message || "Failed to fetch activity logs");
     }
   }
 );
 
-// delete activity log
+// remove activity log
 export const removeActivityLog = createAsyncThunk(
   "activityLogs/removeActivityLog",
-  async (id, { rejectWithValue }) => {
+  async (id = "", { rejectWithValue }) => {
     try {
-      await deleteActivityLog(id);
-      return id;
+      await deleteActivityLog(id || "");
+      return id || "";
     } catch (err) {
-      return rejectWithValue(
-        err?.response?.data?.message ||
-          "Failed to delete activity log"
-      );
+      // return error
+      return rejectWithValue(err?.response?.data?.message || "Failed to delete activity log");
     }
   }
 );
@@ -46,7 +43,7 @@ const initialState = {
   list: [],
   total: 0,
   skip: 0,
-  limit: 20,
+  limit: 10,
   currentPage: 1,
   totalPages: 1,
   loading: false,
@@ -60,36 +57,35 @@ const activityLogSlice = createSlice({
   initialState,
   reducers: {
     clearActivityLogError: (state) => {
+      // clear error
       state.error = null;
     },
   },
   extraReducers: (builder) => {
     builder
-
-      // fetch activity logs
+      // get activity logs
       .addCase(getActivityLogs.pending, (state) => {
         state.loading = true;
       })
       .addCase(getActivityLogs.fulfilled, (state, action) => {
-        state.list = action.payload?.logs || [];
-        state.total = action.payload?.total || 0;
-        state.skip = action.payload?.skip || 0;
-        state.limit = action.payload?.limit || 20;
-        state.currentPage =
-          action.payload?.currentPage || 1;
-        state.totalPages =
-          action.payload?.totalPages || 1;
+        const payload = action.payload || {};
+        state.list = payload.logs || [];
+        state.total = payload.total || 0;
+        state.skip = payload.skip || 0;
+        state.limit = payload.limit || 10;
+        state.currentPage = payload.currentPage || 1;
+        state.totalPages = payload.totalPages || 1;
         state.loading = false;
       })
       .addCase(getActivityLogs.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload || "";
       })
 
       // delete activity log
       .addCase(removeActivityLog.fulfilled, (state, action) => {
         state.list = state.list.filter(
-          (log) => log._id !== action.payload
+          (log) => log.Log_Id !== action.payload
         );
         state.total -= 1;
       });
@@ -98,8 +94,6 @@ const activityLogSlice = createSlice({
 // endregion
 
 // region exports
-export const { clearActivityLogError } =
-  activityLogSlice.actions;
-
+export const { clearActivityLogError } = activityLogSlice.actions;
 export default activityLogSlice.reducer;
 // endregion

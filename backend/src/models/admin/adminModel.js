@@ -86,10 +86,14 @@ const AdminSchema = new mongoose.Schema(
 
 // region indexes
 AdminSchema.index({ Admin_Id: 1 }, { unique: true });
-AdminSchema.index({ User_Id: 1 });
-AdminSchema.index({ Is_Deleted: 1 });
-AdminSchema.index({ Created_At: -1 });
+AdminSchema.index(
+  { Admin_Code: 1 },
+  { unique: true, partialFilterExpression: { Is_Deleted: 0 } },
+);
+AdminSchema.index({ User_Id: 1, Is_Deleted: 1 });
 AdminSchema.index({ Department: 1, Is_Deleted: 1 });
+AdminSchema.index({ Created_At: -1, Is_Deleted: 1 });
+AdminSchema.index({ Is_Active: 1, Is_Deleted: 1 });
 // endregion
 
 

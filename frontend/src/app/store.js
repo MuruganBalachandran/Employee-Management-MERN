@@ -13,11 +13,11 @@ import {
 // region store configuration
 const store = configureStore({
   reducer: {
-    employees: employeeReducer,
-    auth: authReducer,
-    superAdmin: superAdminReducer,
-    toast: toastReducer,
-    activityLog:activityLogReducer
+    employees: employeeReducer || {},
+    auth: authReducer || {},
+    superAdmin: superAdminReducer || {},
+    toast: toastReducer || {},
+    activityLog: activityLogReducer || {},
   },
 });
 // endregion

@@ -9,7 +9,8 @@
     "dev": "nodemon src/index.js",
     "seed:superadmin": "node src/scripts/seedSuperAdmin.js",
     "seed:admins": "node src/scripts/seedAdmins.js",
-    "seed:employees": "node src/scripts/seedEmployees.js"
+    "seed:employees": "node src/scripts/seedEmployees.js",
+    "seed:all": "npm run seed:superadmin && npm run seed:admins && npm run seed:employees"
   },
   "keywords": [],
   "author": "",

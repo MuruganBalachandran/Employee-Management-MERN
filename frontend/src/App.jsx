@@ -2,10 +2,11 @@
 import React, { useEffect } from "react";
 import { BrowserRouter as Router } from "react-router-dom";
 import { useDispatch } from "react-redux";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 import AppRoutes from "./routes/AppRoutes";
-import { Toaster } from "./components";
-import { fetchCurrentUser, setAuthChecked } from "./features";
+import { loadUser } from "./features";
 // endregion
 
 // region main App component
@@ -14,30 +15,35 @@ const App = () => {
 
   // region component mount
   useEffect(() => {
-    // get token from localStorage
-    const token = localStorage?.getItem("token") ?? "";
-
-    if (token) {
-      // if token exists, fetch current user
-      dispatch(fetchCurrentUser());
-    } else {
-      // if no token, mark auth as checked
-      dispatch(setAuthChecked());
-    }
+    // try to load user from session (cookie based)
+    dispatch(loadUser());
   }, [dispatch]);
   // endregion
 
+  // region ui
   return (
     <Router>
-      <div className="container-fluid p-0">
-        {/* Global toaster for notifications */}
-        <Toaster />
+      <div className='container-fluid p-0'>
+        {/* Global Notifications */}
+        <ToastContainer
+          position='top-right'
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme='colored'
+        />
 
-        {/* Main app routes */}
+        {/* App Content */}
         <AppRoutes />
       </div>
     </Router>
   );
+  // endregion
 };
 // endregion
 

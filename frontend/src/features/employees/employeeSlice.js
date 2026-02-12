@@ -11,73 +11,72 @@ import {
 
 // region async thunks
 
-// fetch employees (list)
+// get employees
 export const getEmployees = createAsyncThunk(
   "employees/getEmployees",
   async (params = {}, { rejectWithValue }) => {
     try {
-      return await fetchEmployees(params);
+      const response = await fetchEmployees(params || {});
+      return response || { employees: [], total: 0 };
     } catch (err) {
-      return rejectWithValue(
-        err?.response?.data?.message || "Failed to fetch employees"
-      );
+      // return error
+      return rejectWithValue(err?.response?.data?.message || "Failed to fetch employees");
     }
   }
 );
 
-// fetch single employee
+// get employee
 export const getEmployee = createAsyncThunk(
   "employees/getEmployee",
-  async (id, { rejectWithValue }) => {
+  async (id = "", { rejectWithValue }) => {
     try {
-      return await fetchEmployeeById(id);
+      const response = await fetchEmployeeById(id || "");
+      return response || null;
     } catch (err) {
-      return rejectWithValue(
-        err?.response?.data?.message || "Failed to fetch employee"
-      );
+      // return error
+      return rejectWithValue(err?.response?.data?.message || "Failed to fetch employee");
     }
   }
 );
 
-// create employee
+// add employee
 export const addEmployee = createAsyncThunk(
   "employees/addEmployee",
-  async (data, { rejectWithValue }) => {
+  async (data = {}, { rejectWithValue }) => {
     try {
-      return await createEmployee(data);
+      const response = await createEmployee(data || {});
+      return response || null;
     } catch (err) {
-      return rejectWithValue(
-        err?.response?.data?.message || "Failed to create employee"
-      );
+      // return error
+      return rejectWithValue(err?.response?.data?.message || "Failed to create employee");
     }
   }
 );
 
-// update employee
+// edit employee
 export const editEmployee = createAsyncThunk(
   "employees/editEmployee",
-  async ({ id, data }, { rejectWithValue }) => {
+  async ({ id = "", data = {} }, { rejectWithValue }) => {
     try {
-      return await updateEmployee(id, data);
+      const response = await updateEmployee(id || "", data || {});
+      return response || null;
     } catch (err) {
-      return rejectWithValue(
-        err?.response?.data?.message || "Failed to update employee"
-      );
+      // return error
+      return rejectWithValue(err?.response?.data?.message || "Failed to update employee");
     }
   }
 );
 
-// delete employee
+// remove employee
 export const removeEmployee = createAsyncThunk(
   "employees/removeEmployee",
-  async (id, { rejectWithValue }) => {
+  async (id = "", { rejectWithValue }) => {
     try {
-      await deleteEmployee(id);
-      return id;
+      await deleteEmployee(id || "");
+      return id || "";
     } catch (err) {
-      return rejectWithValue(
-        err?.response?.data?.message || "Failed to delete employee"
-      );
+      // return error
+      return rejectWithValue(err?.response?.data?.message || "Failed to delete employee");
     }
   }
 );
@@ -100,16 +99,17 @@ const employeeSlice = createSlice({
   initialState,
   reducers: {
     clearSelectedEmployee: (state) => {
+      // clear selected
       state.selected = null;
     },
     clearEmployeeError: (state) => {
+      // clear error
       state.error = null;
     },
   },
   extraReducers: (builder) => {
     builder
-
-      // list employees
+      // get employees
       .addCase(getEmployees.pending, (state) => {
         state.loading = true;
       })
@@ -120,7 +120,7 @@ const employeeSlice = createSlice({
       })
       .addCase(getEmployees.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload || "";
       })
 
       // get employee
@@ -128,34 +128,37 @@ const employeeSlice = createSlice({
         state.loading = true;
       })
       .addCase(getEmployee.fulfilled, (state, action) => {
-        state.selected = action.payload;
+        state.selected = action.payload || null;
         state.loading = false;
       })
       .addCase(getEmployee.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload || "";
       })
 
-      // create employee
+      // add employee
       .addCase(addEmployee.fulfilled, (state, action) => {
-        state.list.unshift(action.payload);
-        state.total += 1;
-      })
-
-      // update employee
-      .addCase(editEmployee.fulfilled, (state, action) => {
-        state.list = state.list.map((emp) =>
-          emp._id === action.payload?._id ? action.payload : emp
-        );
-        if (state.selected?._id === action.payload?._id) {
-          state.selected = action.payload;
+        if (action.payload) {
+          state.list.unshift(action.payload);
+          state.total += 1;
         }
       })
 
-      // delete employee
+      // edit employee
+      .addCase(editEmployee.fulfilled, (state, action) => {
+        const updated = action.payload || {};
+        state.list = state.list.map((emp) =>
+          emp.Employee_Id === updated.Employee_Id ? updated : emp
+        );
+        if (state.selected?.Employee_Id === updated.Employee_Id) {
+          state.selected = updated;
+        }
+      })
+
+      // remove employee
       .addCase(removeEmployee.fulfilled, (state, action) => {
         state.list = state.list.filter(
-          (emp) => emp._id !== action.payload
+          (emp) => emp.Employee_Id !== action.payload
         );
         state.total -= 1;
       });
@@ -164,10 +167,8 @@ const employeeSlice = createSlice({
 // endregion
 
 // region exports
-export const {
-  clearSelectedEmployee,
-  clearEmployeeError,
-} = employeeSlice.actions;
+export const { clearSelectedEmployee, clearEmployeeError } =
+  employeeSlice.actions;
 
 export default employeeSlice.reducer;
 // endregion

@@ -8,6 +8,8 @@ import {
   removeAdmin,
   updateAdmin,
   changePermission,
+  checkEmail,
+  checkAdminCode,
 } from "../../controllers/superAdmin/superAdminController.js";
 // endregion
 
@@ -18,11 +20,15 @@ const router = express.Router();
 // region super admin routes
 router.use(auth("SUPER_ADMIN"));
 
+// Validation routes (before other routes to avoid conflicts)
+router.post("/check-email", checkEmail);
+router.post("/check-code", checkAdminCode);
+
 router.get("/", listAdmins);
 router.get("/:id", getAdmin);
 router.post("/", rateLimiter("Register"), createNewAdmin);
-router.put("/:id", updateAdmin);                
-router.patch("/:id/permission", changePermission); 
+router.put("/:id", updateAdmin);
+router.patch("/:id/permission", changePermission);
 router.delete("/:id", removeAdmin);
 // endregion
 

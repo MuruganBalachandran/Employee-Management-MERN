@@ -12,6 +12,8 @@ import {
   createNewEmployee,
   updateEmployeeDetails,
   removeEmployee,
+  checkEmail,
+  checkEmployeeCode,
 } from "../../controllers/employee/employeeController.js";
 // endregion
 
@@ -21,6 +23,10 @@ const router = express.Router();
 
 // region employee routes
 router.use(auth("ADMIN", "SUPER_ADMIN"));
+
+// Validation routes (before other routes to avoid conflicts)
+router.post("/check-email", checkEmail);
+router.post("/check-code", checkEmployeeCode);
 
 router.get("/", listEmployees);
 router.get("/:id", getEmployee);

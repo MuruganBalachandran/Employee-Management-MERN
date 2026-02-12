@@ -5,31 +5,32 @@ import { loginUser, logoutUser, getCurrentUser } from "../../services";
 
 // region async thunks
 
-// load user on app start / refresh
+// load user
 export const loadUser = createAsyncThunk(
   "auth/loadUser",
   async (_, { rejectWithValue }) => {
     try {
-      const user = await getCurrentUser(); // GET /auth/profile
-      return user;
+      const user = await getCurrentUser();
+      return user || null;
     } catch {
-      // IMPORTANT: 401 is NORMAL when not logged in
+      // return null
       return rejectWithValue(null);
     }
-  },
+  }
 );
 
 // login
 export const login = createAsyncThunk(
   "auth/login",
-  async (credentials, { rejectWithValue }) => {
+  async (credentials = {}, { rejectWithValue }) => {
     try {
-      const res = await loginUser(credentials); // POST /auth/login
-      return res?.user;
+      const res = await loginUser(credentials || {});
+      return res?.user || null;
     } catch (err) {
+      // return error
       return rejectWithValue(err?.response?.data?.message || "Login failed");
     }
-  },
+  }
 );
 
 // logout
@@ -37,12 +38,13 @@ export const logout = createAsyncThunk(
   "auth/logout",
   async (_, { rejectWithValue }) => {
     try {
-      await logoutUser(); // POST /auth/logout
+      await logoutUser();
       return true;
     } catch {
+      // return null
       return rejectWithValue(null);
     }
-  },
+  }
 );
 
 // endregion
@@ -62,6 +64,7 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     clearAuthState: (state) => {
+      // clear state
       state.user = null;
       state.isAuthenticated = false;
       state.loading = false;
@@ -70,39 +73,37 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-
-      // LOAD USER
+      // load user
       .addCase(loadUser.pending, (state) => {
         state.loading = true;
       })
       .addCase(loadUser.fulfilled, (state, action) => {
-        state.user = action.payload;
-        state.isAuthenticated = true;
+        state.user = action.payload || null;
+        state.isAuthenticated = !!action.payload;
         state.loading = false;
       })
       .addCase(loadUser.rejected, (state) => {
-        // 🔑 THIS IS THE MOST IMPORTANT PART
         state.user = null;
         state.isAuthenticated = false;
         state.loading = false;
       })
 
-      // LOGIN
+      // login
       .addCase(login.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(login.fulfilled, (state, action) => {
-        state.user = action.payload;
-        state.isAuthenticated = true;
+        state.user = action.payload || null;
+        state.isAuthenticated = !!action.payload;
         state.loading = false;
       })
       .addCase(login.rejected, (state, action) => {
-        state.error = action.payload;
+        state.error = action.payload || "";
         state.loading = false;
       })
 
-      // LOGOUT
+      // logout
       .addCase(logout.fulfilled, (state) => {
         state.user = null;
         state.isAuthenticated = false;

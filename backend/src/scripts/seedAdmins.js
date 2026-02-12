@@ -58,7 +58,9 @@ const seedAdmins = async () => {
     console.log(chalk.blue("Starting Admin Seeding..."));
 
     //loop seed data
-    for (const admin of adminsData || []) {
+    for (let i = 0; i < adminsData.length; i++) {
+      const admin = adminsData[i];
+
       //check existing user
       let user =
         (await User.findOne({ Email: admin?.email || "" })) || null;
@@ -84,12 +86,20 @@ const seedAdmins = async () => {
 
         await user.save();
 
-        //create admin profile
+        // Alternate permissions: even index = GRANTED, odd index = REVOKED
+        const permissions = i % 2 === 0 ? "GRANTED" : "REVOKED";
+
+        //create admin profile with permissions
         const adminEntry = new Admin({
           User_Id: user?.User_Id || null,
+          Permissions: permissions,
         });
 
         await adminEntry.save();
+
+        console.log(
+          chalk.cyan(`  → Permissions: ${permissions}`)
+        );
       }
     }
 

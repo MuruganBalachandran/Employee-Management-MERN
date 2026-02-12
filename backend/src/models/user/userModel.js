@@ -63,8 +63,8 @@ UserSchema.index(
 
 UserSchema.index({ User_Id: 1 }, { unique: true });
 UserSchema.index({ Role: 1, Is_Deleted: 1 });
-UserSchema.index({ Created_At: -1 });
-UserSchema.index({ Name: 1 });
+UserSchema.index({ Name: 1, Is_Deleted: 1 });
+UserSchema.index({ Created_At: -1, Is_Deleted: 1 });
 // endregion
 
 // region middleware

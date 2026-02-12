@@ -2,12 +2,13 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 import { Input, Loader } from "../../components";
+import { FaUsers } from "react-icons/fa";
 import {
   login,
   selectAuthLoading,
-  showToast,
 } from "../../features";
 
 import {
@@ -35,117 +36,136 @@ const Login = () => {
 
   // region handleChange
   const handleChange = (field, value) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
+    try {
+      setForm((prev) => ({ ...prev, [field]: value }));
 
-    let err = "";
+      let err = "";
 
-    if (field === "email") {
-      err = !value
-        ? "Email is required"
-        : emailValidation(value, "login");
+      if (field === "email") {
+        err = !value
+          ? "Email is required"
+          : emailValidation(value, "login");
+      }
+
+      if (field === "password") {
+        err = !value
+          ? "Password is required"
+          : passwordValidation(value);
+      }
+
+      setErrors((prev) => {
+        const next = { ...prev };
+        if (err) next[field] = err;
+        else delete next[field];
+        return next;
+      });
+    } catch (err) {
+      console.error("handleChange Error:", err || "");
     }
-
-    if (field === "password") {
-      err = !value
-        ? "Password is required"
-        : passwordValidation(value);
-    }
-
-    setErrors((prev) => {
-      const next = { ...prev };
-      if (err) next[field] = err;
-      else delete next[field];
-      return next;
-    });
   };
   // endregion
 
   // region handleSubmit
   const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    const validationErrors = {
-      email: !form.email
-        ? "Email is required"
-        : emailValidation(form.email, "login"),
-      password: !form.password
-        ? "Password is required"
-        : passwordValidation(form.password),
-    };
-
-    const activeErrors = Object.fromEntries(
-      Object.entries(validationErrors).filter(
-        ([, value]) => value
-      )
-    );
-
-    if (Object.keys(activeErrors).length > 0) {
-      setErrors(activeErrors);
-      return;
-    }
-
     try {
+      e.preventDefault();
+
+      const validationErrors = {
+        email: !form.email
+          ? "Email is required"
+          : emailValidation(form.email, "login"),
+        password: !form.password
+          ? "Password is required"
+          : passwordValidation(form.password),
+      };
+
+      const activeErrors = Object.fromEntries(
+        Object.entries(validationErrors).filter(
+          ([, value]) => value
+        )
+      );
+
+      if (Object.keys(activeErrors).length > 0) {
+        setErrors(activeErrors);
+        return;
+      }
+
       await dispatch(login(form)).unwrap();
+      toast.success("Logged in successfully!");
       navigate("/", { replace: true });
     } catch (err) {
-      dispatch(
-        showToast({
-          message:
-            typeof err === "string"
-              ? err
-              : "Invalid email or password",
-          type: "error",
-        })
+      // log error
+      console.error("Login Error:", err || "");
+      toast.error(
+        typeof err === "string" ? err : "Invalid email or password"
       );
     }
   };
   // endregion
 
+  // region input fields configuration
+  const inputFields = [
+    {
+      label: "Email",
+      type: "email",
+      name: "email",
+      placeholder: "Enter your email",
+    },
+    {
+      label: "Password",
+      type: "password",
+      name: "password",
+      placeholder: "Enter your password",
+    },
+  ];
+  // endregion
+
   // region ui
   return (
-    <div className="auth-page d-flex justify-content-center align-items-center min-vh-100 p-3">
-      {loading && <Loader fullScreen text="Logging in..." />}
+    <div className='auth-page d-flex justify-content-center align-items-center min-vh-100 bg-light p-3'>
+      {loading && <Loader fullScreen text='Logging in...' />}
 
-      <form
-        className="auth-form card p-4 shadow-sm w-100"
-        style={{ maxWidth: "400px" }}
-        onSubmit={handleSubmit}
-        noValidate
-      >
-        <h2 className="mb-4 text-center">Login</h2>
+      <div className='w-100' style={{ maxWidth: "400px" }}>
+        <div className='text-center mb-4'>
+          <div className='bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-2' style={{ width: "60px", height: "60px", shadow: "0 4px 10px rgba(13, 110, 253, 0.3)" }}>
+            <FaUsers size={30} />
+          </div>
+          <h3 className='fw-bold text-dark'>Welcome Back</h3>
+          <p className='text-muted small'>Please enter your credentials to continue</p>
+        </div>
 
-        <Input
-          label="Email"
-          type="email"
-          value={form.email}
-          onChange={(e) =>
-            handleChange("email", e.target.value)
-          }
-          error={errors.email}
-          placeholder="Enter your email"
-          disabled={loading}
-        />
-
-        <Input
-          label="Password"
-          type="password"
-          value={form.password}
-          onChange={(e) =>
-            handleChange("password", e.target.value)
-          }
-          error={errors.password}
-          placeholder="Enter your password"
-          disabled={loading}
-        />
-
-        <button
-          type="submit"
-          className="btn btn-primary w-100 mt-3"
-          disabled={loading}
+        <form
+          className='auth-form card border-0 p-4 shadow-sm rounded-4'
+          onSubmit={handleSubmit}
+          noValidate
         >
-          Login
-        </button>
-      </form>
+          {inputFields.map((field) => (
+            <Input
+              key={field.name}
+              label={field.label}
+              type={field.type}
+              value={form[field.name]}
+              onChange={(e) => handleChange(field.name, e.target.value)}
+              error={errors[field.name]}
+              placeholder={field.placeholder}
+              disabled={loading}
+              required
+            />
+          ))}
+
+          <button
+            type='submit'
+            className='btn btn-primary btn-lg w-100 mt-2 rounded-pill shadow-sm'
+            disabled={loading}
+          >
+            {loading ? "Signing in..." : "Sign In"}
+          </button>
+        </form>
+
+        <p className='text-center mt-4 text-muted small'>
+          &copy; {new Date().getFullYear()} Employee Management System
+        </p>
+      </div>
     </div>
   );
   // endregion

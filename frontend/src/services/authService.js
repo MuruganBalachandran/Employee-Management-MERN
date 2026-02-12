@@ -2,41 +2,42 @@
 import { axios } from "./api";
 // endregion
 
-// region Login user
+// region login
 export const loginUser = async (data = {}) => {
   try {
-    const response = await axios.post("/auth/login", data);
+    const response = await axios.post("/auth/login", data || {});
     return response || null;
   } catch (err) {
-    console.error("Login service error:", err?.response?.data || err);
+    // log error
+    console.error("loginUser Error:", err?.response?.data || err?.message || "");
     throw err;
   }
 };
 // endregion
 
-// region Logout user
+// region logout
 export const logoutUser = async () => {
   try {
     const response = await axios.post("/auth/logout");
     return response || null;
   } catch (err) {
-    console.error("Logout service error:", err?.response?.data || err);
+    // log error
+    console.error("logoutUser Error:", err?.response?.data || err?.message || "");
     throw err;
   }
 };
 // endregion
 
-// region Get current logged-in user profile
+// region get profile
 export const getCurrentUser = async () => {
   try {
     const response = await axios.get("/auth/profile");
-    return response || {};
+    // If response is null/undefined, it means no user data
+    return response || null;
   } catch (err) {
-    console.error(
-      "Get current user service error:",
-      err?.response?.data || err,
-    );
-    return {};
+    // log error and throw it so the thunk can handle rejection
+    console.error("getCurrentUser Error:", err?.response?.data || err?.message || "");
+    throw err;
   }
 };
 // endregion

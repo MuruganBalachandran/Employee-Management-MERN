@@ -7,7 +7,10 @@ export const NAME_REGEX = /^(?=.*[\p{L}\p{M}])[\p{L}\p{M}\d\s'-]+$/u;
 export const CITY_STATE_REGEX = /^[A-Za-z ]{2,50}$/;
 
 // Regex for phone numbers (supports various international formats)
-export const PHONE_REGEX = /^[+]?[0-9]{10,15}$/;
+export const PHONE_REGEX = /^\+?[0-9\s-]{7,15}$/;
+
+// Regex for salary (non-negative number/decimal)
+export const SALARY_REGEX = /^\d+(\.\d+)?$/;
 
 // Regex for ZIP code (5 or 6 digits)
 export const ZIP_REGEX = /^\d{5,6}$/;
@@ -16,8 +19,11 @@ export const ZIP_REGEX = /^\d{5,6}$/;
 export const EMAIL_REGEX =
   /^[A-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[A-Z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[A-Z0-9](?:[A-Z0-9-]*[A-Z0-9])?\.)+[A-Z0-9](?:[A-Z0-9-]*[A-Z0-9])?$/i;
 
-  // EMP followed by 3 - 7 digitis
+// EMP followed by 3 - 7 digitis
 export const EMPLOYEE_CODE_REGEX = /^EMP\d{3,7}$/;
+
+// ADMIN followed by 2 - 6 digitis
+export const ADMIN_CODE_REGEX = /^ADMIN\d{2,6}$/;
 
 // reporting manager
 export const REPORTING_MANAGER_REGEX = /^[\p{L}\p{M}\s'-]{3,50}$/u;
@@ -101,4 +107,56 @@ export const VALID_DEPARTMENTS = [
   "DevOps",
   "Administration",
 ];
+
+// User roles
+export const ROLE = {
+  SUPER_ADMIN: "SUPER_ADMIN",
+  ADMIN: "ADMIN",
+  EMPLOYEE: "EMPLOYEE",
+};
+
+// Initial form states
+export const INITIAL_EMPLOYEE_STATE = {
+  name: "",
+  email: "",
+  password: "",
+  confirmPassword: "",
+  age: "",
+  phone: "",
+  department: "",
+  salary: "",
+  reportingManager: "",
+  employeeCode: "",
+  joiningDate: "",
+  isActive: 1,
+  address: {
+    line1: "",
+    line2: "",
+    city: "",
+    state: "",
+    zipCode: "",
+  },
+};
+
+export const INITIAL_ADMIN_STATE = {
+  name: "",
+  email: "",
+  password: "",
+  confirmPassword: "",
+  age: "",
+  phone: "",
+  department: "",
+  salary: "",
+  adminCode: "",
+  permissions: "GRANTED",
+  joiningDate: "",
+  isActive: 1,
+  address: {
+    line1: "",
+    line2: "",
+    city: "",
+    state: "",
+    zipCode: "",
+  },
+};
 // endregion

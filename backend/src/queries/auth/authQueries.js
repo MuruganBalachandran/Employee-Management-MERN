@@ -40,15 +40,21 @@ const getProfileQuery = async (userId = "") => {
 
 // region check if email exists
 const isEmailExists = async (email = "") => {
-  if (!email) return false;
-  const user = await User.findOne({
-    Email: email?.trim()?.toLowerCase() || "",
-    Is_Deleted: 0,
-  }).lean();
-  return !!user;
+  try {
+    if (!email) return false;
+    const user = await User.findOne({
+      Email: email?.trim()?.toLowerCase() || "",
+      Is_Deleted: 0,
+    }).lean();
+    return !!user;
+  } catch (err) {
+    throw new Error(
+      "Error while checking if email exists: " + (err?.message || ""),
+    );
+  }
 };
 // endregion
 
 // region exports
-export { findUserByEmail, getProfileQuery,isEmailExists };
+export { findUserByEmail, getProfileQuery, isEmailExists };
 // endregion

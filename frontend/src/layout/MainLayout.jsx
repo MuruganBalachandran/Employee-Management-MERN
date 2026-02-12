@@ -9,8 +9,10 @@ const MainLayout = () => {
   return (
     <div className='d-flex flex-column min-vh-100'>
       <Header />
-      <main className='flex-grow-1 container py-1'>
-        <Outlet />
+      <main className='flex-grow-1 py-1'>
+        <div className='container'>
+          <Outlet />
+        </div>
       </main>
       <Footer />
     </div>

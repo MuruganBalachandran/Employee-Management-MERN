@@ -79,11 +79,11 @@ const getAllAdmins = async (limit = 20, skip = 0, search = "") => {
                 Is_Deleted: 0,
                 ...(search
                   ? {
-                      $or: [
-                        { Name: { $regex: search, $options: "i" } },
-                        { Email: { $regex: search, $options: "i" } },
-                      ],
-                    }
+                    $or: [
+                      { Name: { $regex: search, $options: "i" } },
+                      { Email: { $regex: search, $options: "i" } },
+                    ],
+                  }
                   : {}),
               },
             },
@@ -259,7 +259,7 @@ const updateAdminDetails = async (adminId = "", payload = {}) => {
     }
 
     //extract fields
-    const { name, age, department, phone, salary, address, isActive } =
+    const { name, age, department, phone, salary, address, isActive, permissions } =
       payload || {};
 
     //update user name
@@ -283,6 +283,7 @@ const updateAdminDetails = async (adminId = "", payload = {}) => {
       ...(salary !== undefined && { Salary: salary }),
       ...(address !== undefined && { Address: address }),
       ...(isActive !== undefined && { Is_Active: isActive }),
+      ...(permissions !== undefined && { Permissions: permissions }),
       Updated_At: getFormattedDateTime(),
     };
 
@@ -333,16 +334,22 @@ const updateAdminPermission = async (adminId = "", permission = "") => {
 
 // region check if admin code exists
 const isAdminCodeExists = async (adminCode = "") => {
-  if (!adminCode) {
-    return false;
+  try {
+    if (!adminCode) {
+      return false;
+    }
+
+    const admin = await Admin.findOne({
+      Admin_Code: adminCode || "",
+      Is_Deleted: 0,
+    }).lean();
+
+    return !!admin;
+  } catch (err) {
+    throw new Error(
+      "Error while checking admin code: " + (err?.message || ""),
+    );
   }
-
-  const admin = await Admin.findOne({
-    Admin_Code: adminCode || "",
-    Is_Deleted: 0,
-  }).lean();
-
-  return !!admin;
 };
 // endregion
 

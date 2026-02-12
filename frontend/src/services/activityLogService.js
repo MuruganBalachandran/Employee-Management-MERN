@@ -2,32 +2,34 @@
 import { axios } from "./api";
 // endregion
 
-// region fetch Activity Log Services
-export const fetchActivityLogs = async ({
-  page = 1,
-  limit = 20,
-  search = "",
-} = {}) => {
+// region fetch activity logs
+export const fetchActivityLogs = async (params = {}) => {
   try {
-    const params = { page, limit };
-    if (search) params.search = search;
+    const { page = 1, limit = 10, search = "" } = params || {};
 
-    const response = await axios.get("/activity-log", { params });
+    const response = await axios.get("/activity-log", {
+      params: { page, limit, search },
+    });
+
     return response || { logs: [], total: 0 };
   } catch (err) {
-    console.error("Error in fetchActivityLogs:", err?.response?.data || err);
-    return { logs: [], total: 0 };
+    // log error and throw
+    console.error("fetchActivityLogs Error:", err?.response?.data || err?.message || "");
+    throw err;
   }
 };
+// endregion
 
-// delete activity log service
+// region delete activity log
 export const deleteActivityLog = async (id = "") => {
   try {
+    if (!id) return null;
     const response = await axios.delete(`/activity-log/${id}`);
     return response || null;
   } catch (err) {
-    console.error("Error in deleteActivityLog:", err?.response?.data || err);
-    return null;
+    // log error and throw
+    console.error("deleteActivityLog Error:", err?.response?.data || err?.message || "");
+    throw err;
   }
 };
 // endregion

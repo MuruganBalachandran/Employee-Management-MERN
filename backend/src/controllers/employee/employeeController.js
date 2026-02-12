@@ -306,6 +306,82 @@ const removeEmployee = async (req = {}, res = {}, next) => {
 };
 // endregion
 
+// region check email availability
+const checkEmail = async (req = {}, res = {}, next) => {
+  try {
+    const { email = "" } = req?.body || {};
+
+    if (!email) {
+      return sendResponse(
+        res,
+        STATUS_CODE?.BAD_REQUEST || 400,
+        RESPONSE_STATUS?.FAILURE || "FAILURE",
+        "Email is required",
+      );
+    }
+
+    // Check if email exists
+    if (await isEmailExists(email)) {
+      return sendResponse(
+        res,
+        STATUS_CODE?.BAD_REQUEST || 400,
+        RESPONSE_STATUS?.FAILURE || "FAILURE",
+        "Email already exists",
+      );
+    }
+
+    // Email is available
+    return sendResponse(
+      res,
+      STATUS_CODE?.OK || 200,
+      RESPONSE_STATUS?.SUCCESS || "SUCCESS",
+      "Email is available",
+    );
+  } catch (err) {
+    console.error("Error checking email:", err);
+    next(err);
+  }
+};
+// endregion
+
+// region check employee code availability
+const checkEmployeeCode = async (req = {}, res = {}, next) => {
+  try {
+    const { employeeCode = "" } = req?.body || {};
+
+    if (!employeeCode) {
+      return sendResponse(
+        res,
+        STATUS_CODE?.BAD_REQUEST || 400,
+        RESPONSE_STATUS?.FAILURE || "FAILURE",
+        "Employee code is required",
+      );
+    }
+
+    // Check if employee code exists
+    if (await isEmployeeCodeExists(employeeCode)) {
+      return sendResponse(
+        res,
+        STATUS_CODE?.BAD_REQUEST || 400,
+        RESPONSE_STATUS?.FAILURE || "FAILURE",
+        "Employee code already exists",
+      );
+    }
+
+    // Employee code is available
+    return sendResponse(
+      res,
+      STATUS_CODE?.OK || 200,
+      RESPONSE_STATUS?.SUCCESS || "SUCCESS",
+      "Employee code is available",
+    );
+  } catch (err) {
+    console.error("Error checking employee code:", err);
+    next(err);
+  }
+};
+// endregion
+
 // region exports
 export {
   listEmployees,
@@ -313,5 +389,7 @@ export {
   createNewEmployee,
   updateEmployeeDetails,
   removeEmployee,
+  checkEmail,
+  checkEmployeeCode,
 };
 // endregion

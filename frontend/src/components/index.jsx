@@ -1,12 +1,13 @@
 // region exports
 export { default as PasswordRules } from './auth/PasswordRules'
-export { default as EmployeeFilters } from './employees/EmployeeFilters';
-export { default as EmployeeForm } from './employees/EmployeeForm';
-export { default as EmployeeList } from './employees/EmployeeList';
-export {default as BackButton} from './ui/BackButton'
-export {default as Input} from './ui/Input'
-export {default as Loader} from './ui/Loader'
-export {default as Pagination} from './ui/Pagination'
-export {default as Toaster} from './ui/Toaster'
-export { default as ProfileDetails } from "./employees/ProfileDetails";
+export { default as ActivityLogTable } from './activities/ActivityLogTable'
+export { default as BackButton } from './ui/BackButton'
+export { default as Input } from './ui/Input'
+export { default as Loader } from './ui/Loader'
+export { default as Pagination } from './ui/Pagination'
+export { default as Filters } from './ui/Filters'
+export { default as Canvas } from './ui/Canvas'
+export { default as ConfirmModal } from './ui/ConfirmModal'
+export { default as UserForm } from './forms/UserForm'
+export { default as UserTable } from './tables/UserTable'
 // endregion

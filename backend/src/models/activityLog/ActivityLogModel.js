@@ -51,6 +51,11 @@ const ActivityLogSchema = new mongoose.Schema(
       default: "",
     },
 
+    Activity: {
+      type: String,
+      default: "",
+    },
+
     Created_At: {
       type: String,
       default: () => getFormattedDateTime(),
@@ -66,8 +71,11 @@ const ActivityLogSchema = new mongoose.Schema(
 
 // region indexes
 ActivityLogSchema.index({ Log_Id: 1 }, { unique: true });
-ActivityLogSchema.index({ User_Id: 1 });
-ActivityLogSchema.index({ Created_At: -1 });
+ActivityLogSchema.index({ User_Id: 1, Is_Deleted: 1 });
+ActivityLogSchema.index({ Email: 1, Is_Deleted: 1 });
+ActivityLogSchema.index({ Action: 1, Is_Deleted: 1 });
+ActivityLogSchema.index({ URL: 1, Is_Deleted: 1 });
+ActivityLogSchema.index({ Created_At: -1, Is_Deleted: 1 });
 // endregion
 
 

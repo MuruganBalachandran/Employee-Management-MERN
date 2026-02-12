@@ -81,15 +81,15 @@ const getAllEmployees = async (
             { $match: { Is_Deleted: 0, Role: "EMPLOYEE" } },
             ...(search
               ? [
-                  {
-                    $match: {
-                      $or: [
-                        { Name: { $regex: search, $options: "i" } },
-                        { Email: { $regex: search, $options: "i" } },
-                      ],
-                    },
+                {
+                  $match: {
+                    $or: [
+                      { Name: { $regex: search, $options: "i" } },
+                      { Email: { $regex: search, $options: "i" } },
+                    ],
                   },
-                ]
+                },
+              ]
               : []),
             { $project: { Name: 1, Email: 1 } },
           ],
@@ -290,16 +290,22 @@ const deleteEmployee = async (employeeId = "") => {
 
 // region check if employee code exists
 const isEmployeeCodeExists = async (employeeCode = "") => {
-  if (!employeeCode) {
-    return false;
+  try {
+    if (!employeeCode) {
+      return false;
+    }
+
+    const emp = await Employee.findOne({
+      Employee_Code: employeeCode || "",
+      Is_Deleted: 0,
+    }).lean();
+
+    return !!emp;
+  } catch (err) {
+    throw new Error(
+      "Error while checking employee code: " + (err?.message || ""),
+    );
   }
-
-  const emp = await Employee.findOne({
-    Employee_Code: employeeCode || "",
-    Is_Deleted: 0,
-  }).lean();
-
-  return !!emp;
 };
 // endregion
 

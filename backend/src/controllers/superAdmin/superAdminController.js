@@ -124,12 +124,12 @@ const createNewAdmin = async (req = {}, res = {}, next) => {
       name = "",
       email = "",
       password = "",
-      age="",
-      department="",
-      phone="",
-      salary="",
+      age = "",
+      department = "",
+      phone = "",
+      salary = "",
       address = {},
-      joiningDate="",
+      joiningDate = "",
       adminCode = "",
     } = req?.body || {};
 
@@ -340,6 +340,82 @@ const changePermission = async (req = {}, res = {}, next) => {
 };
 // endregion
 
+// region check email availability
+const checkEmail = async (req = {}, res = {}, next) => {
+  try {
+    const { email = "" } = req?.body || {};
+
+    if (!email) {
+      return sendResponse(
+        res,
+        STATUS_CODE?.BAD_REQUEST || 400,
+        RESPONSE_STATUS?.FAILURE || "FAILURE",
+        "Email is required",
+      );
+    }
+
+    // Check if email exists
+    if (await isEmailExists(email)) {
+      return sendResponse(
+        res,
+        STATUS_CODE?.BAD_REQUEST || 400,
+        RESPONSE_STATUS?.FAILURE || "FAILURE",
+        "Email already exists",
+      );
+    }
+
+    // Email is available
+    return sendResponse(
+      res,
+      STATUS_CODE?.OK || 200,
+      RESPONSE_STATUS?.SUCCESS || "SUCCESS",
+      "Email is available",
+    );
+  } catch (err) {
+    console.error("Error checking email:", err);
+    next(err);
+  }
+};
+// endregion
+
+// region check admin code availability
+const checkAdminCode = async (req = {}, res = {}, next) => {
+  try {
+    const { adminCode = "" } = req?.body || {};
+
+    if (!adminCode) {
+      return sendResponse(
+        res,
+        STATUS_CODE?.BAD_REQUEST || 400,
+        RESPONSE_STATUS?.FAILURE || "FAILURE",
+        "Admin code is required",
+      );
+    }
+
+    // Check if admin code exists
+    if (await isAdminCodeExists(adminCode)) {
+      return sendResponse(
+        res,
+        STATUS_CODE?.BAD_REQUEST || 400,
+        RESPONSE_STATUS?.FAILURE || "FAILURE",
+        "Admin code already exists",
+      );
+    }
+
+    // Admin code is available
+    return sendResponse(
+      res,
+      STATUS_CODE?.OK || 200,
+      RESPONSE_STATUS?.SUCCESS || "SUCCESS",
+      "Admin code is available",
+    );
+  } catch (err) {
+    console.error("Error checking admin code:", err);
+    next(err);
+  }
+};
+// endregion
+
 // region exports
 export {
   listAdmins,
@@ -348,5 +424,7 @@ export {
   removeAdmin,
   updateAdmin,
   changePermission,
+  checkEmail,
+  checkAdminCode,
 };
 // endregion

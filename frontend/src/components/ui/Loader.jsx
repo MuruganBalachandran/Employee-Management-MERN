@@ -1,54 +1,54 @@
 // region imports
 import React from "react";
+import { ClipLoader } from "react-spinners";
 // endregion
 
 // region component
 const Loader = ({
-  size = "medium", // small | medium | large
+  size = 35,
+  color = "#0d6efd",
   text = "",
   fullScreen = false,
 } = {}) => {
-  // Determine spinner size
-  const spinnerSize =
-    size === "small"
-      ? "spinner-border-sm"
-      : size === "large"
-        ? "spinner-border-lg"
-        : "";
-
-  // Fullscreen styles
-  const fullScreenStyles = fullScreen
+  // region styles
+  const containerStyles = fullScreen
     ? {
         position: "fixed",
         top: 0,
         left: 0,
         width: "100vw",
         height: "100vh",
-        backgroundColor: "rgba(255,255,255,0.7)",
-        zIndex: 1050,
+        backgroundColor: "rgba(255,255,255,0.8)",
+        zIndex: 9999,
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
       }
-    : {};
+    : {
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        padding: "20px",
+      };
+  // endregion
 
   // region ui
   return (
-    <div
-      className={`d-flex flex-column justify-content-center align-items-center`}
-      style={fullScreenStyles}
-    >
-      {/* Spinner */}
-      <div
-        className={`spinner-border text-primary ${spinnerSize}`}
-        role='status'
-      >
-        <span className='visually-hidden'>Loading...</span>
-      </div>
-
-      {/* Optional loading text */}
+    <div style={containerStyles}>
+      <ClipLoader color={color} size={size} />
       {text && (
-        <p className='mt-3 text-muted fw-medium small text-center'>{text}</p>
+        <p
+          className='mt-3 text-muted fw-medium'
+          style={{ fontSize: "14px", margin: 0 }}
+        >
+          {text}
+        </p>
       )}
     </div>
   );
+  // endregion
 };
 // endregion
 

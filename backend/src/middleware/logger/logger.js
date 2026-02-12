@@ -1,8 +1,10 @@
 // region imports
-import ActivityLog from "../../models/activityLog/ActivityLogModel.js";
-import { getFormattedDateTime, verifyToken } from "../../utils/index.js";
+import {
+  getFormattedDateTime,
+  verifyToken,
+} from "../../utils/index.js";
+import { createActivityLog } from "../../queries/index.js";
 // endregion
-
 
 // region logger middleware
 const logger = (req = {}, res = {}, next) => {
@@ -23,7 +25,19 @@ const logger = (req = {}, res = {}, next) => {
   //keep original send
   const originalSend = res.send;
 
-  res.send = async function (body) {
+  res.send = function (body) {
+    // Determine user identifier for tagging
+    const userIdentifier =
+      req?.user?.Email ||
+      req?.user?.email ||
+      tokenUser?.email ||
+      tokenUser?.Email ||
+      "Guest";
+
+    // Reattach original send to avoid recursion
+    res.send = originalSend;
+
+    // Process logging asynchronously to not block response
     try {
       //extract activity message
       let activity = "";
@@ -35,21 +49,20 @@ const logger = (req = {}, res = {}, next) => {
         activity = parsed?.message || parsed?.msg || "";
         emailFromBody = parsed?.user?.email || parsed?.email || "";
       } catch (e) {
-        activity = body?.toString?.() || "";
+        activity = typeof body === "string" ? body : "N/A";
       }
 
       //calculate duration
       const duration = Date.now() - startTime;
 
       //determine user info
-      const userId =
-        req?.user?.User_Id ||
-        tokenUser?.User_Id ||
-        null;
+      const userId = req?.user?.User_Id || tokenUser?.User_Id || null;
 
       const email =
         req?.user?.email ||
+        req?.user?.Email ||
         tokenUser?.email ||
+        tokenUser?.Email ||
         emailFromBody ||
         "Guest";
 
@@ -62,29 +75,21 @@ const logger = (req = {}, res = {}, next) => {
         Status: res?.statusCode || 0,
         IP: req?.ip || req?.connection?.remoteAddress || "unknown-ip",
         Duration: `${duration}ms`,
-        Time: getFormattedDateTime() || "unknown-time",
-        Activity: activity,
+        Created_At: getFormattedDateTime() || new Date().toISOString(),
+        Activity: activity || "No activity message",
       };
 
-      //print
+      // Print to console for development visibility
       console.log(
-        `[${logData?.Time}] ${logData?.Action} ${logData?.URL} ${logData?.Status} ${logData?.Duration}`
+        `[${logData.Created_At}] ${logData.Action} ${logData.URL} - Status: ${logData.Status} (${logData.Duration}) - User: ${userIdentifier}`,
       );
 
-      //save log
-      ({
-        User_Id: logData?.User_Id,
-        Email: logData?.Email,
-        Action: logData?.Action,
-        URL: logData?.URL,
-        Status: logData?.Status,
-        IP: logData?.IP,
-        Duration: logData?.Duration,
-        Created_At: logData?.Time,
-        Activity: logData?.Activity,
+      // Save to database via query (non-blocking)
+      createActivityLog(logData).catch((err) => {
+        console.error("Failed to save activity log to DB:", err?.message);
       });
     } catch (err) {
-      console.error("Logger error:", err);
+      console.error("Logger processing error:", err?.message);
     }
 
     //send response
@@ -94,7 +99,6 @@ const logger = (req = {}, res = {}, next) => {
   next();
 };
 // endregion
-
 
 // region exports
 export default logger;
