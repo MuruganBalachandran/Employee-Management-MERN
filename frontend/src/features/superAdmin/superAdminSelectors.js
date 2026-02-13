@@ -1,17 +1,27 @@
-// base selector
-export const selectSuperAdminState = (state) =>
-  state.superAdmin;
+// region selectors
+export const selectSuperAdminState = (state) => state.superAdmin;
 
-// list selectors
 export const selectAdmins = (state) =>
-  state.superAdmin.list;
+  state.superAdmin.list || [];
 
+// filtered count (used for pagination + empty state)
 export const selectAdminsTotal = (state) =>
-  state.superAdmin.total;
+  state.superAdmin.filteredTotal || 0;
 
-// ui state
+// actual DB count (optional, for header badges etc.)
+export const selectAdminsOverallTotal = (state) =>
+  state.superAdmin.overallTotal || 0;
+
 export const selectAdminsLoading = (state) =>
-  state.superAdmin.loading;
+  state.superAdmin.loading || false;
 
 export const selectAdminsError = (state) =>
-  state.superAdmin.error;
+  state.superAdmin.error || null;
+
+export const selectAdminsPagination = (state) => ({
+  page: state.superAdmin.page || 1,
+  totalPages: state.superAdmin.totalPages || 1,
+  limit: state.superAdmin.limit || 5,
+});
+// endregion
+

@@ -1,5 +1,5 @@
 // region imports
-//  utils
+// utils
 import {
   RESPONSE_STATUS,
   sendResponse,
@@ -7,88 +7,93 @@ import {
 } from "../../utils/index.js";
 import { validateObjectId } from "../../validations/helpers/typeValidations.js";
 
-//  model
+// model
 import { deleteActivityLog, getActivityLogs } from "../../queries/index.js";
 // endregion
 
 // region fetch activity logs
-const fetchActivityLogs = async (req = {}, res = {}, next) => {
+const fetchActivityLogs = async (req = {}, res = {}, next = () => {}) => {
   try {
-    //validate query params
-    const limit = Math.min(100, Number(req?.query?.limit) || 20);
+    // extract query params
+    const query = req?.query ?? {};
+
+    const limit = Math.min(100, Number(query?.limit ?? 20) || 20);
 
     const skip =
-      req?.query?.skip !== undefined
-        ? Math.max(0, Number(req?.query?.skip) || 0)
-        : (Math.max(1, Number(req?.query?.page) || 1) - 1) * limit;
+      query?.skip !== undefined
+        ? Math.max(0, Number(query?.skip ?? 0) || 0)
+        : (Math.max(1, Number(query?.page ?? 1) || 1) - 1) * limit;
 
-    const search = req?.query?.search || "";
+    const search = query?.search ?? "";
 
-    //fetch logs
-    const { logs = [], total = 0 } =
-      (await getActivityLogs(limit, skip, search)) || {};
+    // fetch activity logs
+    const result = (await getActivityLogs(limit, skip, search)) ?? {};
 
-    //send response
+    // send response
     return sendResponse(
       res,
-      STATUS_CODE?.OK || 200,
-      RESPONSE_STATUS?.SUCCESS || "SUCCESS",
+      STATUS_CODE?.OK ?? 200,
+      RESPONSE_STATUS?.SUCCESS ?? "SUCCESS",
       "Activity logs fetched successfully",
       {
-        logs,
-        total,
-        skip,
-        limit,
-        currentPage: Math.floor(skip / limit) + 1,
-        totalPages: Math.ceil((total || 0) / limit),
+        logs: result?.logs ?? [],
+         filteredTotal: result?.total ?? 0,  
+    overallTotal: result?.overallTotal ?? 0,
+        skip: result?.skip ?? skip,
+        limit: result?.limit ?? limit,
+        currentPage: result?.currentPage ?? 1,
+        totalPages: result?.totalPages ?? 1,
       },
     );
   } catch (err) {
+    // error handling
     console.error("Error fetching activity logs:", err);
-    next && next(err);
+    next?.(err);
   }
 };
 // endregion
 
 // region delete activity log controller
-const removeActivityLog = async (req = {}, res = {}, next) => {
+const removeActivityLog = async (req = {}, res = {}, next = () => {}) => {
   try {
-    const { id = "" } = req?.params || {};
+    // extract params
+    const { id = "" } = req?.params ?? {};
 
-    //validate id
-    const idError = validateObjectId(id);
+    // validate id
+    const idError = validateObjectId?.(id) ?? null;
     if (idError) {
-      //send response
+      // send response
       return sendResponse(
         res,
-        STATUS_CODE?.BAD_REQUEST || 400,
-        RESPONSE_STATUS?.FAILURE || "FAILURE",
+        STATUS_CODE?.BAD_REQUEST ?? 400,
+        RESPONSE_STATUS?.FAILURE ?? "FAILURE",
         idError,
       );
     }
 
-    //delete log
-    const deleted = await deleteActivityLog(id);
+    // delete log
+    const deleted = await deleteActivityLog?.(id);
     if (!deleted) {
-      //send response
+      // send response
       return sendResponse(
         res,
-        STATUS_CODE?.NOT_FOUND || 404,
-        RESPONSE_STATUS?.FAILURE || "FAILURE",
+        STATUS_CODE?.NOT_FOUND ?? 404,
+        RESPONSE_STATUS?.FAILURE ?? "FAILURE",
         "Activity log not found",
       );
     }
 
-    //send response
+    // send response
     return sendResponse(
       res,
-      STATUS_CODE?.OK || 200,
-      RESPONSE_STATUS?.SUCCESS || "SUCCESS",
+      STATUS_CODE?.OK ?? 200,
+      RESPONSE_STATUS?.SUCCESS ?? "SUCCESS",
       "Activity log deleted successfully",
     );
   } catch (err) {
+    // error handling
     console.error("Error deleting activity log:", err);
-    next && next(err);
+    next?.(err);
   }
 };
 // endregion

@@ -1,17 +1,24 @@
 // region imports
+// models
 import { User } from "../../models/index.js";
 // endregion
 
 // region find user by email
 const findUserByEmail = async (email = "") => {
   try {
-    return await User.findOne({
-      Email: email || "",
+    // normalize email
+    const safeEmail = email?.trim?.()?.toLowerCase?.() ?? "";
+
+    // find user
+    const user = await User?.findOne?.({
+      Email: safeEmail,
       Is_Deleted: 0,
-    }).lean();
+    })?.lean?.();
+
+    return user ?? null;
   } catch (err) {
     throw new Error(
-      "Error while finding user by email: " + (err?.message || ""),
+      "Error while finding user by email: " + (err?.message ?? ""),
     );
   }
 };
@@ -20,20 +27,20 @@ const findUserByEmail = async (email = "") => {
 // region get user profile by User_Id
 const getProfileQuery = async (userId = "") => {
   try {
-    //validate user id
+    // validate user id
     if (!userId) {
       return null;
     }
 
-    const user =
-      (await User.findOne({
-        User_Id: userId,
-        Is_Deleted: 0,
-      }).lean()) || null;
+    // fetch user
+    const user = await User?.findOne?.({
+      User_Id: userId,
+      Is_Deleted: 0,
+    })?.lean?.();
 
-    return user;
+    return user ?? null;
   } catch (err) {
-    throw new Error("Error while fetching profile: " + (err?.message || ""));
+    throw new Error("Error while fetching profile: " + (err?.message ?? ""));
   }
 };
 // endregion
@@ -41,15 +48,22 @@ const getProfileQuery = async (userId = "") => {
 // region check if email exists
 const isEmailExists = async (email = "") => {
   try {
-    if (!email) return false;
-    const user = await User.findOne({
-      Email: email?.trim()?.toLowerCase() || "",
+    // normalize email
+    const safeEmail = email?.trim?.()?.toLowerCase?.() ?? "";
+    if (!safeEmail) {
+      return false;
+    }
+
+    // check email
+    const user = await User?.findOne?.({
+      Email: safeEmail,
       Is_Deleted: 0,
-    }).lean();
-    return !!user;
+    })?.lean?.();
+
+    return Boolean(user);
   } catch (err) {
     throw new Error(
-      "Error while checking if email exists: " + (err?.message || ""),
+      "Error while checking if email exists: " + (err?.message ?? ""),
     );
   }
 };

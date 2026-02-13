@@ -17,12 +17,22 @@ export const getEmployees = createAsyncThunk(
   async (params = {}, { rejectWithValue }) => {
     try {
       const response = await fetchEmployees(params || {});
-      return response || { employees: [], total: 0 };
+      return (
+        response || {
+          employees: [],
+          filteredTotal: 0,
+          overallTotal: 0,
+          currentPage: 1,
+          totalPages: 1,
+          limit: 5,
+        }
+      );
     } catch (err) {
-      // return error
-      return rejectWithValue(err?.response?.data?.message || "Failed to fetch employees");
+      return rejectWithValue(
+        err?.response?.data?.message || "Failed to fetch employees",
+      );
     }
-  }
+  },
 );
 
 // get employee
@@ -33,10 +43,11 @@ export const getEmployee = createAsyncThunk(
       const response = await fetchEmployeeById(id || "");
       return response || null;
     } catch (err) {
-      // return error
-      return rejectWithValue(err?.response?.data?.message || "Failed to fetch employee");
+      return rejectWithValue(
+        err?.response?.data?.message || "Failed to fetch employee",
+      );
     }
-  }
+  },
 );
 
 // add employee
@@ -47,10 +58,11 @@ export const addEmployee = createAsyncThunk(
       const response = await createEmployee(data || {});
       return response || null;
     } catch (err) {
-      // return error
-      return rejectWithValue(err?.response?.data?.message || "Failed to create employee");
+      return rejectWithValue(
+        err?.response?.data?.message || "Failed to create employee",
+      );
     }
-  }
+  },
 );
 
 // edit employee
@@ -61,10 +73,11 @@ export const editEmployee = createAsyncThunk(
       const response = await updateEmployee(id || "", data || {});
       return response || null;
     } catch (err) {
-      // return error
-      return rejectWithValue(err?.response?.data?.message || "Failed to update employee");
+      return rejectWithValue(
+        err?.response?.data?.message || "Failed to update employee",
+      );
     }
-  }
+  },
 );
 
 // remove employee
@@ -75,10 +88,11 @@ export const removeEmployee = createAsyncThunk(
       await deleteEmployee(id || "");
       return id || "";
     } catch (err) {
-      // return error
-      return rejectWithValue(err?.response?.data?.message || "Failed to delete employee");
+      return rejectWithValue(
+        err?.response?.data?.message || "Failed to delete employee",
+      );
     }
-  }
+  },
 );
 
 // endregion
@@ -87,7 +101,14 @@ export const removeEmployee = createAsyncThunk(
 const initialState = {
   list: [],
   selected: null,
-  total: 0,
+
+  total: 0, // filteredTotal
+  overallTotal: 0, // actual DB total
+
+  page: 1,
+  limit: 5,
+  totalPages: 1,
+
   loading: false,
   error: null,
 };
@@ -99,11 +120,9 @@ const employeeSlice = createSlice({
   initialState,
   reducers: {
     clearSelectedEmployee: (state) => {
-      // clear selected
       state.selected = null;
     },
     clearEmployeeError: (state) => {
-      // clear error
       state.error = null;
     },
   },
@@ -114,8 +133,20 @@ const employeeSlice = createSlice({
         state.loading = true;
       })
       .addCase(getEmployees.fulfilled, (state, action) => {
-        state.list = action.payload?.employees || [];
-        state.total = action.payload?.total || 0;
+        const payload = action.payload || {};
+      
+
+
+        state.list = payload.employees || [];
+
+        //  COUNTS
+        state.total = payload.filteredTotal || 0;
+        state.overallTotal = payload.overallTotal || 0;
+
+        state.page = payload.currentPage || 1;
+        state.limit = payload.limit || state.limit;
+        state.totalPages = payload.totalPages || 1;
+
         state.loading = false;
       })
       .addCase(getEmployees.rejected, (state, action) => {
@@ -126,6 +157,7 @@ const employeeSlice = createSlice({
       // get employee
       .addCase(getEmployee.pending, (state) => {
         state.loading = true;
+        state.error = null;
       })
       .addCase(getEmployee.fulfilled, (state, action) => {
         state.selected = action.payload || null;
@@ -141,6 +173,7 @@ const employeeSlice = createSlice({
         if (action.payload) {
           state.list.unshift(action.payload);
           state.total += 1;
+          state.overallTotal += 1;
         }
       })
 
@@ -148,7 +181,7 @@ const employeeSlice = createSlice({
       .addCase(editEmployee.fulfilled, (state, action) => {
         const updated = action.payload || {};
         state.list = state.list.map((emp) =>
-          emp.Employee_Id === updated.Employee_Id ? updated : emp
+          emp.Employee_Id === updated.Employee_Id ? updated : emp,
         );
         if (state.selected?.Employee_Id === updated.Employee_Id) {
           state.selected = updated;
@@ -158,9 +191,11 @@ const employeeSlice = createSlice({
       // remove employee
       .addCase(removeEmployee.fulfilled, (state, action) => {
         state.list = state.list.filter(
-          (emp) => emp.Employee_Id !== action.payload
+          (emp) => emp.Employee_Id !== action.payload,
         );
-        state.total -= 1;
+
+        state.total = Math.max(0, state.total - 1);
+        state.overallTotal = Math.max(0, state.overallTotal - 1);
       });
   },
 });

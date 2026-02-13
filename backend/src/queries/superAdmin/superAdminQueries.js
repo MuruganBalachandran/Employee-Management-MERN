@@ -1,12 +1,18 @@
 // region imports
+// libraries
 import mongoose from "mongoose";
+
+// models
 import { User, Admin } from "../../models/index.js";
+
+// utils
 import { getFormattedDateTime, ROLE } from "../../utils/index.js";
 // endregion
 
 // region create admin
 const createAdmin = async (payload = {}) => {
   try {
+    // extract payload
     const {
       Name = "",
       Email = "",
@@ -25,7 +31,7 @@ const createAdmin = async (payload = {}) => {
       Email: Email || "",
       Password: Password || "",
       Role: ROLE?.ADMIN || "ADMIN",
-    }).save();
+    })?.save?.();
 
     // normalize address
     const adminAddress = {
@@ -45,8 +51,8 @@ const createAdmin = async (payload = {}) => {
       Address: adminAddress,
       Joining_Date,
       Admin_Code: Admin_Code || "",
-      Permissions: "GRANTED", // ✅ default permission
-    }).save();
+      Permissions: "GRANTED",
+    })?.save?.();
 
     return admin || null;
   } catch (err) {
@@ -60,6 +66,18 @@ const createAdmin = async (payload = {}) => {
 // region get all admins
 const getAllAdmins = async (limit = 20, skip = 0, search = "") => {
   try {
+    const safeLimit = Number(limit) || 20;
+    const safeSkip = Number(skip) || 0;
+
+    const userSearchMatch = search
+      ? {
+          $or: [
+            { "user.Name": { $regex: search, $options: "i" } },
+            { "user.Email": { $regex: search, $options: "i" } },
+          ],
+        }
+      : {};
+
     const pipeline = [
       { $match: { Is_Deleted: 0 } },
 
@@ -73,29 +91,22 @@ const getAllAdmins = async (limit = 20, skip = 0, search = "") => {
               $match: {
                 Role: ROLE?.ADMIN || "ADMIN",
                 Is_Deleted: 0,
-                ...(search
-                  ? {
-                      $or: [
-                        { Name: { $regex: search, $options: "i" } },
-                        { Email: { $regex: search, $options: "i" } },
-                      ],
-                    }
-                  : {}),
               },
             },
           ],
           as: "user",
         },
       },
-
       { $unwind: "$user" },
-      { $sort: { Created_At: -1 } },
 
       {
         $facet: {
+          // paginated + filtered admins
           admins: [
-            { $skip: skip || 0 },
-            { $limit: limit || 20 },
+            { $match: userSearchMatch },
+            { $sort: { Created_At: -1 } },
+            { $skip: safeSkip },
+            { $limit: safeLimit },
             {
               $project: {
                 Admin_Id: 1,
@@ -116,20 +127,32 @@ const getAllAdmins = async (limit = 20, skip = 0, search = "") => {
               },
             },
           ],
-          totalCount: [{ $count: "count" }],
+
+          // filtered count (search applied)
+          filteredCount: [
+            { $match: userSearchMatch },
+            { $count: "count" },
+          ],
+
+          // overall count (NO search)
+          overallCount: [
+            { $match: { Is_Deleted: 0 } },
+            { $count: "count" },
+          ],
         },
       },
     ];
 
-    const result = (await Admin.aggregate(pipeline)) || [];
+    const result = await Admin.aggregate(pipeline);
 
     return {
       admins: result?.[0]?.admins || [],
-      total: result?.[0]?.totalCount?.[0]?.count || 0,
+      filteredTotal: result?.[0]?.filteredCount?.[0]?.count || 0,
+      overallTotal: result?.[0]?.overallCount?.[0]?.count || 0,
     };
   } catch (err) {
     throw new Error(
-      "Error while performing get all admins: " + (err?.message || ""),
+      "Error while performing get all admins: " + (err?.message || "")
     );
   }
 };
@@ -138,14 +161,16 @@ const getAllAdmins = async (limit = 20, skip = 0, search = "") => {
 // region get admin by id
 const getAdminById = async (id = "") => {
   try {
-    if (!id) return null;
+    // validate id
+    if (!id) {
+      return null;
+    }
 
     const objectId = new mongoose.Types.ObjectId(id);
 
     const result =
-      (await Admin.aggregate([
+      (await Admin?.aggregate?.([
         { $match: { Admin_Id: objectId, Is_Deleted: 0 } },
-
         {
           $lookup: {
             from: "users",
@@ -155,9 +180,7 @@ const getAdminById = async (id = "") => {
             as: "user",
           },
         },
-
         { $unwind: "$user" },
-
         {
           $project: {
             Admin_Id: 1,
@@ -191,26 +214,32 @@ const getAdminById = async (id = "") => {
 // region delete admin
 const deleteAdmin = async (adminId = "") => {
   try {
-    if (!adminId) return null;
+    // validate id
+    if (!adminId) {
+      return null;
+    }
 
     const objectId = new mongoose.Types.ObjectId(adminId);
 
-    const doc = await Admin.findOneAndUpdate(
+    const doc = await Admin?.findOneAndUpdate?.(
       { Admin_Id: objectId, Is_Deleted: 0 },
       { $set: { Is_Deleted: 1 } },
       { new: true },
-    ).lean();
+    )?.lean?.();
 
-    if (!doc) return null;
+    if (!doc) {
+      return null;
+    }
 
+    // delete linked user
     if (doc?.User_Id) {
-      await User.findOneAndUpdate(
+      await User?.findOneAndUpdate?.(
         { User_Id: doc?.User_Id || null, Is_Deleted: 0 },
         { $set: { Is_Deleted: 1 } },
       );
     }
 
-    return doc;
+    return doc || null;
   } catch (err) {
     throw new Error(
       "Error while performing delete admin: " + (err?.message || ""),
@@ -222,26 +251,31 @@ const deleteAdmin = async (adminId = "") => {
 // region update admin details
 const updateAdminDetails = async (adminId = "", payload = {}) => {
   try {
-    if (!adminId) return null;
+    // validate id
+    if (!adminId) {
+      return null;
+    }
 
     const objectId = new mongoose.Types.ObjectId(adminId);
 
-    const existingAdmin = await Admin.findOne({
+    const existingAdmin = await Admin?.findOne?.({
       Admin_Id: objectId,
       Is_Deleted: 0,
-    }).lean();
+    })?.lean?.();
 
-    if (!existingAdmin) return null;
+    if (!existingAdmin) {
+      return null;
+    }
 
     const { name, age, phone, salary, address, isActive } = payload || {};
 
     // update user name
     if (name !== undefined) {
-      await User.findOneAndUpdate(
+      await User?.findOneAndUpdate?.(
         { User_Id: existingAdmin?.User_Id || null, Is_Deleted: 0 },
         {
           $set: {
-            Name: name,
+            Name: name || "",
             Updated_At: getFormattedDateTime(),
           },
         },
@@ -257,12 +291,11 @@ const updateAdminDetails = async (adminId = "", payload = {}) => {
       Updated_At: getFormattedDateTime(),
     };
 
-    await Admin.findOneAndUpdate(
+    await Admin?.findOneAndUpdate?.(
       { Admin_Id: objectId, Is_Deleted: 0 },
       { $set: updateFields },
     );
 
-    // ✅ return full admin object
     return await getAdminById(adminId);
   } catch (err) {
     throw new Error(
@@ -275,11 +308,14 @@ const updateAdminDetails = async (adminId = "", payload = {}) => {
 // region update admin permission
 const updateAdminPermission = async (adminId = "", permission = "") => {
   try {
-    if (!adminId) return null;
+    // validate id
+    if (!adminId) {
+      return null;
+    }
 
     const objectId = new mongoose.Types.ObjectId(adminId);
 
-    const updated = await Admin.findOneAndUpdate(
+    const updated = await Admin?.findOneAndUpdate?.(
       { Admin_Id: objectId, Is_Deleted: 0 },
       {
         $set: {
@@ -288,7 +324,7 @@ const updateAdminPermission = async (adminId = "", permission = "") => {
         },
       },
       { new: true },
-    ).lean();
+    )?.lean?.();
 
     return updated || null;
   } catch (err) {
@@ -302,12 +338,15 @@ const updateAdminPermission = async (adminId = "", permission = "") => {
 // region check if admin code exists
 const isAdminCodeExists = async (adminCode = "") => {
   try {
-    if (!adminCode) return false;
+    // validate code
+    if (!adminCode) {
+      return false;
+    }
 
-    const admin = await Admin.findOne({
+    const admin = await Admin?.findOne?.({
       Admin_Code: adminCode || "",
       Is_Deleted: 0,
-    }).lean();
+    })?.lean?.();
 
     return !!admin;
   } catch (err) {

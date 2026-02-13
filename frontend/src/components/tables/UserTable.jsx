@@ -16,12 +16,6 @@ const UserTable = ({
   const [openDropdown, setOpenDropdown] = useState(null);
   // endregion
 
-  // region empty state
-  if (!users?.length) {
-    return <div className='text-center py-5 text-muted'>No records found</div>;
-  }
-  // endregion
-
   // region handlers
   const toggleDropdown = (id = null) => {
     setOpenDropdown((prev) => (prev === id ? null : id));
@@ -65,145 +59,153 @@ const UserTable = ({
         </thead>
 
         <tbody>
-          {users.map((user = {}) => {
-            const id =
-              userRole === "ADMIN"
-                ? user?.Admin_Id || ""
-                : user?.Employee_Id || "";
+          {users?.length > 0 ? (
+            users.map((user = {}) => {
+              const id =
+                userRole === "ADMIN"
+                  ? user?.Admin_Id || ""
+                  : user?.Employee_Id || "";
 
-            return (
-              <tr key={id}>
-                {/* Name (VIEW DETAILS) */}
-                <td className='ps-4'>
-                  <div
-                    role='button'
-                    className='d-flex align-items-center'
-                    style={{ cursor: "pointer" }}
-                    onClick={() => handleView(user)}
-                  >
+              return (
+                <tr key={id}>
+                  {/* Name (VIEW DETAILS) */}
+                  <td className='ps-4'>
                     <div
-                      className='bg-light rounded-circle d-flex align-items-center justify-content-center me-2'
-                      style={{ width: 32, height: 32 }}
+                      role='button'
+                      className='d-flex align-items-center'
+                      style={{ cursor: "pointer" }}
+                      onClick={() => handleView(user)}
                     >
-                      <FaUser size={14} className='text-muted' />
-                    </div>
-
-                    <div>
-                      <div className='fw-semibold text-dark'>
-                        {user?.Name || ""}
+                      <div
+                        className='bg-light rounded-circle d-flex align-items-center justify-content-center me-2'
+                        style={{ width: 32, height: 32 }}
+                      >
+                        <FaUser size={14} className='text-muted' />
                       </div>
 
-                      {user?.Is_Active === 0 && (
-                        <span className='badge bg-danger-subtle text-danger small'>
-                          Inactive
-                        </span>
-                      )}
+                      <div>
+                        <div className='fw-semibold text-dark'>
+                          {user?.Name || ""}
+                        </div>
+
+                        {user?.Is_Active === 0 && (
+                          <span className='badge bg-danger-subtle text-danger small'>
+                            Inactive
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </td>
-
-                {/* Department */}
-                {userRole === "EMPLOYEE" && (
-                  <td className='small text-muted'>
-                    {user?.Department || "—"}
                   </td>
-                )}
 
-                {/* Email */}
-                <td className='small'>{user?.Email || ""}</td>
+                  {/* Department */}
+                  {userRole === "EMPLOYEE" && (
+                    <td className='small text-muted'>
+                      {user?.Department || "—"}
+                    </td>
+                  )}
 
-                {/* Code */}
-                <td className='small font-monospace text-muted'>
-                  {userRole === "ADMIN"
-                    ? user?.Admin_Code || ""
-                    : user?.Employee_Code || ""}
-                </td>
+                  {/* Email */}
+                  <td className='small'>{user?.Email || ""}</td>
 
-                {/* Phone */}
-                <td className='small text-muted'>{user?.Phone || "—"}</td>
-
-                {/* Permission */}
-                {userRole === "ADMIN" && (
-                  <td>
-                    <span
-                      className={`badge ${
-                        user?.Permissions === "GRANTED"
-                          ? "bg-success"
-                          : user?.Permissions === "REVOKED"
-                            ? "bg-danger"
-                            : "bg-secondary"
-                      }`}
-                    >
-                      {user?.Permissions || "N/A"}
-                    </span>
+                  {/* Code */}
+                  <td className='small font-monospace text-muted'>
+                    {userRole === "ADMIN"
+                      ? user?.Admin_Code || ""
+                      : user?.Employee_Code || ""}
                   </td>
-                )}
 
-                {/* Actions */}
-                <td className='pe-4 text-end'>
-                  <div className='dropdown position-relative'>
-                    <button
-                      className='btn btn-light btn-sm rounded-circle'
-                      onClick={() => toggleDropdown(id)}
-                    >
-                      <FaEllipsisV size={14} />
-                    </button>
+                  {/* Phone */}
+                  <td className='small text-muted'>{user?.Phone || "—"}</td>
 
-                    {openDropdown === id && (
-                      <>
-                        {/* backdrop */}
-                        <div
-                          className='position-fixed top-0 start-0 w-100 h-100'
-                          style={{ zIndex: 998 }}
-                          onClick={() => setOpenDropdown(null)}
-                        />
+                  {/* Permission */}
+                  {userRole === "ADMIN" && (
+                    <td>
+                      <span
+                        className={`badge ${
+                          user?.Permissions === "GRANTED"
+                            ? "bg-success"
+                            : user?.Permissions === "REVOKED"
+                              ? "bg-danger"
+                              : "bg-secondary"
+                        }`}
+                      >
+                        {user?.Permissions || "N/A"}
+                      </span>
+                    </td>
+                  )}
 
-                        <ul
-                          className='dropdown-menu dropdown-menu-end show shadow-sm'
-                          style={{ zIndex: 999 }}
-                        >
-                          <li>
-                            <button
-                              className='dropdown-item d-flex align-items-center'
-                              onClick={() => handleEdit(user)}
-                            >
-                              <FaEdit className='me-2 text-primary' />
-                              Edit
-                            </button>
-                          </li>
+                  {/* Actions */}
+                  <td className='pe-4 text-end'>
+                    <div className='position-static'>
+                      <button
+                        className='btn btn-light btn-sm rounded-circle'
+                        onClick={() => toggleDropdown(id)}
+                      >
+                        <FaEllipsisV size={14} />
+                      </button>
 
-                          {userRole === "ADMIN" && (
+                      {openDropdown === id && (
+                        <>
+                          {/* backdrop */}
+                          <div
+                            className='position-fixed top-0 start-0 w-100 h-100 z-1'
+                            onClick={() => setOpenDropdown(null)}
+                          />
+
+                          {/* dropdown */}
+                          <ul className='dropdown-menu dropdown-menu-end show position-fixed z-3 shadow-sm'>
                             <li>
                               <button
                                 className='dropdown-item d-flex align-items-center'
-                                onClick={() => handlePermission(user)}
+                                onClick={() => handleEdit(user)}
                               >
-                                <FaKey className='me-2 text-warning' />
-                                {user?.Permissions === "GRANTED"
-                                  ? "Revoke"
-                                  : "Grant"}{" "}
-                                Permission
+                                <FaEdit className='me-2 text-primary' />
+                                Edit
                               </button>
                             </li>
-                          )}
 
-                          <li>
-                            <button
-                              className='dropdown-item d-flex align-items-center text-danger'
-                              onClick={() => handleDelete(id)}
-                            >
-                              <FaTrash className='me-2' />
-                              Delete
-                            </button>
-                          </li>
-                        </ul>
-                      </>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            );
-          })}
+                            {userRole === "ADMIN" && (
+                              <li>
+                                <button
+                                  className='dropdown-item d-flex align-items-center'
+                                  onClick={() => handlePermission(user)}
+                                >
+                                  <FaKey className='me-2 text-warning' />
+                                  {user?.Permissions === "GRANTED"
+                                    ? "Revoke"
+                                    : "Grant"}{" "}
+                                  Permission
+                                </button>
+                              </li>
+                            )}
+
+                            <li>
+                              <button
+                                className='dropdown-item d-flex align-items-center text-danger'
+                                onClick={() => handleDelete(id)}
+                              >
+                                <FaTrash className='me-2' />
+                                Delete
+                              </button>
+                            </li>
+                          </ul>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })
+          ) : (
+            <tr>
+              <td
+                colSpan={userRole === "ADMIN" ? 7 : 6}
+                className='text-center py-4 text-muted'
+              >
+                No records found
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
     </div>

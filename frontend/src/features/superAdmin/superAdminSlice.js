@@ -19,8 +19,9 @@ export const getAdmins = createAsyncThunk(
       const response = await fetchAdmins(params || {});
       return response || { admins: [], total: 0 };
     } catch (err) {
-      // return error
-      return rejectWithValue(err?.response?.data?.message || "Failed to fetch admins");
+      return rejectWithValue(
+        err?.response?.data?.message || "Failed to fetch admins"
+      );
     }
   }
 );
@@ -33,8 +34,9 @@ export const addAdmin = createAsyncThunk(
       const response = await createAdmin(data || {});
       return response || null;
     } catch (err) {
-      // return error
-      return rejectWithValue(err?.response?.data?.message || "Failed to create admin");
+      return rejectWithValue(
+        err?.response?.data?.message || "Failed to create admin"
+      );
     }
   }
 );
@@ -47,8 +49,9 @@ export const editAdmin = createAsyncThunk(
       const response = await updateAdmin(id || "", data || {});
       return response || null;
     } catch (err) {
-      // return error
-      return rejectWithValue(err?.response?.data?.message || "Failed to update admin");
+      return rejectWithValue(
+        err?.response?.data?.message || "Failed to update admin"
+      );
     }
   }
 );
@@ -61,13 +64,14 @@ export const removeAdmin = createAsyncThunk(
       await deleteAdmin(id || "");
       return id || "";
     } catch (err) {
-      // return error
-      return rejectWithValue(err?.response?.data?.message || "Failed to delete admin");
+      return rejectWithValue(
+        err?.response?.data?.message || "Failed to delete admin"
+      );
     }
   }
 );
 
-// update permission
+// update admin permission
 export const updateAdminPermission = createAsyncThunk(
   "superAdmin/updateAdminPermission",
   async ({ id = "", permission = "" }, { rejectWithValue }) => {
@@ -75,8 +79,9 @@ export const updateAdminPermission = createAsyncThunk(
       const response = await changeAdminPermission(id || "", permission || "");
       return response || null;
     } catch (err) {
-      // return error
-      return rejectWithValue(err?.response?.data?.message || "Failed to update admin permission");
+      return rejectWithValue(
+        err?.response?.data?.message || "Failed to update admin permission"
+      );
     }
   }
 );
@@ -86,7 +91,11 @@ export const updateAdminPermission = createAsyncThunk(
 // region initial state
 const initialState = {
   list: [],
-  total: 0,
+  total: 0,          // filtered total
+  overallTotal: 0,  
+  page: 1,
+  limit: 5,
+  totalPages: 1,
   loading: false,
   error: null,
 };
@@ -98,7 +107,6 @@ const superAdminSlice = createSlice({
   initialState,
   reducers: {
     clearSuperAdminError: (state) => {
-      // clear error
       state.error = null;
     },
   },
@@ -107,23 +115,28 @@ const superAdminSlice = createSlice({
       // get admins
       .addCase(getAdmins.pending, (state) => {
         state.loading = true;
+        state.error = null;
       })
-      .addCase(getAdmins.fulfilled, (state, action) => {
-        state.list = action.payload?.admins || [];
-        state.total = action.payload?.total || 0;
-        state.loading = false;
-      })
+  .addCase(getAdmins.fulfilled, (state, action) => {
+  const payload = action.payload || {};
+
+  state.list = payload.admins || [];
+  state.total = payload.filteredTotal || 0;   
+    state.overallTotal = action.payload?.overallTotal || 0; 
+  state.page = payload.currentPage || 1;
+  state.limit = payload.limit || state.limit;
+  state.totalPages = payload.totalPages || 1;
+  state.loading = false;
+})
+
       .addCase(getAdmins.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "";
       })
 
-      // add admin
-      .addCase(addAdmin.fulfilled, (state, action) => {
-        if (action.payload) {
-          state.list.unshift(action.payload);
-          state.total += 1;
-        }
+      // add admin (do NOT unshift — pagination safe)
+      .addCase(addAdmin.fulfilled, (state) => {
+        state.total += 1;
       })
 
       // edit admin
@@ -134,12 +147,21 @@ const superAdminSlice = createSlice({
         );
       })
 
-      // remove admin
+      // remove admin (pagination safe)
       .addCase(removeAdmin.fulfilled, (state, action) => {
         state.list = state.list.filter(
           (admin) => admin.Admin_Id !== action.payload
         );
         state.total -= 1;
+
+        state.totalPages = Math.max(
+          1,
+          Math.ceil(state.total / state.limit)
+        );
+
+        if (state.page > state.totalPages) {
+          state.page = state.totalPages;
+        }
       })
 
       // update permission
@@ -152,6 +174,8 @@ const superAdminSlice = createSlice({
   },
 });
 // endregion
+
+
 
 // region exports
 export const { clearSuperAdminError } = superAdminSlice.actions;

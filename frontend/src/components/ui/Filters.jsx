@@ -5,15 +5,7 @@ import { FaSearch, FaTimes } from "react-icons/fa";
 import { VALID_DEPARTMENTS } from "../../utils/constants";
 // endregion
 
-/**
- * Filters - A reusable filter component for search and dropdowns
- * 
- * @param {string} search - Current search value
- * @param {function} onSearchChange - Callback when search value changes
- * @param {string} selectedDepartment - Selected department value
- * @param {function} onDepartmentChange - Callback when department changes
- * @param {boolean} showDepartment - Whether to show the department dropdown
- */
+
 const Filters = ({
   search = "",
   onSearchChange = () => {},

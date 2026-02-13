@@ -1,12 +1,15 @@
 // region imports
+// models
 import { ActivityLog } from "../../models/index.js";
+
+// utils
 import { toObjectId, getFormattedDateTime } from "../../utils/index.js";
 // endregion
 
-// region createActivity logs
-
+// region create activity log
 const createActivityLog = async (payload = {}) => {
   try {
+    // extract payload
     const {
       User_Id = null,
       Email = "",
@@ -17,9 +20,10 @@ const createActivityLog = async (payload = {}) => {
       Duration = "",
       Created_At = "",
       Activity = "",
-    } = payload || {};
+    } = payload ?? {};
 
-    const activity = await ActivityLog.create({
+    // create activity log
+    const activity = await ActivityLog?.create?.({
       User_Id,
       Email,
       Action,
@@ -31,39 +35,47 @@ const createActivityLog = async (payload = {}) => {
       Activity,
     });
 
-    return activity || null;
+    return activity ?? null;
   } catch (err) {
     throw new Error(
-      "Error while performing create activity log: " + (err?.message || ""),
+      "Error while performing create activity log: " + (err?.message ?? ""),
     );
   }
 };
+// endregion
 
 // region get activity logs
 const getActivityLogs = async (limit = 10, skip = 0, search = "") => {
   try {
+    // normalize params
+    const safeLimit = Number(limit) || 10;
+    const safeSkip = Number(skip) || 0;
+    const safeSearch = search ?? "";
+
+    // base match
     const baseMatch = { Is_Deleted: 0 };
 
-    const searchMatch = search
+    const searchMatch = safeSearch
       ? {
           $or: [
-            { Activity: { $regex: search, $options: "i" } },
-            { Email: { $regex: search, $options: "i" } },
-            { Action: { $regex: search, $options: "i" } },
-            { URL: { $regex: search, $options: "i" } },
+            { Activity: { $regex: safeSearch, $options: "i" } },
+            { Email: { $regex: safeSearch, $options: "i" } },
+            { Action: { $regex: safeSearch, $options: "i" } },
+            { URL: { $regex: safeSearch, $options: "i" } },
           ],
         }
       : {};
 
+    // aggregation pipeline
     const pipeline = [
       {
         $facet: {
-          //  Logs (filtered)
+          // logs (filtered)
           logs: [
             { $match: { ...baseMatch, ...searchMatch } },
             { $sort: { Created_At: -1 } },
-            { $skip: skip || 0 },
-            { $limit: limit || 10 },
+            { $skip: safeSkip },
+            { $limit: safeLimit },
             {
               $project: {
                 _id: 0,
@@ -80,80 +92,71 @@ const getActivityLogs = async (limit = 10, skip = 0, search = "") => {
             },
           ],
 
-          //  Filtered count
+          // filtered count
           filteredCount: [
             { $match: { ...baseMatch, ...searchMatch } },
             { $count: "count" },
           ],
 
-          //  Overall count (NO SEARCH)
-          overallCount: [
-            { $match: baseMatch },
-            { $count: "count" },
-          ],
+          // overall count
+          overallCount: [{ $match: baseMatch }, { $count: "count" }],
         },
       },
     ];
 
-    const result = await ActivityLog.aggregate(pipeline);
+    // execute aggregation
+    const result = await ActivityLog?.aggregate?.(pipeline);
 
-    const logs = result?.[0]?.logs || [];
-    const filteredTotal =
-      result?.[0]?.filteredCount?.[0]?.count || 0;
-    const overallTotal =
-      result?.[0]?.overallCount?.[0]?.count || 0;
+    const logs = result?.[0]?.logs ?? [];
+    const filteredTotal = result?.[0]?.filteredCount?.[0]?.count ?? 0;
+    const overallTotal = result?.[0]?.overallCount?.[0]?.count ?? 0;
 
     return {
       logs,
-      total: filteredTotal,        // filtered
-      overallTotal,                // real DB total
-      skip,
-      limit,
-      currentPage: Math.floor(skip / limit) + 1,
-      totalPages: Math.ceil(filteredTotal / limit),
+      total: filteredTotal,
+      overallTotal,
+      skip: safeSkip,
+      limit: safeLimit,
+      currentPage: Math.floor(safeSkip / safeLimit) + 1,
+      totalPages: Math.ceil(filteredTotal / safeLimit),
     };
   } catch (err) {
-    throw new Error(
-      "Error fetching activity logs: " + (err?.message || "")
-    );
+    throw new Error("Error fetching activity logs: " + (err?.message ?? ""));
   }
 };
 // endregion
-
 
 // region delete activity log by id
 const deleteActivityLog = async (logId = "") => {
   try {
-    //validate id
+    // validate id
     if (!logId) {
       return null;
     }
 
-    const objectId = toObjectId(logId);
+    const objectId = toObjectId?.(logId);
 
-    const deleted = await ActivityLog.findOneAndUpdate(
+    // soft delete log
+    const deleted = await ActivityLog?.findOneAndUpdate?.(
       { Log_Id: objectId, Is_Deleted: 0 },
       {
         $set: {
           Is_Deleted: 1,
-          Updated_At: getFormattedDateTime(),
+          Updated_At: getFormattedDateTime?.(),
         },
       },
       { new: true },
-    ).lean();
+    )?.lean?.();
 
-    return deleted || null;
+    return deleted ?? null;
   } catch (err) {
     throw new Error(
-      "Error while deleting activity log: " + (err?.message || ""),
+      "Error while deleting activity log: " + (err?.message ?? ""),
     );
   }
 };
 // endregion
+
 // region exports
-export {
-  createActivityLog,
-  getActivityLogs,
-  deleteActivityLog
-}
+export { createActivityLog, getActivityLogs, deleteActivityLog };
 // endregion

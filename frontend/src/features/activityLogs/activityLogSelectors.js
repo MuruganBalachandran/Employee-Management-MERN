@@ -4,6 +4,7 @@ export const selectActivityLogsState = (state) => state.activityLog || {};
 // data selectors
 export const selectActivityLogs = (state) => state.activityLog?.list || [];
 
+// filtered total (for pagination)
 export const selectActivityLogsTotal = (state) => state.activityLog?.total || 0;
 
 // pagination selectors
@@ -14,9 +15,12 @@ export const selectActivityLogsPagination = (state) => ({
 });
 
 // ui selectors
-export const selectActivityLogsLoading = (state) => state.activityLog?.loading || false;
+export const selectActivityLogsLoading = (state) =>
+  state.activityLog?.loading || false;
 
-export const selectActivityLogsError = (state) => state.activityLog?.error || null;
+export const selectActivityLogsError = (state) =>
+  state.activityLog?.error || null;
 
+// actual DB total
 export const selectActivityLogsOverallTotal = (state) =>
   state.activityLog?.overallTotal || 0;

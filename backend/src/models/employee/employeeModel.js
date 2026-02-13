@@ -46,7 +46,7 @@ const EmployeeSchema = new mongoose.Schema(
       type: String,
     },
 
-    Joining_date: {
+    Joining_Date: {
       type: String,
       default: () => getFormattedDateTime(),
     },

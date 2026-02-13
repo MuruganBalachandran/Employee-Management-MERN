@@ -25,7 +25,6 @@ const validateCreateAdmin = (data = {}) => {
     email = "",
     password = "",
     age = 0,
-    department = "",
     phone = "",
     address = {},
     salary = "",
@@ -36,7 +35,7 @@ const validateCreateAdmin = (data = {}) => {
   const nameError = validateName(name);
   if (nameError) errors.name = nameError;
 
-  const emailError = validateEmail(email, ROLE?.ADMIN);
+  const emailError = validateEmail(email, ROLE.ADMIN);
   if (emailError) errors.email = emailError;
 
   const passwordError = validatePassword(password, {
@@ -47,9 +46,6 @@ const validateCreateAdmin = (data = {}) => {
 
   const ageError = validateAge(age);
   if (ageError) errors.age = ageError;
-
-  const deptError = validateDepartment(department);
-  if (deptError) errors.department = deptError;
 
   const phoneError = validatePhone(phone);
   if (phoneError) errors.phone = phoneError;
@@ -66,10 +62,13 @@ const validateCreateAdmin = (data = {}) => {
   const adminCodeError = validateAdminCode(adminCode);
   if (adminCodeError) errors.adminCode = adminCodeError;
 
-  if (Object.keys(errors).length > 0) return validationError(errors);
+  if (Object.keys(errors).length > 0) {
+    return validationError(errors);
+  }
 
   return { isValid: true, error: null };
 };
+
 // endregion
 
 // region validate update admin
@@ -79,12 +78,11 @@ const validateUpdateAdmin = (data = {}) => {
   const {
     name,
     age,
-    department,
     phone,
     address,
     salary,
-    permissions,
     isActive,
+    password,
   } = data || {};
 
   if (name !== undefined) {
@@ -95,11 +93,6 @@ const validateUpdateAdmin = (data = {}) => {
   if (age !== undefined) {
     const ageError = validateAge(age);
     if (ageError) errors.age = ageError;
-  }
-
-  if (department !== undefined) {
-    const deptError = validateDepartment(department);
-    if (deptError) errors.department = deptError;
   }
 
   if (phone !== undefined) {
@@ -117,17 +110,15 @@ const validateUpdateAdmin = (data = {}) => {
     if (salaryError) errors.salary = salaryError;
   }
 
-  // Admin-only
-  if (permissions !== undefined) {
-    if (!["GRANTED", "REVOKED"].includes(permissions)) {
-      errors.permissions = "Invalid permission value";
-    }
+  if (password !== undefined) {
+    const passwordError = validatePassword(password, {
+      Name: name || "",
+    });
+    if (passwordError) errors.password = passwordError;
   }
 
-  if (isActive !== undefined) {
-    if (![0, 1].includes(isActive)) {
-      errors.isActive = "Invalid active status";
-    }
+  if (isActive !== undefined && ![0, 1].includes(isActive)) {
+    errors.isActive = "Invalid active status";
   }
 
   if (Object.keys(errors).length > 0) {
@@ -136,6 +127,7 @@ const validateUpdateAdmin = (data = {}) => {
 
   return { isValid: true, error: null };
 };
+
 // endregion
 
 // region exports

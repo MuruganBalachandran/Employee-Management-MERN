@@ -3,18 +3,6 @@ import React from "react";
 import { FaExclamationTriangle } from "react-icons/fa";
 // endregion
 
-/**
- * ConfirmModal - A reusable confirmation dialog
- * 
- * @param {Boolean} show - Whether to show the modal
- * @param {Function} onClose - Callback when modal is closed
- * @param {Function} onConfirm - Callback when confirmed
- * @param {String} title - Modal title
- * @param {String} message - Confirmation message
- * @param {String} confirmText - Text for confirm button
- * @param {String} cancelText - Text for cancel button
- * @param {String} variant - Button variant (danger, primary, warning)
- */
 const ConfirmModal = ({
   show = false,
   onClose = () => {},

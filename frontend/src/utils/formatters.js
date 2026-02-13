@@ -1,23 +1,17 @@
-/**
- * Converts a date string from YYYY-MM-DD to DD-MM-YYYY
- * @param {string} dateStr - Date in YYYY-MM-DD format
- * @returns {string} - Date in DD-MM-YYYY format
- */
-export const formatDateForBackend = (dateStr) => {
-    if (!dateStr) return "";
-    const [year, month, day] = dateStr.split("-");
-    if (!year || !month || !day) return dateStr;
-    return `${day}-${month}-${year}`;
+// For sending to backend (store as DD-MM-YYYY)
+export const formatDateForBackend = (yyyyMMdd = "") => {
+  if (!yyyyMMdd) return "";
+  const [y, m, d] = yyyyMMdd.split("-");
+  return `${d}-${m}-${y}`;
 };
 
-/**
- * Converts a date string from DD-MM-YYYY to YYYY-MM-DD (for input fields)
- * @param {string} dateStr - Date in DD-MM-YYYY format
- * @returns {string} - Date in YYYY-MM-DD format
- */
-export const formatDateForInput = (dateStr) => {
-    if (!dateStr) return "";
-    const [day, month, year] = dateStr.split("-");
-    if (!day || !month || !year) return dateStr;
-    return `${year}-${month}-${day}`;
+// For showing in <input type="date"> (edit)
+export const formatDateForInput = (ddMMyyyy = "") => {
+  if (!ddMMyyyy) return "";
+
+  // already valid
+  if (/^\d{4}-\d{2}-\d{2}$/.test(ddMMyyyy)) return ddMMyyyy;
+
+  const [d, m, y] = ddMMyyyy.split("-");
+  return `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
 };

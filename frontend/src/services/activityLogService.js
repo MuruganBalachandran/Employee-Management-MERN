@@ -5,16 +5,37 @@ import { axios } from "./api";
 // region fetch activity logs
 export const fetchActivityLogs = async (params = {}) => {
   try {
-    const { page = 1, limit = 10, search = "" } = params || {};
+    // extract and normalize params
+    const page = params?.page || 1;
+    const limit = params?.limit || 10;
+    const search = params?.search || "";
 
+    // perform api request
     const response = await axios.get("/activity-log", {
-      params: { page, limit, search },
+      params: {
+        page,
+        limit,
+        search,
+      },
     });
 
-    return response || { logs: [], total: 0 };
+    // return normalized response
+    return (
+      response || {
+        logs: [],
+        filteredTotal: data?.data?.total || 0,   
+      overallTotal: data?.data?.overallTotal || 0,  
+        currentPage: page || 1,
+        totalPages: 1,
+        limit,
+      }
+    );
   } catch (err) {
-    // log error and throw
-    console.error("fetchActivityLogs Error:", err?.response?.data || err?.message || "");
+    // handle and propagate error
+    console.error(
+      "fetchActivityLogs Error:",
+      err?.response?.data || err?.message || "",
+    );
     throw err;
   }
 };
@@ -23,12 +44,22 @@ export const fetchActivityLogs = async (params = {}) => {
 // region delete activity log
 export const deleteActivityLog = async (id = "") => {
   try {
-    if (!id) return null;
-    const response = await axios.delete(`/activity-log/${id}`);
+    // validate id
+    if (!id) {
+      return null;
+    }
+
+    // perform delete request
+    const response = await axios.delete(`/activity-log/${id || ""}`);
+
+    // return api response
     return response || null;
   } catch (err) {
-    // log error and throw
-    console.error("deleteActivityLog Error:", err?.response?.data || err?.message || "");
+    // handle and propagate error
+    console.error(
+      "deleteActivityLog Error:",
+      err?.response?.data || err?.message || "",
+    );
     throw err;
   }
 };

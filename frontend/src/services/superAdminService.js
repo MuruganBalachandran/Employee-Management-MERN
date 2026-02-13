@@ -47,11 +47,32 @@ export const fetchAdmins = async (params = {}) => {
       params: { page, limit, search },
     });
 
-    return response || { admins: [], total: 0 };
+    return (
+      response || {
+        admins: [],
+        filteredTotal: 0,
+        overallTotal: 0,
+        skip: 0,
+        limit,
+        currentPage: page,
+        totalPages: 1,
+      }
+    );
   } catch (err) {
-    // log error
-    console.error("fetchAdmins Error:", err?.response?.data || err?.message || "");
-    return { admins: [], total: 0 };
+    console.error(
+      "fetchAdmins Error:",
+      err?.response?.data || err?.message || ""
+    );
+
+    return {
+      admins: [],
+      filteredTotal: 0,
+      overallTotal: 0,
+      skip: 0,
+      limit,
+      currentPage: page,
+      totalPages: 1,
+    };
   }
 };
 // endregion

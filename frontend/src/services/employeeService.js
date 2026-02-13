@@ -48,18 +48,41 @@ export const fetchEmployees = async (params = {}) => {
       department = "",
     } = params || {};
 
+    // axios interceptor already unwraps response
     const response = await axios.get("/employees", {
       params: { page, limit, search, department },
     });
-
-    return response || { employees: [], total: 0 };
+  console.log("EMPLOYEES API RESPONSE:", response);
+    return {
+      employees: response?.employees || [],
+      filteredTotal: response?.filteredTotal ?? 0,
+      overallTotal: response?.overallTotal ?? 0,
+      skip: response?.skip ?? 0,
+      limit: response?.limit ?? limit,
+      currentPage: response?.currentPage ?? page,
+      totalPages: response?.totalPages ?? 1,
+    };
   } catch (err) {
-    // log error
-    console.error("fetchEmployees Error:", err?.response?.data || err?.message || "");
-    return { employees: [], total: 0 };
+    console.error(
+      "fetchEmployees Error:",
+      err?.response?.data || err?.message || ""
+    );
+
+    // MUST return same shape
+    return {
+      employees: [],
+      filteredTotal: 0,
+      overallTotal: 0,
+      skip: 0,
+      limit: 5,
+      currentPage: 1,
+      totalPages: 1,
+    };
   }
 };
 // endregion
+
+
 
 // region fetch employee by id
 export const fetchEmployeeById = async (id = "") => {

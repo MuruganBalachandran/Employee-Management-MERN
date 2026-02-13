@@ -4,7 +4,7 @@ import { FaTimes } from "react-icons/fa";
 import { Offcanvas } from "bootstrap";
 // endregion
 
-//reusable Bootstrap Offcanvas component
+// region component
 const Canvas = ({
   show = false,
   onClose = () => {},
@@ -14,8 +14,10 @@ const Canvas = ({
   placement = "end",
   size = "md",
 }) => {
+  // region refs
   const canvasRef = useRef(null);
   const bsCanvas = useRef(null);
+  // endregion
 
   // region effects
   useEffect(() => {
@@ -50,7 +52,7 @@ const Canvas = ({
     sm: { width: "400px" },
     md: { width: "600px" },
     lg: { width: "800px" },
-    xl: { width: "75vw" }, // 3/4 of full width
+    xl: { width: "75vw" },
   };
   // endregion
 
@@ -62,8 +64,11 @@ const Canvas = ({
       ref={canvasRef}
       style={sizeStyles[size] || sizeStyles.md}
     >
+      {/* header */}
       <div className='offcanvas-header border-bottom bg-light'>
         <h5 className='offcanvas-title fw-bold text-dark'>{title}</h5>
+
+        {/* close button */}
         <button
           type='button'
           className='btn btn-light btn-sm rounded-circle d-flex align-items-center justify-content-center'
@@ -74,8 +79,10 @@ const Canvas = ({
         </button>
       </div>
 
+      {/* body */}
       <div className='offcanvas-body h-100 py-4'>{children}</div>
 
+      {/* footer */}
       {footer && (
         <div className='offcanvas-footer border-top p-3 bg-light'>{footer}</div>
       )}
@@ -83,6 +90,7 @@ const Canvas = ({
   );
   // endregion
 };
+// endregion
 
 // region exports
 export default Canvas;

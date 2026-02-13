@@ -1,13 +1,19 @@
 // region imports
+// libraries
 import mongoose from "mongoose";
+
+// models
 import Employee from "../../models/employee/employeeModel.js";
 import User from "../../models/user/userModel.js";
+
+// utils
 import { getFormattedDateTime } from "../../utils/index.js";
 // endregion
 
 // region create employee
 const createEmployee = async (payload = {}, adminId = null) => {
   try {
+    // extract payload
     const {
       Name = "",
       Email = "",
@@ -18,11 +24,11 @@ const createEmployee = async (payload = {}, adminId = null) => {
       Salary,
       Reporting_Manager,
       Address = {},
-      Joining_date,
+      Joining_Date,
       Employee_Code = "",
     } = payload || {};
 
-    //normalize address
+    // normalize address
     const empAddress = {
       Line1: Address?.line1 || "",
       Line2: Address?.line2 || "",
@@ -31,15 +37,15 @@ const createEmployee = async (payload = {}, adminId = null) => {
       ZipCode: Address?.zipCode || "",
     };
 
-    //create user
+    // create user
     const user = await new User({
       Name: Name || "",
       Email: Email || "",
       Password: Password || "",
       Role: "EMPLOYEE",
-    }).save();
+    })?.save?.();
 
-    //create employee
+    // create employee
     const employee = await new Employee({
       User_Id: user?.User_Id || null,
       Admin_Id: adminId || null,
@@ -49,9 +55,9 @@ const createEmployee = async (payload = {}, adminId = null) => {
       Salary,
       Reporting_Manager,
       Address: empAddress,
-      Joining_date,
+      Joining_Date,
       Employee_Code: Employee_Code || "",
-    }).save();
+    })?.save?.();
 
     return employee || null;
   } catch (err) {
@@ -65,53 +71,51 @@ const getAllEmployees = async (
   limit = 20,
   skip = 0,
   search = "",
-  department = "",
+  department = ""
 ) => {
   try {
+    const safeLimit = Number(limit) || 20;
+    const safeSkip = Number(skip) || 0;
+
+    const matchStage = {
+      Is_Deleted: 0,
+      ...(department && { Department: department }),
+    };
+
+    const userSearchMatch = search
+      ? {
+          $or: [
+            { "user.Name": { $regex: search, $options: "i" } },
+            { "user.Email": { $regex: search, $options: "i" } },
+          ],
+        }
+      : {};
+
     const pipeline = [
       { $match: { Is_Deleted: 0 } },
 
-      //join users
       {
         $lookup: {
           from: "users",
           localField: "User_Id",
           foreignField: "User_Id",
-          pipeline: [
-            { $match: { Is_Deleted: 0, Role: "EMPLOYEE" } },
-            ...(search
-              ? [
-                {
-                  $match: {
-                    $or: [
-                      { Name: { $regex: search, $options: "i" } },
-                      { Email: { $regex: search, $options: "i" } },
-                    ],
-                  },
-                },
-              ]
-              : []),
-            { $project: { Name: 1, Email: 1 } },
-          ],
+          pipeline: [{ $match: { Is_Deleted: 0, Role: "EMPLOYEE" } }],
           as: "user",
         },
       },
       { $unwind: "$user" },
 
-      ...(department ? [{ $match: { Department: department } }] : []),
-
-      { $sort: { Created_At: -1 } },
-
       {
         $facet: {
+          // paginated + filtered data
           employees: [
-            { $skip: skip },
-            { $limit: limit },
+            { $match: { ...matchStage, ...userSearchMatch } },
+            { $sort: { Created_At: -1 } },
+            { $skip: safeSkip },
+            { $limit: safeLimit },
             {
               $project: {
                 Employee_Id: 1,
-                User_Id: 1,
-                Admin_Id: 1,
                 Name: "$user.Name",
                 Email: "$user.Email",
                 Age: 1,
@@ -120,26 +124,37 @@ const getAllEmployees = async (
                 Salary: 1,
                 Reporting_Manager: 1,
                 Address: 1,
-                Joining_date: 1,
+                Joining_Date: 1,
                 Employee_Code: 1,
                 Created_At: 1,
-                Updated_At: 1,
               },
             },
           ],
-          totalCount: [{ $count: "count" }],
+
+          // filtered count
+          filteredCount: [
+            { $match: { ...matchStage, ...userSearchMatch } },
+            { $count: "count" },
+          ],
+
+          // overall count (NO filters)
+          overallCount: [
+            { $match: { Is_Deleted: 0 } },
+            { $count: "count" },
+          ],
         },
       },
     ];
 
-    const result = (await Employee.aggregate(pipeline)) || [];
+    const result = await Employee.aggregate(pipeline);
 
     return {
       employees: result?.[0]?.employees || [],
-      total: result?.[0]?.totalCount?.[0]?.count || 0,
+      filteredTotal: result?.[0]?.filteredCount?.[0]?.count || 0,
+      overallTotal: result?.[0]?.overallCount?.[0]?.count || 0,
     };
   } catch (err) {
-    throw new Error("Error while fetching employees: " + (err?.message || ""));
+    throw new Error("Error while fetching employees: " + err.message);
   }
 };
 // endregion
@@ -147,6 +162,7 @@ const getAllEmployees = async (
 // region get employee by id
 const getEmployeeById = async (id = "") => {
   try {
+    // validate id
     if (!id) {
       return null;
     }
@@ -154,7 +170,7 @@ const getEmployeeById = async (id = "") => {
     const objectId = new mongoose.Types.ObjectId(id);
 
     const result =
-      (await Employee.aggregate([
+      (await Employee?.aggregate?.([
         { $match: { Employee_Id: objectId, Is_Deleted: 0 } },
         {
           $lookup: {
@@ -179,7 +195,7 @@ const getEmployeeById = async (id = "") => {
             Salary: 1,
             Reporting_Manager: 1,
             Address: 1,
-            Joining_date: 1,
+            Joining_Date: 1,
             Employee_Code: 1,
             Created_At: 1,
             Updated_At: 1,
@@ -199,7 +215,10 @@ const getEmployeeById = async (id = "") => {
 // region update employee
 const updateEmployee = async (employeeId = "", payload = {}) => {
   try {
-    if (!employeeId) return null;
+    // validate id
+    if (!employeeId) {
+      return null;
+    }
 
     const ALLOWED_FIELDS = [
       "name",
@@ -211,7 +230,7 @@ const updateEmployee = async (employeeId = "", payload = {}) => {
       "address",
     ];
 
-    Object.keys(payload).forEach((key) => {
+    Object.keys(payload || {}).forEach((key) => {
       if (!ALLOWED_FIELDS.includes(key)) {
         delete payload[key];
       }
@@ -219,21 +238,23 @@ const updateEmployee = async (employeeId = "", payload = {}) => {
 
     const objectId = new mongoose.Types.ObjectId(employeeId);
 
-    const existingEmployee = await Employee.findOne({
+    const existingEmployee = await Employee?.findOne?.({
       Employee_Id: objectId,
       Is_Deleted: 0,
-    }).lean();
+    })?.lean?.();
 
-    if (!existingEmployee) return null;
+    if (!existingEmployee) {
+      return null;
+    }
 
     const { name, age, department, phone, salary, reportingManager, address } =
-      payload;
+      payload || {};
 
-    // Update user
+    // update user
     if (name !== undefined) {
-      await User.findOneAndUpdate(
-        { User_Id: existingEmployee.User_Id, Is_Deleted: 0 },
-        { $set: { Name: name, Updated_At: getFormattedDateTime() } }
+      await User?.findOneAndUpdate?.(
+        { User_Id: existingEmployee?.User_Id || null, Is_Deleted: 0 },
+        { $set: { Name: name || "", Updated_At: getFormattedDateTime() } },
       );
     }
 
@@ -257,14 +278,14 @@ const updateEmployee = async (employeeId = "", payload = {}) => {
       Updated_At: getFormattedDateTime(),
     };
 
-    await Employee.updateOne(
+    await Employee?.updateOne?.(
       { Employee_Id: objectId, Is_Deleted: 0 },
-      { $set: updateFields }
+      { $set: updateFields },
     );
 
     return await getEmployeeById(employeeId);
   } catch (err) {
-    throw new Error("Error while updating employee: " + err.message);
+    throw new Error("Error while updating employee: " + (err?.message || ""));
   }
 };
 // endregion
@@ -272,31 +293,32 @@ const updateEmployee = async (employeeId = "", payload = {}) => {
 // region delete employee
 const deleteEmployee = async (employeeId = "") => {
   try {
+    // validate id
     if (!employeeId) {
       return null;
     }
 
     const objectId = new mongoose.Types.ObjectId(employeeId);
 
-    const employee = await Employee.findOneAndUpdate(
+    const employee = await Employee?.findOneAndUpdate?.(
       { Employee_Id: objectId, Is_Deleted: 0 },
       { $set: { Is_Deleted: 1 } },
       { new: true },
-    ).lean();
+    )?.lean?.();
 
     if (!employee) {
       return null;
     }
 
-    //delete linked user
+    // delete linked user
     if (employee?.User_Id) {
-      await User.findOneAndUpdate(
+      await User?.findOneAndUpdate?.(
         { User_Id: employee?.User_Id || null, Is_Deleted: 0 },
         { $set: { Is_Deleted: 1 } },
       );
     }
 
-    return employee;
+    return employee || null;
   } catch (err) {
     throw new Error("Error while deleting employee: " + (err?.message || ""));
   }
@@ -306,14 +328,15 @@ const deleteEmployee = async (employeeId = "") => {
 // region check if employee code exists
 const isEmployeeCodeExists = async (employeeCode = "") => {
   try {
+    // validate code
     if (!employeeCode) {
       return false;
     }
 
-    const emp = await Employee.findOne({
+    const emp = await Employee?.findOne?.({
       Employee_Code: employeeCode || "",
       Is_Deleted: 0,
-    }).lean();
+    })?.lean?.();
 
     return !!emp;
   } catch (err) {

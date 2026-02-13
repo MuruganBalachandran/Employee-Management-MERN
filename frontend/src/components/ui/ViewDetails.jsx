@@ -3,6 +3,7 @@ import React from "react";
 import { VALID_DEPARTMENTS } from "../../utils/constants";
 // endregion
 
+// region component
 const ViewDetails = ({ data = {}, userRole = "EMPLOYEE" }) => {
   // region helpers
   const SectionHeader = ({ title = "" }) => (
@@ -11,7 +12,7 @@ const ViewDetails = ({ data = {}, userRole = "EMPLOYEE" }) => {
     </h6>
   );
 
-  const Field = ({ label, value }) => (
+  const Field = ({ label = "", value = "" }) => (
     <div className='mb-3'>
       <div className='small text-muted'>{label}</div>
       <div className='fw-semibold'>{value || "—"}</div>
@@ -19,17 +20,21 @@ const ViewDetails = ({ data = {}, userRole = "EMPLOYEE" }) => {
   );
   // endregion
 
+  // region ui
   return (
     <div className='user-view-details'>
-      {/* Basic Details */}
+      {/* basic details */}
       <SectionHeader title='Basic Details' />
+
       <div className='row'>
         <div className='col-md-6'>
           <Field label='Full Name' value={data?.Name || ""} />
         </div>
+
         <div className='col-md-3'>
           <Field label='Age' value={data?.Age || ""} />
         </div>
+
         <div className='col-md-3'>
           <Field label='Phone Number' value={data?.Phone || ""} />
         </div>
@@ -41,12 +46,14 @@ const ViewDetails = ({ data = {}, userRole = "EMPLOYEE" }) => {
         </div>
       </div>
 
-      {/* Address Details */}
+      {/* address details */}
       <SectionHeader title='Address Details' />
+
       <div className='row'>
         <div className='col-md-6'>
           <Field label='Address Line 1' value={data?.Address?.Line1 || ""} />
         </div>
+
         <div className='col-md-6'>
           <Field label='Address Line 2' value={data?.Address?.Line2 || ""} />
         </div>
@@ -56,16 +63,19 @@ const ViewDetails = ({ data = {}, userRole = "EMPLOYEE" }) => {
         <div className='col-md-4'>
           <Field label='City' value={data?.Address?.City || ""} />
         </div>
+
         <div className='col-md-4'>
           <Field label='State' value={data?.Address?.State || ""} />
         </div>
+
         <div className='col-md-4'>
           <Field label='Zip Code' value={data?.Address?.ZipCode || ""} />
         </div>
       </div>
 
-      {/* HR Details */}
+      {/* hr details */}
       <SectionHeader title='HR Details' />
+
       <div className='row'>
         <div className='col-md-4'>
           <Field
@@ -92,6 +102,7 @@ const ViewDetails = ({ data = {}, userRole = "EMPLOYEE" }) => {
           <div className='col-md-4'>
             <Field label='Department' value={data?.Department || ""} />
           </div>
+
           <div className='col-md-8'>
             <Field
               label='Reporting Manager'
@@ -102,6 +113,10 @@ const ViewDetails = ({ data = {}, userRole = "EMPLOYEE" }) => {
       )}
     </div>
   );
+  // endregion
 };
+// endregion
 
+// region exports
 export default ViewDetails;
+// endregion
