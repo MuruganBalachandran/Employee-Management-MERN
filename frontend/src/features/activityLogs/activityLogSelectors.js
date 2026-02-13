@@ -17,3 +17,6 @@ export const selectActivityLogsPagination = (state) => ({
 export const selectActivityLogsLoading = (state) => state.activityLog?.loading || false;
 
 export const selectActivityLogsError = (state) => state.activityLog?.error || null;
+
+export const selectActivityLogsOverallTotal = (state) =>
+  state.activityLog?.overallTotal || 0;

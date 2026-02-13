@@ -199,9 +199,23 @@ const getEmployeeById = async (id = "") => {
 // region update employee
 const updateEmployee = async (employeeId = "", payload = {}) => {
   try {
-    if (!employeeId) {
-      return null;
-    }
+    if (!employeeId) return null;
+
+    const ALLOWED_FIELDS = [
+      "name",
+      "age",
+      "department",
+      "phone",
+      "salary",
+      "reportingManager",
+      "address",
+    ];
+
+    Object.keys(payload).forEach((key) => {
+      if (!ALLOWED_FIELDS.includes(key)) {
+        delete payload[key];
+      }
+    });
 
     const objectId = new mongoose.Types.ObjectId(employeeId);
 
@@ -210,27 +224,19 @@ const updateEmployee = async (employeeId = "", payload = {}) => {
       Is_Deleted: 0,
     }).lean();
 
-    if (!existingEmployee) {
-      return null;
-    }
+    if (!existingEmployee) return null;
 
     const { name, age, department, phone, salary, reportingManager, address } =
-      payload || {};
+      payload;
 
-    //update user name
+    // Update user
     if (name !== undefined) {
       await User.findOneAndUpdate(
-        { User_Id: existingEmployee?.User_Id || null, Is_Deleted: 0 },
-        {
-          $set: {
-            Name: name,
-            Updated_At: getFormattedDateTime(),
-          },
-        },
+        { User_Id: existingEmployee.User_Id, Is_Deleted: 0 },
+        { $set: { Name: name, Updated_At: getFormattedDateTime() } }
       );
     }
 
-    //prepare update fields
     const updateFields = {
       ...(age !== undefined && { Age: age }),
       ...(department !== undefined && { Department: department }),
@@ -239,17 +245,26 @@ const updateEmployee = async (employeeId = "", payload = {}) => {
       ...(reportingManager !== undefined && {
         Reporting_Manager: reportingManager,
       }),
-      ...(address !== undefined && { Address: address }),
+      ...(address !== undefined && {
+        Address: {
+          Line1: address?.line1 || "",
+          Line2: address?.line2 || "",
+          City: address?.city || "",
+          State: address?.state || "",
+          ZipCode: address?.zipCode || "",
+        },
+      }),
       Updated_At: getFormattedDateTime(),
     };
 
-    return await Employee.findOneAndUpdate(
+    await Employee.updateOne(
       { Employee_Id: objectId, Is_Deleted: 0 },
-      { $set: updateFields },
-      { new: true },
-    ).lean();
+      { $set: updateFields }
+    );
+
+    return await getEmployeeById(employeeId);
   } catch (err) {
-    throw new Error("Error while updating employee: " + (err?.message || ""));
+    throw new Error("Error while updating employee: " + err.message);
   }
 };
 // endregion

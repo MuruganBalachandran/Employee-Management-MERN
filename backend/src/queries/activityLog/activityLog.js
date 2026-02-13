@@ -38,65 +38,88 @@ const createActivityLog = async (payload = {}) => {
     );
   }
 };
-// region fetch activity logs
+
+// region get activity logs
 const getActivityLogs = async (limit = 10, skip = 0, search = "") => {
   try {
-    //build match
-    const match = { Is_Deleted: 0 };
+    const baseMatch = { Is_Deleted: 0 };
 
-    if (search) {
-      match.$or = [
-        { Activity: { $regex: search, $options: "i" } },
-        { Email: { $regex: search, $options: "i" } },
-        { Action: { $regex: search, $options: "i" } },
-        { URL: { $regex: search, $options: "i" } },
-      ];
-    }
+    const searchMatch = search
+      ? {
+          $or: [
+            { Activity: { $regex: search, $options: "i" } },
+            { Email: { $regex: search, $options: "i" } },
+            { Action: { $regex: search, $options: "i" } },
+            { URL: { $regex: search, $options: "i" } },
+          ],
+        }
+      : {};
 
-    //aggregation pipeline
     const pipeline = [
-      { $match: match },
-      { $sort: { Created_At: -1 } },
-      {
-        $project: {
-          _id: 0,
-          Log_Id: 1,
-          Activity: 1,
-          Method: "$Action",
-          URL: 1,
-          Status: 1,
-          Email: 1,
-          IP: 1,
-          Duration: 1,
-          Created_At: 1,
-        },
-      },
       {
         $facet: {
-          logs: [{ $skip: skip || 0 }, { $limit: limit || 10 }],
-          totalCount: [{ $count: "count" }],
+          //  Logs (filtered)
+          logs: [
+            { $match: { ...baseMatch, ...searchMatch } },
+            { $sort: { Created_At: -1 } },
+            { $skip: skip || 0 },
+            { $limit: limit || 10 },
+            {
+              $project: {
+                _id: 0,
+                Log_Id: 1,
+                Activity: 1,
+                Method: "$Action",
+                URL: 1,
+                Status: 1,
+                Email: 1,
+                IP: 1,
+                Duration: 1,
+                Created_At: 1,
+              },
+            },
+          ],
+
+          //  Filtered count
+          filteredCount: [
+            { $match: { ...baseMatch, ...searchMatch } },
+            { $count: "count" },
+          ],
+
+          //  Overall count (NO SEARCH)
+          overallCount: [
+            { $match: baseMatch },
+            { $count: "count" },
+          ],
         },
       },
     ];
 
-    const result = (await ActivityLog.aggregate(pipeline)) || [];
+    const result = await ActivityLog.aggregate(pipeline);
 
     const logs = result?.[0]?.logs || [];
-    const total = result?.[0]?.totalCount?.[0]?.count || 0;
+    const filteredTotal =
+      result?.[0]?.filteredCount?.[0]?.count || 0;
+    const overallTotal =
+      result?.[0]?.overallCount?.[0]?.count || 0;
 
     return {
       logs,
-      total,
-      skip: skip || 0,
-      limit: limit || 10,
-      currentPage: Math.floor((skip || 0) / (limit || 10)) + 1,
-      totalPages: Math.ceil(total / (limit || 10)),
+      total: filteredTotal,        // filtered
+      overallTotal,                // real DB total
+      skip,
+      limit,
+      currentPage: Math.floor(skip / limit) + 1,
+      totalPages: Math.ceil(filteredTotal / limit),
     };
   } catch (err) {
-    throw new Error("Error fetching activity logs: " + (err?.message || ""));
+    throw new Error(
+      "Error fetching activity logs: " + (err?.message || "")
+    );
   }
 };
 // endregion
+
 
 // region delete activity log by id
 const deleteActivityLog = async (logId = "") => {

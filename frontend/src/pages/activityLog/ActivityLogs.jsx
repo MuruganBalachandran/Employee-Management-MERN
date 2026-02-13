@@ -11,6 +11,7 @@ import {
   selectActivityLogs,
   selectActivityLogsPagination,
   selectActivityLogsLoading,
+  selectActivityLogsTotal, 
 } from "../../features";
 // endregion
 
@@ -20,7 +21,10 @@ const ActivityLogs = () => {
   const dispatch = useDispatch();
   const logs = useSelector(selectActivityLogs);
   const loading = useSelector(selectActivityLogsLoading);
-  const { page, totalPages } = useSelector(selectActivityLogsPagination);
+const { page, totalPages } = useSelector(selectActivityLogsPagination);
+const totalCount = useSelector(selectActivityLogsTotal);
+const hasAnyDataInDB = totalCount > 0;
+
   // endregion
 
   // region local state
@@ -66,7 +70,7 @@ const ActivityLogs = () => {
 
   // region ui
   return (
-    <div className='py-4'>
+    <div className='py-2'>
       {/* Page Header */}
       <div className='mb-4 pb-3 border-bottom'>
         <div className='d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3'>
@@ -83,7 +87,6 @@ const ActivityLogs = () => {
             onClick={handleRefresh}
             disabled={loading}
             title="Refresh Logs"
-            style={{ width: "38px", height: "38px" }}
           >
             <FaSyncAlt className={loading ? 'fa-spin' : ''} size={14} />
           </button>

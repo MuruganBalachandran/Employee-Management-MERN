@@ -42,6 +42,7 @@ export const removeActivityLog = createAsyncThunk(
 const initialState = {
   list: [],
   total: 0,
+  overallTotal: 0,   // actual DB total
   skip: 0,
   limit: 10,
   currentPage: 1,
@@ -70,7 +71,10 @@ const activityLogSlice = createSlice({
       .addCase(getActivityLogs.fulfilled, (state, action) => {
         const payload = action.payload || {};
         state.list = payload.logs || [];
-        state.total = payload.total || 0;
+       state.total = payload.total || 0;
+state.overallTotal = payload.overallTotal || payload.total || 0;
+
+
         state.skip = payload.skip || 0;
         state.limit = payload.limit || 10;
         state.currentPage = payload.currentPage || 1;

@@ -4,17 +4,7 @@ import { FaTimes } from "react-icons/fa";
 import { Offcanvas } from "bootstrap";
 // endregion
 
-/**
- * Canvas - A reusable Bootstrap Offcanvas component
- * 
- * @param {Boolean} show - Whether to show the canvas
- * @param {Function} onClose - Callback when canvas is closed
- * @param {String} title - Header title
- * @param {ReactNode} children - Body content
- * @param {ReactNode} footer - Optional footer content
- * @param {String} placement - start, end, top, bottom
- * @param {String} size - sm, md, lg, xl (custom sizes if needed)
- */
+//reusable Bootstrap Offcanvas component
 const Canvas = ({
   show = false,
   onClose = () => {},
@@ -31,8 +21,8 @@ const Canvas = ({
   useEffect(() => {
     if (canvasRef.current) {
       bsCanvas.current = new Offcanvas(canvasRef.current);
-      
-      canvasRef.current.addEventListener('hidden.bs.offcanvas', () => {
+
+      canvasRef.current.addEventListener("hidden.bs.offcanvas", () => {
         onClose();
       });
     }
@@ -84,14 +74,10 @@ const Canvas = ({
         </button>
       </div>
 
-      <div className='offcanvas-body h-100 py-4'>
-        {children}
-      </div>
+      <div className='offcanvas-body h-100 py-4'>{children}</div>
 
       {footer && (
-        <div className='offcanvas-footer border-top p-3 bg-light'>
-          {footer}
-        </div>
+        <div className='offcanvas-footer border-top p-3 bg-light'>{footer}</div>
       )}
     </div>
   );

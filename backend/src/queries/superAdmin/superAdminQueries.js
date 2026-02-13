@@ -7,13 +7,11 @@ import { getFormattedDateTime, ROLE } from "../../utils/index.js";
 // region create admin
 const createAdmin = async (payload = {}) => {
   try {
-    //extract payload
     const {
       Name = "",
       Email = "",
       Password = "",
       Age,
-      Department,
       Phone,
       Salary,
       Address = {},
@@ -21,7 +19,7 @@ const createAdmin = async (payload = {}) => {
       Admin_Code = "",
     } = payload || {};
 
-    //create user
+    // create user
     const user = await new User({
       Name: Name || "",
       Email: Email || "",
@@ -29,7 +27,7 @@ const createAdmin = async (payload = {}) => {
       Role: ROLE?.ADMIN || "ADMIN",
     }).save();
 
-    //normalize address
+    // normalize address
     const adminAddress = {
       Line1: Address?.line1 || "",
       Line2: Address?.line2 || "",
@@ -38,16 +36,16 @@ const createAdmin = async (payload = {}) => {
       ZipCode: Address?.zipCode || "",
     };
 
-    //create admin profile
+    // create admin profile
     const admin = await new Admin({
       User_Id: user?.User_Id || null,
       Age,
-      Department,
       Phone,
       Salary,
       Address: adminAddress,
       Joining_Date,
       Admin_Code: Admin_Code || "",
+      Permissions: "GRANTED", // ✅ default permission
     }).save();
 
     return admin || null;
@@ -62,11 +60,9 @@ const createAdmin = async (payload = {}) => {
 // region get all admins
 const getAllAdmins = async (limit = 20, skip = 0, search = "") => {
   try {
-    //build pipeline
     const pipeline = [
       { $match: { Is_Deleted: 0 } },
 
-      //join users
       {
         $lookup: {
           from: "users",
@@ -79,11 +75,11 @@ const getAllAdmins = async (limit = 20, skip = 0, search = "") => {
                 Is_Deleted: 0,
                 ...(search
                   ? {
-                    $or: [
-                      { Name: { $regex: search, $options: "i" } },
-                      { Email: { $regex: search, $options: "i" } },
-                    ],
-                  }
+                      $or: [
+                        { Name: { $regex: search, $options: "i" } },
+                        { Email: { $regex: search, $options: "i" } },
+                      ],
+                    }
                   : {}),
               },
             },
@@ -95,7 +91,6 @@ const getAllAdmins = async (limit = 20, skip = 0, search = "") => {
       { $unwind: "$user" },
       { $sort: { Created_At: -1 } },
 
-      //paginate and project
       {
         $facet: {
           admins: [
@@ -106,7 +101,6 @@ const getAllAdmins = async (limit = 20, skip = 0, search = "") => {
                 Admin_Id: 1,
                 User_Id: 1,
                 Age: 1,
-                Department: 1,
                 Phone: 1,
                 Salary: 1,
                 Address: 1,
@@ -129,7 +123,6 @@ const getAllAdmins = async (limit = 20, skip = 0, search = "") => {
 
     const result = (await Admin.aggregate(pipeline)) || [];
 
-    //return response
     return {
       admins: result?.[0]?.admins || [],
       total: result?.[0]?.totalCount?.[0]?.count || 0,
@@ -145,10 +138,7 @@ const getAllAdmins = async (limit = 20, skip = 0, search = "") => {
 // region get admin by id
 const getAdminById = async (id = "") => {
   try {
-    //validate id
-    if (!id) {
-      return null;
-    }
+    if (!id) return null;
 
     const objectId = new mongoose.Types.ObjectId(id);
 
@@ -156,7 +146,6 @@ const getAdminById = async (id = "") => {
       (await Admin.aggregate([
         { $match: { Admin_Id: objectId, Is_Deleted: 0 } },
 
-        //join user
         {
           $lookup: {
             from: "users",
@@ -169,13 +158,11 @@ const getAdminById = async (id = "") => {
 
         { $unwind: "$user" },
 
-        //project fields
         {
           $project: {
             Admin_Id: 1,
             User_Id: 1,
             Age: 1,
-            Department: 1,
             Phone: 1,
             Salary: 1,
             Address: 1,
@@ -204,25 +191,18 @@ const getAdminById = async (id = "") => {
 // region delete admin
 const deleteAdmin = async (adminId = "") => {
   try {
-    //validate id
-    if (!adminId) {
-      return null;
-    }
+    if (!adminId) return null;
 
     const objectId = new mongoose.Types.ObjectId(adminId);
 
-    //soft delete admin
     const doc = await Admin.findOneAndUpdate(
       { Admin_Id: objectId, Is_Deleted: 0 },
       { $set: { Is_Deleted: 1 } },
       { new: true },
     ).lean();
 
-    if (!doc) {
-      return null;
-    }
+    if (!doc) return null;
 
-    //soft delete user
     if (doc?.User_Id) {
       await User.findOneAndUpdate(
         { User_Id: doc?.User_Id || null, Is_Deleted: 0 },
@@ -242,10 +222,7 @@ const deleteAdmin = async (adminId = "") => {
 // region update admin details
 const updateAdminDetails = async (adminId = "", payload = {}) => {
   try {
-    //validate id
-    if (!adminId) {
-      return null;
-    }
+    if (!adminId) return null;
 
     const objectId = new mongoose.Types.ObjectId(adminId);
 
@@ -254,15 +231,11 @@ const updateAdminDetails = async (adminId = "", payload = {}) => {
       Is_Deleted: 0,
     }).lean();
 
-    if (!existingAdmin) {
-      return null;
-    }
+    if (!existingAdmin) return null;
 
-    //extract fields
-    const { name, age, department, phone, salary, address, isActive, permissions } =
-      payload || {};
+    const { name, age, phone, salary, address, isActive } = payload || {};
 
-    //update user name
+    // update user name
     if (name !== undefined) {
       await User.findOneAndUpdate(
         { User_Id: existingAdmin?.User_Id || null, Is_Deleted: 0 },
@@ -275,25 +248,22 @@ const updateAdminDetails = async (adminId = "", payload = {}) => {
       );
     }
 
-    //prepare update fields
     const updateFields = {
       ...(age !== undefined && { Age: age }),
-      ...(department !== undefined && { Department: department }),
       ...(phone !== undefined && { Phone: phone }),
       ...(salary !== undefined && { Salary: salary }),
       ...(address !== undefined && { Address: address }),
       ...(isActive !== undefined && { Is_Active: isActive }),
-      ...(permissions !== undefined && { Permissions: permissions }),
       Updated_At: getFormattedDateTime(),
     };
 
-    const updatedAdmin = await Admin.findOneAndUpdate(
+    await Admin.findOneAndUpdate(
       { Admin_Id: objectId, Is_Deleted: 0 },
       { $set: updateFields },
-      { new: true },
-    ).lean();
+    );
 
-    return updatedAdmin || null;
+    // ✅ return full admin object
+    return await getAdminById(adminId);
   } catch (err) {
     throw new Error(
       "Error while performing update admin: " + (err?.message || ""),
@@ -305,10 +275,7 @@ const updateAdminDetails = async (adminId = "", payload = {}) => {
 // region update admin permission
 const updateAdminPermission = async (adminId = "", permission = "") => {
   try {
-    //validate inputs
-    if (!adminId) {
-      return null;
-    }
+    if (!adminId) return null;
 
     const objectId = new mongoose.Types.ObjectId(adminId);
 
@@ -335,9 +302,7 @@ const updateAdminPermission = async (adminId = "", permission = "") => {
 // region check if admin code exists
 const isAdminCodeExists = async (adminCode = "") => {
   try {
-    if (!adminCode) {
-      return false;
-    }
+    if (!adminCode) return false;
 
     const admin = await Admin.findOne({
       Admin_Code: adminCode || "",
@@ -346,14 +311,10 @@ const isAdminCodeExists = async (adminCode = "") => {
 
     return !!admin;
   } catch (err) {
-    throw new Error(
-      "Error while checking admin code: " + (err?.message || ""),
-    );
+    throw new Error("Error while checking admin code: " + (err?.message || ""));
   }
 };
 // endregion
-
-
 
 // region exports
 export {
@@ -364,6 +325,5 @@ export {
   updateAdminDetails,
   updateAdminPermission,
   isAdminCodeExists,
-
 };
 // endregion

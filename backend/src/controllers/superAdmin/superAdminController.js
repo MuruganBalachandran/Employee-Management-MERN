@@ -108,7 +108,6 @@ const getAdmin = async (req = {}, res = {}, next) => {
 // region create admin
 const createNewAdmin = async (req = {}, res = {}, next) => {
   try {
-    //validate request body
     const validation = validateCreateAdmin(req?.body || {});
     if (!validation?.isValid) {
       return sendResponse(
@@ -119,13 +118,11 @@ const createNewAdmin = async (req = {}, res = {}, next) => {
       );
     }
 
-    //extract fields
     const {
       name = "",
       email = "",
       password = "",
       age = "",
-      department = "",
       phone = "",
       salary = "",
       address = {},
@@ -133,7 +130,6 @@ const createNewAdmin = async (req = {}, res = {}, next) => {
       adminCode = "",
     } = req?.body || {};
 
-    //check duplicate email
     if (await isEmailExists(email)) {
       return sendResponse(
         res,
@@ -143,7 +139,6 @@ const createNewAdmin = async (req = {}, res = {}, next) => {
       );
     }
 
-    //check duplicate admin code
     if (await isAdminCodeExists(adminCode)) {
       return sendResponse(
         res,
@@ -153,7 +148,6 @@ const createNewAdmin = async (req = {}, res = {}, next) => {
       );
     }
 
-    //normalize address
     const cleanAddress = {
       line1: address?.line1 || "",
       line2: address?.line2 || "",
@@ -162,13 +156,12 @@ const createNewAdmin = async (req = {}, res = {}, next) => {
       zipCode: address?.zipCode || "",
     };
 
-    //create admin
+    // 🔑 Permissions will default to GRANTED at DB level
     const admin = await createAdmin({
       Name: name?.trim() || "",
       Email: email?.trim()?.toLowerCase() || "",
       Password: password || "",
       Age: age,
-      Department: department,
       Phone: phone,
       Salary: salary,
       Address: cleanAddress,
@@ -176,7 +169,6 @@ const createNewAdmin = async (req = {}, res = {}, next) => {
       Admin_Code: adminCode || "",
     });
 
-    //send response
     return sendResponse(
       res,
       STATUS_CODE?.OK || 200,
@@ -190,6 +182,76 @@ const createNewAdmin = async (req = {}, res = {}, next) => {
   }
 };
 // endregion
+// region update admin
+const updateAdmin = async (req = {}, res = {}, next) => {
+  try {
+    const { id = "" } = req?.params || {};
+
+    const idError = validateObjectId(id);
+    if (idError) {
+      return sendResponse(
+        res,
+        STATUS_CODE?.BAD_REQUEST || 400,
+        RESPONSE_STATUS?.FAILURE || "FAILURE",
+        idError,
+      );
+    }
+
+    const validation = validateUpdateAdmin(req?.body || {});
+    if (!validation?.isValid) {
+      return sendResponse(
+        res,
+        STATUS_CODE?.BAD_REQUEST || 400,
+        RESPONSE_STATUS?.FAILURE || "FAILURE",
+        validation?.error || "Invalid input",
+      );
+    }
+
+    const {
+      name,
+      age,
+      phone,
+      salary,
+      address,
+      isActive,
+    } = req?.body || {};
+
+    // 🔑 explicit editable fields ONLY
+    const payload = {
+      ...(name !== undefined && { name }),
+      ...(age !== undefined && { age }),
+      ...(phone !== undefined && { phone }),
+      ...(salary !== undefined && { salary }),
+      ...(address !== undefined && { address }),
+      ...(isActive !== undefined && { isActive }),
+    };
+
+    const result = await updateAdminDetails(id, payload);
+
+    if (!result) {
+      return sendResponse(
+        res,
+        STATUS_CODE?.NOT_FOUND || 404,
+        RESPONSE_STATUS?.FAILURE || "FAILURE",
+        "Admin not found",
+      );
+    }
+
+    return sendResponse(
+      res,
+      STATUS_CODE?.OK || 200,
+      RESPONSE_STATUS?.SUCCESS || "SUCCESS",
+      "Admin updated successfully",
+      result,
+    );
+  } catch (err) {
+    console.error("Error updating admin:", err);
+    next(err);
+  }
+};
+// endregion
+
+
 
 // region delete admin
 const removeAdmin = async (req = {}, res = {}, next) => {
@@ -232,59 +294,7 @@ const removeAdmin = async (req = {}, res = {}, next) => {
 };
 // endregion
 
-// region update admin
-const updateAdmin = async (req = {}, res = {}, next) => {
-  try {
-    const { id = "" } = req?.params || {};
 
-    //validate id
-    const idError = validateObjectId(id);
-    if (idError) {
-      return sendResponse(
-        res,
-        STATUS_CODE?.BAD_REQUEST || 400,
-        RESPONSE_STATUS?.FAILURE || "FAILURE",
-        idError,
-      );
-    }
-
-    //validate request body
-    const validation = validateUpdateAdmin(req?.body || {});
-    if (!validation?.isValid) {
-      return sendResponse(
-        res,
-        STATUS_CODE?.BAD_REQUEST || 400,
-        RESPONSE_STATUS?.FAILURE || "FAILURE",
-        validation?.error || "Invalid input",
-      );
-    }
-
-    //update admin
-    const result = (await updateAdminDetails(id, req?.body || {})) || null;
-
-    if (!result) {
-      return sendResponse(
-        res,
-        STATUS_CODE?.NOT_FOUND || 404,
-        RESPONSE_STATUS?.FAILURE || "FAILURE",
-        "Admin not found",
-      );
-    }
-
-    //send response
-    return sendResponse(
-      res,
-      STATUS_CODE?.OK || 200,
-      RESPONSE_STATUS?.SUCCESS || "SUCCESS",
-      "Admin updated successfully",
-      result,
-    );
-  } catch (err) {
-    console.error("Error updating admin:", err);
-    next(err);
-  }
-};
-// endregion
 
 // region change permission
 const changePermission = async (req = {}, res = {}, next) => {

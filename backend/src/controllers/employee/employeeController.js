@@ -203,66 +203,79 @@ const updateEmployeeDetails = async (req = {}, res = {}, next) => {
   try {
     const { id = "" } = req?.params || {};
 
-    //validate id
+    // validate id
     const idError = validateObjectId(id);
     if (idError) {
-      return sendResponse(
-        res,
-        STATUS_CODE?.BAD_REQUEST || 400,
-        RESPONSE_STATUS?.FAILURE || "FAILURE",
-        idError,
-      );
+      return sendResponse(res, 400, "FAILURE", idError);
     }
 
-    //validate request body
+    // validate body
     const validation = validateUpdateEmployee(req?.body || {});
     if (!validation?.isValid) {
-      return sendResponse(
-        res,
-        STATUS_CODE?.BAD_REQUEST || 400,
-        RESPONSE_STATUS?.FAILURE || "FAILURE",
-        validation?.error || "Invalid input",
-      );
+      return sendResponse(res, 400, "FAILURE", validation?.error);
     }
 
-    //prepare payload
-    const { name, age, department, phone, salary, reportingManager, address } =
-      req?.body || {};
+    const {
+      name,
+      age,
+      department,
+      phone,
+      salary,
+      reportingManager,
+      address,
+    } = req.body || {};
 
+    // normalize address (same as create)
+    const cleanAddress =
+      address !== undefined
+        ? {
+            line1: address?.line1 || "",
+            line2: address?.line2 || "",
+            city: address?.city || "",
+            state: address?.state || "",
+            zipCode: address?.zipCode || "",
+          }
+        : undefined;
+
+    // prepare payload (same pattern as create)
     const payload = {
-      ...(name !== undefined && { name }),
+      ...(name !== undefined && { name: name.trim() }),
       ...(age !== undefined && { age }),
       ...(department !== undefined && { department }),
       ...(phone !== undefined && { phone }),
       ...(salary !== undefined && { salary }),
       ...(reportingManager !== undefined && { reportingManager }),
-      ...(address !== undefined && { address }),
+      ...(cleanAddress !== undefined && { address: cleanAddress }),
     };
 
-    //update employee
-    const result = (await updateEmployee(id, payload)) || null;
-    if (!result) {
+    // prevent empty update
+    if (!Object.keys(payload).length) {
       return sendResponse(
         res,
-        STATUS_CODE?.NOT_FOUND || 404,
-        RESPONSE_STATUS?.FAILURE || "FAILURE",
-        "Employee not found",
+        400,
+        "FAILURE",
+        "No valid fields provided for update"
       );
     }
 
-    //send response
+    const result = await updateEmployee(id, payload);
+    if (!result) {
+      return sendResponse(res, 404, "FAILURE", "Employee not found");
+    }
+
     return sendResponse(
       res,
-      STATUS_CODE?.OK || 200,
-      RESPONSE_STATUS?.SUCCESS || "SUCCESS",
+      200,
+      "SUCCESS",
       "Employee updated successfully",
-      result,
+      result
     );
   } catch (err) {
     console.error("Error updating employee:", err);
     next(err);
   }
 };
+
 // endregion
 
 // region delete employee
